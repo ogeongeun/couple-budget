@@ -40,7 +40,7 @@ h1 {
   line-height: 1.6;
 }
 
-.micButton {
+.recordButton {
   width: 100%;
   height: 56px;
   border: 0;
@@ -48,17 +48,21 @@ h1 {
   background: #222;
   color: white;
   cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    opacity 0.15s ease;
 }
 
-.micButton:active {
+.recordButton:active {
   transform: scale(0.98);
 }
 
-.micButton.listening {
+.recordButton.recording {
   background: #d94b4b;
+}
+
+.timer {
+  margin: 14px 0 0;
+  color: #d94b4b;
+  font-weight: 700;
+  text-align: center;
 }
 
 .message {
@@ -70,7 +74,7 @@ h1 {
 }
 
 .result {
-  min-height: 140px;
+  min-height: 150px;
   padding: 20px;
   border-radius: 16px;
   background: white;
@@ -79,8 +83,17 @@ h1 {
 
 .result p {
   margin: 16px 0 0;
+  color: #666;
   line-height: 1.6;
-  word-break: keep-all;
+}
+
+.audioPlayer {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.successMessage {
+  font-size: 14px;
 }
 
 .resetButton {
@@ -98,7 +111,7 @@ h1 {
   padding: 18px;
   border: 1px solid #e5e5e5;
   border-radius: 14px;
-  background: #fff;
+  background: white;
   color: #555;
   font-size: 14px;
   line-height: 1.6;

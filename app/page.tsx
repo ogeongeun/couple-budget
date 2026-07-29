@@ -1,206 +1,269 @@
 "use client";
 
-import { useRef, useState } from "react";
-
-interface SpeechRecognitionAlternativeLike {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognitionResultLike {
-  [index: number]: SpeechRecognitionAlternativeLike;
-  length: number;
-  isFinal: boolean;
-}
-
-interface SpeechRecognitionEventLike extends Event {
-  results: {
-    [index: number]: SpeechRecognitionResultLike;
-    length: number;
-  };
-}
-
-interface SpeechRecognitionErrorEventLike extends Event {
-  error: string;
-  message?: string;
-}
-
-interface SpeechRecognitionLike {
-  lang: string;
-  interimResults: boolean;
-  continuous: boolean;
-  maxAlternatives: number;
-
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-
-  onstart: (() => void) | null;
-  onend: (() => void) | null;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  }
-}
-
-const errorMessages: Record<string, string> = {
-  "not-allowed": "마이크 또는 음성인식 권한이 거부됐어요.",
-  "service-not-allowed": "아이폰에서 음성인식 서비스를 사용할 수 없어요.",
-  "audio-capture": "마이크 입력을 사용할 수 없어요.",
-  "no-speech": "음성이 감지되지 않았어요. 조금 더 크게 말해주세요.",
-  network: "음성인식 서버 연결에 실패했어요.",
-  aborted: "음성인식이 중단됐어요.",
-  "language-not-supported": "한국어 음성인식을 지원하지 않는 환경이에요.",
-};
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
-  const [text, setText] = useState("");
-  const [isListening, setIsListening] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
   const [message, setMessage] = useState(
-    "마이크 버튼을 누르고 지출 내용을 말해보세요.",
+    "녹음 시작 버튼을 누르고 말해보세요.",
   );
+  const [recordingTime, setRecordingTime] = useState(0);
 
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const startListening = () => {
-    if (typeof window === "undefined") {
+  useEffect(() => {
+    return () => {
+      stopMediaTracks();
+
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+
+  const stopMediaTracks = () => {
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    mediaStreamRef.current = null;
+  };
+
+  const getSupportedMimeType = () => {
+    const mimeTypes = [
+      "audio/mp4",
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/ogg;codecs=opus",
+    ];
+
+    return (
+      mimeTypes.find((type) => MediaRecorder.isTypeSupported(type)) ?? ""
+    );
+  };
+
+  const startRecording = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMessage("이 브라우저에서는 마이크 녹음을 지원하지 않아요.");
       return;
     }
 
-    const SpeechRecognition =
-      window.SpeechRecognition ?? window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setMessage(
-        "이 브라우저는 음성인식을 지원하지 않아요. 아이폰 Safari에서 열어주세요.",
-      );
+    if (typeof MediaRecorder === "undefined") {
+      setMessage("이 브라우저에서는 녹음 기능을 지원하지 않아요.");
       return;
     }
-
-    // 이전 음성인식이 남아 있다면 종료
-    recognitionRef.current?.abort();
-
-    const recognition = new SpeechRecognition();
-    let receivedResult = false;
-    let receivedError = false;
-
-    recognition.lang = "ko-KR";
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setText("");
-      setMessage("듣고 있어요. 지금 말해주세요.");
-    };
-
-    recognition.onresult = (event) => {
-      const firstResult = event.results[0];
-      const firstAlternative = firstResult?.[0];
-      const transcript = firstAlternative?.transcript?.trim();
-
-      if (!transcript) {
-        return;
-      }
-
-      receivedResult = true;
-      setText(transcript);
-      setMessage("음성인식이 완료됐어요.");
-    };
-
-    recognition.onerror = (event) => {
-      receivedError = true;
-
-      console.error("음성인식 오류:", {
-        error: event.error,
-        message: event.message,
-      });
-
-      setMessage(
-        errorMessages[event.error] ?? `음성인식 오류: ${event.error}`,
-      );
-
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
-
-      if (!receivedResult && !receivedError) {
-        setMessage(
-          "인식 결과가 없어요. Safari에서 다시 누르고 조금 더 크게 말해주세요.",
-        );
-      }
-    };
-
-    recognitionRef.current = recognition;
 
     try {
-      recognition.start();
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        setAudioUrl("");
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      mediaStreamRef.current = stream;
+      audioChunksRef.current = [];
+
+      const mimeType = getSupportedMimeType();
+
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+
+      mediaRecorderRef.current = recorder;
+
+      recorder.onstart = () => {
+        setIsRecording(true);
+        setRecordingTime(0);
+        setMessage("녹음 중이에요. 말을 끝낸 뒤 녹음 종료를 눌러주세요.");
+
+        timerRef.current = setInterval(() => {
+          setRecordingTime((previous) => previous + 1);
+        }, 1000);
+      };
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onerror = (event) => {
+        console.error("녹음 오류:", event);
+        setMessage("녹음 중 오류가 발생했어요.");
+        setIsRecording(false);
+        stopMediaTracks();
+      };
+
+      recorder.onstop = () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+
+        const recordedType =
+          recorder.mimeType || mimeType || "audio/webm";
+
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: recordedType,
+        });
+
+        console.log("녹음 결과:", {
+          size: audioBlob.size,
+          type: audioBlob.type,
+        });
+
+        if (audioBlob.size === 0) {
+          setMessage("녹음 파일이 비어 있어요. 다시 시도해주세요.");
+          setIsRecording(false);
+          stopMediaTracks();
+          return;
+        }
+
+        const newAudioUrl = URL.createObjectURL(audioBlob);
+
+        setAudioUrl(newAudioUrl);
+        setIsRecording(false);
+        setMessage(
+          `녹음이 완료됐어요. 파일 크기: ${Math.ceil(
+            audioBlob.size / 1024,
+          )}KB`,
+        );
+
+        stopMediaTracks();
+      };
+
+      recorder.start();
     } catch (error) {
-      console.error("음성인식 시작 실패:", error);
-      setIsListening(false);
-      setMessage("음성인식을 시작하지 못했어요. 잠시 후 다시 눌러주세요.");
+      console.error("마이크 실행 오류:", error);
+
+      if (error instanceof DOMException) {
+        if (
+          error.name === "NotAllowedError" ||
+          error.name === "PermissionDeniedError"
+        ) {
+          setMessage("마이크 권한이 거부됐어요. 브라우저 설정에서 허용해주세요.");
+        } else if (error.name === "NotFoundError") {
+          setMessage("사용할 수 있는 마이크를 찾지 못했어요.");
+        } else if (error.name === "NotReadableError") {
+          setMessage("다른 프로그램이 마이크를 사용하고 있을 수 있어요.");
+        } else {
+          setMessage(`마이크 오류: ${error.name}`);
+        }
+      } else {
+        setMessage("마이크를 실행하지 못했어요.");
+      }
+
+      setIsRecording(false);
+      stopMediaTracks();
     }
   };
 
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-    setMessage("음성인식을 종료하고 있어요.");
+  const stopRecording = () => {
+    const recorder = mediaRecorderRef.current;
+
+    if (!recorder || recorder.state === "inactive") {
+      return;
+    }
+
+    setMessage("녹음 파일을 만들고 있어요.");
+    recorder.stop();
   };
 
-  const resetResult = () => {
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
+  const resetRecording = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      mediaRecorderRef.current.stop();
+    }
 
-    setText("");
-    setIsListening(false);
-    setMessage("마이크 버튼을 누르고 지출 내용을 말해보세요.");
+    stopMediaTracks();
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
+
+    audioChunksRef.current = [];
+    mediaRecorderRef.current = null;
+
+    setAudioUrl("");
+    setIsRecording(false);
+    setRecordingTime(0);
+    setMessage("녹음 시작 버튼을 누르고 말해보세요.");
   };
 
   return (
     <main className="container">
-      <h1>음성 지출 기록 테스트</h1>
+      <h1>음성 녹음 테스트</h1>
 
       <p className="description">
-        예: 오늘 스타벅스에서 만이천 원 썼어
+        먼저 아이폰과 컴퓨터에서 녹음과 재생이 되는지 확인합니다.
       </p>
 
       <button
         type="button"
-        className={isListening ? "micButton listening" : "micButton"}
-        onClick={isListening ? stopListening : startListening}
+        className={isRecording ? "recordButton recording" : "recordButton"}
+        onClick={isRecording ? stopRecording : startRecording}
       >
-        {isListening ? "인식 중지" : "말하기 시작"}
+        {isRecording ? "녹음 종료" : "녹음 시작"}
       </button>
+
+      {isRecording && (
+        <p className="timer">{recordingTime}초 녹음 중</p>
+      )}
 
       <p className="message" aria-live="polite">
         {message}
       </p>
 
       <section className="result">
-        <strong>인식 결과</strong>
-        <p>{text || "아직 인식된 내용이 없습니다."}</p>
+        <strong>녹음 결과</strong>
+
+        {audioUrl ? (
+          <>
+            <audio className="audioPlayer" controls src={audioUrl}>
+              오디오 재생을 지원하지 않는 브라우저입니다.
+            </audio>
+
+            <p className="successMessage">
+              재생 버튼을 눌러 목소리가 들리는지 확인해주세요.
+            </p>
+          </>
+        ) : (
+          <p>아직 녹음된 파일이 없습니다.</p>
+        )}
       </section>
 
-      <button type="button" className="resetButton" onClick={resetResult}>
+      <button
+        type="button"
+        className="resetButton"
+        onClick={resetRecording}
+      >
         초기화
       </button>
 
       <section className="guide">
-        <strong>아이폰 테스트 방법</strong>
+        <strong>테스트 방법</strong>
         <p>
-          홈 화면 아이콘이 아니라 Safari에서 Vercel 주소를 직접 열고
-          테스트해주세요.
+          녹음 시작을 누르고 5초 정도 말한 다음 녹음 종료를 누르세요.
+          이후 재생 버튼을 눌러 목소리가 들리면 성공입니다.
         </p>
       </section>
     </main>
