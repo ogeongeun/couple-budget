@@ -91,13 +91,13 @@ export default function Home() {
     env.allowLocalModels = false;
 
     const transcriber = (await pipeline(
-      "automatic-speech-recognition",
-      "onnx-community/whisper-tiny",
-      {
-        dtype: "q8",
-        device: "wasm",
-      },
-    )) as unknown as SpeechPipeline;
+  "automatic-speech-recognition",
+  "onnx-community/whisper-tiny",
+  {
+    dtype: "fp32",
+    device: "wasm",
+  },
+)) as unknown as SpeechPipeline;
 
     pipelineRef.current = transcriber;
     setIsModelReady(true);
