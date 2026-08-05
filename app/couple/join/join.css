@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.join-couple-page {
+  width: min(100%, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding-bottom: 30px;
+  background: #fffdf9;
+  color: #403b37;
+}
+
+.join-couple-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  align-items: center;
+  min-height: 78px;
+  padding: 22px 18px 10px;
+}
+
+.join-couple-header button {
+  padding: 0;
+  background: transparent;
+  font-size: 28px;
+  text-align: left;
+}
+
+.join-couple-header h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 19px;
+}
+
+.join-couple-card {
+  margin: 20px 16px;
+  padding: 28px 20px 24px;
+  border: 1px solid #eee9e4;
+  border-radius: 24px;
+  background: white;
+  text-align: center;
+  box-shadow: 0 12px 32px
+    rgba(57, 45, 36, 0.07);
+}
+
+.join-couple-card img {
+  object-fit: contain;
+}
+
+.join-couple-card h2 {
+  margin: 3px 0 10px;
+  font-size: 21px;
+}
+
+.join-couple-card > p {
+  margin: 0;
+  color: #918a83;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.invite-code-field {
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
+  color: #67605a;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.invite-code-field input {
+  width: 100%;
+  height: 62px;
+  padding: 0 18px;
+  border: 1px solid #dfe7e1;
+  border-radius: 15px;
+  outline: none;
+  background: #f7fbf8;
+  color: #29945a;
+  text-align: center;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: 7px;
+  text-transform: uppercase;
+}
+
+.invite-code-field input::placeholder {
+  color: #c5cec8;
+}
+
+.invite-code-field input:focus {
+  border-color: #3eaa70;
+  box-shadow: 0 0 0 3px
+    rgba(62, 170, 112, 0.12);
+}
+
+.code-length {
+  margin-top: 7px;
+  color: #aaa39d;
+  text-align: right;
+  font-size: 10px;
+}
+
+.join-couple-message {
+  margin: 13px 0 0 !important;
+  padding: 11px;
+  border-radius: 11px;
+  background: #fff0ec;
+  color: #dc604b !important;
+  font-size: 11px !important;
+}
+
+.join-couple-submit {
+  width: 100%;
+  height: 52px;
+  margin-top: 23px;
+  border-radius: 15px;
+  background: #2fa765;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.join-couple-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

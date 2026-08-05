@@ -1,0 +1,123 @@
+* {
+  box-sizing: border-box;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.create-couple-page {
+  width: min(100%, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding-bottom: 30px;
+  background: #fffdf9;
+  color: #403b37;
+}
+
+.create-couple-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  align-items: center;
+  min-height: 78px;
+  padding: 22px 18px 10px;
+}
+
+.create-couple-header button {
+  padding: 0;
+  background: transparent;
+  font-size: 28px;
+  text-align: left;
+}
+
+.create-couple-header h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 19px;
+}
+
+.create-couple-card {
+  margin: 20px 16px;
+  padding: 28px 20px 24px;
+  border: 1px solid #eee9e4;
+  border-radius: 24px;
+  background: white;
+  text-align: center;
+  box-shadow: 0 12px 32px
+    rgba(57, 45, 36, 0.07);
+}
+
+.create-couple-card img {
+  object-fit: contain;
+}
+
+.create-couple-card h2 {
+  margin: 3px 0 10px;
+  font-size: 21px;
+}
+
+.create-couple-card > p {
+  margin: 0;
+  color: #918a83;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.create-couple-card label {
+  display: grid;
+  gap: 9px;
+  margin-top: 28px;
+  color: #67605a;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.create-couple-card input {
+  width: 100%;
+  height: 51px;
+  padding: 0 15px;
+  border: 1px solid #e6e1dc;
+  border-radius: 14px;
+  outline: none;
+  background: #fffefd;
+  color: #403b37;
+  font-size: 14px;
+}
+
+.create-couple-card input:focus {
+  border-color: #3eaa70;
+  box-shadow: 0 0 0 3px
+    rgba(62, 170, 112, 0.12);
+}
+
+.create-couple-message {
+  margin: 13px 0 0 !important;
+  padding: 11px;
+  border-radius: 11px;
+  background: #fff0ec;
+  color: #dc604b !important;
+  font-size: 11px !important;
+}
+
+.create-couple-submit {
+  width: 100%;
+  height: 52px;
+  margin-top: 23px;
+  border-radius: 15px;
+  background: #2fa765;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.create-couple-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

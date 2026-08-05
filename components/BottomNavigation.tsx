@@ -1,0 +1,44 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
+type BottomNavigationProps = {
+  active: "home" | "calendar" | "statistics";
+};
+
+export default function BottomNavigation({
+  active,
+}: BottomNavigationProps) {
+  const router = useRouter();
+
+  return (
+    <nav className="bottom-navigation">
+      <button
+        type="button"
+        className={active === "home" ? "active" : ""}
+        onClick={() => router.push("/")}
+      >
+        <span>🏠</span>
+        홈
+      </button>
+
+      <button
+        type="button"
+        className={active === "calendar" ? "active" : ""}
+        onClick={() => router.push("/calendar")}
+      >
+        <span>🗓️</span>
+        캘린더
+      </button>
+
+      <button
+        type="button"
+        className={active === "statistics" ? "active" : ""}
+        onClick={() => router.push("/statistics")}
+      >
+        <span>📊</span>
+        통계
+      </button>
+    </nav>
+  );
+}

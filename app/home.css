@@ -1,0 +1,1639 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --green: #42bf79;
+  --green-light: #eaf8ef;
+  --pink: #ff8589;
+  --pink-light: #ffe9eb;
+  --cream: #fff8e8;
+  --text: #2f2a26;
+  --gray: #9d9690;
+  --line: #eee9e4;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #f8f6f3;
+  font-family:
+    Pretendard,
+    "Noto Sans KR",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: var(--text);
+}
+
+button {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.home {
+  width: min(100%, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 46px 14px 110px;
+  background: #fffdfb;
+}
+
+/* 헤더 */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 8px 18px;
+}
+
+.header h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+}
+
+.header h1 span {
+  font-size: 23px;
+}
+
+.header p {
+  margin: 0;
+  color: #aaa39c;
+  font-size: 13px;
+}
+
+.notification-button {
+  position: relative;
+  padding: 2px;
+  background: transparent;
+  font-size: 24px;
+}
+
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff5959;
+  color: white;
+  font-size: 10px;
+}
+
+/* 예산 카드 */
+
+.budget-card {
+  padding: 25px 19px 22px;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 8px 28px rgba(66, 47, 32, 0.06);
+}
+
+.budget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.budget-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #807a75;
+  font-size: 15px;
+}
+
+.budget-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: var(--green-light);
+}
+
+.budget-setting-button {
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--green-light);
+  color: #62b985;
+  font-size: 12px;
+}
+
+.budget-amount {
+  margin: 23px 0 15px;
+  font-size: 39px;
+  font-weight: 400;
+  letter-spacing: -2px;
+}
+
+.budget-amount span {
+  margin-left: 8px;
+  color: #8e8882;
+  font-size: 15px;
+}
+
+.progress-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ebebeb;
+}
+
+.progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4bc784, #2daf66);
+}
+
+.progress-area strong {
+  color: #52bd7d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.budget-information {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 23px;
+}
+
+.budget-information > div {
+  padding: 0 7px;
+  text-align: center;
+  border-right: 1px solid var(--line);
+}
+
+.budget-information > div:last-child {
+  border-right: 0;
+}
+
+.budget-information span {
+  display: block;
+  margin-bottom: 7px;
+  color: #a29c96;
+  font-size: 11px;
+}
+
+.budget-information strong {
+  color: var(--green);
+  font-size: 17px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.budget-information .remaining {
+  color: #ff7b73;
+}
+
+.budget-information .rate {
+  color: #69635e;
+}
+
+/* 강아지 영역 */
+
+.dog-card {
+  position: relative;
+  min-height: 270px;
+  margin-top: 11px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--cream);
+}
+
+.speech-bubble {
+  position: absolute;
+  top: 66px;
+  left: 14px;
+  z-index: 2;
+  padding: 13px 16px;
+  border-radius: 16px;
+  background: #fff0c7;
+  color: #8b7d71;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  right: -9px;
+  bottom: 12px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 11px solid #fff0c7;
+}
+
+.dog-button {
+  position: absolute;
+  bottom: 8px;
+  left: 83px;
+  width: 190px;
+  height: 225px;
+  padding: 0;
+  background: transparent;
+}
+
+.dog-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.dog-button:hover img {
+  transform: translateY(-3px);
+}
+
+.dog-button:active img {
+  transform: scale(0.95);
+}
+
+.expense-button {
+  position: absolute;
+  top: 50px;
+  right: 15px;
+  width: 111px;
+  height: 140px;
+  border: 2px dashed #44c77c;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  color: #54c382;
+}
+
+.expense-button .plus {
+  display: block;
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.expense-button strong {
+  display: block;
+  margin: 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.expense-button small {
+  display: block;
+  color: #9fa49f;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* 밥그릇 */
+
+.bowl-button {
+  position: absolute;
+  right: 64px;
+  bottom: 12px;
+  width: 104px;
+  height: 78px;
+  background: transparent;
+}
+
+.food {
+  position: absolute;
+  top: 0;
+  left: 28px;
+  z-index: 2;
+  color: #95622e;
+  font-size: 11px;
+  line-height: 0.8;
+  letter-spacing: -1px;
+}
+
+.food span {
+  display: block;
+}
+
+.bowl {
+  position: absolute;
+  top: 25px;
+  left: 9px;
+  width: 88px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #488764;
+  border-radius: 10px 10px 23px 23px;
+  background: #9bdcbc;
+  box-shadow: inset 0 8px 0 #c8eed9;
+}
+
+.bowl span {
+  font-size: 16px;
+}
+
+.bowl-button small {
+  position: absolute;
+  bottom: -7px;
+  left: -15px;
+  width: 135px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #e6f5eb;
+  color: #55b575;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* 정산 카드 */
+
+.settlement-card {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 145px;
+  margin-top: 9px;
+  padding: 20px 17px;
+  border-radius: 24px;
+  background: var(--pink-light);
+}
+
+.settlement-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ff858a;
+  font-size: 23px;
+}
+
+.settlement-content > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #a08e8b;
+  font-size: 11px;
+}
+
+.settlement-content strong {
+  display: block;
+  color: #ff6e70;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.settlement-content strong small {
+  color: #716965;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.settlement-content em {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: #ffd1d4;
+  color: #ff7e80;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.settlement-card > button {
+  align-self: end;
+  padding: 12px 15px;
+  border-radius: 999px;
+  background: #ff858a;
+  color: white;
+  font-size: 11px;
+}
+
+/* 소비 원그래프 */
+
+.chart-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+  margin-top: 11px;
+}
+
+.chart-card {
+  padding: 14px 10px 11px;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 7px 20px rgba(50, 39, 30, 0.05);
+}
+
+.chart-card h2 {
+  margin: 0 0 12px;
+  color: #69625d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.chart-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.donut-chart {
+  flex-shrink: 0;
+  width: 90px;
+  height: 90px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.my-chart {
+  background: conic-gradient(
+    #43bf79 0% 35%,
+    #ff8d8d 35% 60%,
+    #ffc64f 60% 78%,
+    #5da0ef 78% 90%,
+    #9b7be1 90% 97%,
+    #d5d5d5 97% 100%
+  );
+}
+
+.partner-chart {
+  background: conic-gradient(
+    #43bf79 0% 38%,
+    #ff8d8d 38% 62%,
+    #ffc64f 62% 79%,
+    #5da0ef 79% 90%,
+    #9b7be1 90% 97%,
+    #d5d5d5 97% 100%
+  );
+}
+
+.donut-center {
+  width: 57px;
+  height: 57px;
+  display: grid;
+  place-content: center;
+  border-radius: 50%;
+  background: white;
+  text-align: center;
+}
+
+.donut-center span {
+  color: #827b76;
+  font-size: 8px;
+}
+
+.donut-center strong {
+  margin-top: 2px;
+  color: #5c5651;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.chart-percentages {
+  display: grid;
+  gap: 5px;
+}
+
+.chart-percentages > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #78716c;
+  font-size: 9px;
+}
+
+.chart-percentages i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.chart-percentages .green {
+  background: #43bf79;
+}
+
+.chart-percentages .pink {
+  background: #ff8d8d;
+}
+
+.chart-percentages .yellow {
+  background: #ffc64f;
+}
+
+.chart-percentages .blue {
+  background: #5da0ef;
+}
+
+.chart-percentages .purple {
+  background: #9b7be1;
+}
+
+.chart-percentages .gray {
+  background: #d5d5d5;
+}
+
+.chart-card > button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px;
+  border: 1px solid #eeeeee;
+  border-radius: 12px;
+  background: white;
+  color: #aaa49f;
+  font-size: 9px;
+}
+
+/* 하단 내비게이션 */
+
+.bottom-navigation {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  z-index: 30;
+  width: min(calc(100% - 20px), 414px);
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 11px 15px 9px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 28px rgba(60, 44, 32, 0.15);
+  backdrop-filter: blur(15px);
+}
+
+.bottom-navigation button {
+  display: grid;
+  gap: 3px;
+  place-items: center;
+  background: transparent;
+  color: #b6b0aa;
+  font-size: 10px;
+}
+
+.bottom-navigation button span {
+  font-size: 18px;
+}
+
+.bottom-navigation button.active {
+  color: #ff7d75;
+}
+
+/* 모바일 */
+
+@media (max-width: 380px) {
+  .home {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .header h1 {
+    font-size: 23px;
+  }
+
+  .budget-information strong {
+    font-size: 15px;
+  }
+
+  .dog-button {
+    left: 72px;
+  }
+
+  .expense-button {
+    right: 8px;
+    width: 102px;
+    height: 132px;
+  }
+
+  .bowl-button {
+    right: 51px;
+  }
+
+  .donut-chart {
+    width: 79px;
+    height: 79px;
+  }
+
+  .donut-center {
+    width: 50px;
+    height: 50px;
+  }
+}
+/* 새 소비 기록 시트 */
+
+.expense-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(30, 27, 24, 0.45);
+}
+
+.expense-sheet-new {
+  position: relative;
+  width: min(100%, 430px);
+  height: min(94vh, 900px);
+  overflow: hidden;
+  border-radius: 26px 26px 0 0;
+  background: #fffdfb;
+  box-shadow: 0 -16px 45px rgba(52, 40, 31, 0.2);
+}
+
+.expense-sheet-handle {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  z-index: 5;
+  width: 54px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #c8c5c1;
+}
+
+.expense-sheet-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 74px;
+  padding-top: 9px;
+  border-bottom: 1px solid #eeeae6;
+  background: rgba(255, 253, 251, 0.97);
+}
+
+.expense-sheet-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.expense-sheet-title button {
+  position: absolute;
+  right: 22px;
+  top: 25px;
+  padding: 0;
+  background: transparent;
+  color: #171717;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.expense-sheet-scroll {
+  height: calc(100% - 148px);
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.expense-intro {
+  position: relative;
+  min-height: 176px;
+  overflow: hidden;
+  padding: 32px 27px 20px;
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(255, 222, 183, 0.58),
+      transparent 37%
+    ),
+    #fffaf3;
+}
+
+.expense-intro-text {
+  position: relative;
+  z-index: 2;
+}
+
+.expense-intro h3 {
+  margin: 0 0 9px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.expense-intro h3 span {
+  font-size: 20px;
+}
+
+.expense-intro p {
+  margin: 0;
+  color: #8d8985;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.expense-dog-image {
+  position: absolute;
+  right: 18px;
+  bottom: -18px;
+  width: 178px;
+  height: 165px;
+}
+
+.expense-dog-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.expense-user-badge {
+  position: absolute;
+  top: 4px;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border: 1px solid #f4cba3;
+  border-radius: 50%;
+  background: white;
+  color: #2db775;
+  font-size: 22px;
+}
+
+.expense-block {
+  padding: 20px 27px;
+  border-top: 1px solid #f1ede9;
+  background: white;
+}
+
+.expense-block h4 {
+  margin: 0 0 14px;
+  color: #625c57;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.expense-block h4 small {
+  color: #a6a19c;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.amount-block {
+  margin: 0 18px;
+  padding: 18px 10px 17px;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 8px 28px rgba(50, 43, 37, 0.05);
+}
+
+.amount-block h4 {
+  margin-left: 0;
+}
+
+.new-amount-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 66px;
+  padding: 0 48px 0 26px;
+  border: 1px solid #dedbd8;
+  border-radius: 11px;
+  background: white;
+}
+
+.won-symbol {
+  color: #88858a;
+  font-size: 25px;
+  text-decoration: line-through;
+}
+
+.new-amount-input input {
+  width: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #292929;
+  font-size: 31px;
+  font-weight: 700;
+}
+
+.amount-clear-button {
+  position: absolute;
+  right: 13px;
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  border-radius: 50%;
+  background: #9c9ca1;
+  color: white;
+  font-size: 13px;
+}
+
+.new-quick-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.new-quick-buttons button {
+  min-width: 0;
+  padding: 10px 2px;
+  border: 1px solid #d9eee1;
+  border-radius: 13px;
+  background: #f7fcf9;
+  color: #2eb36f;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.new-category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 11px;
+}
+
+.new-category-grid button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 83px;
+  border: 1px solid #ece8e4;
+  border-radius: 7px;
+  background: white;
+  color: #8c8782;
+}
+
+.new-category-grid button.selected {
+  border-color: #51c585;
+  background: #eff9f3;
+  color: #37ae70;
+}
+
+.category-check {
+  position: absolute;
+  top: -9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #28a865;
+  color: white;
+  font-size: 13px;
+}
+
+.category-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.category-name {
+  font-size: 11px;
+}
+
+.new-use-type {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+
+.new-use-type button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 13px 8px;
+  border: 1px solid #e5e1de;
+  border-radius: 7px;
+  background: white;
+  color: #85807c;
+}
+
+.new-use-type button.selected {
+  border-color: #4fc283;
+  background: #f1faf5;
+  color: #3bb675;
+}
+
+.content-date-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 15px;
+  margin-top: 17px;
+}
+
+.content-date-row label > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #89837e;
+  font-size: 11px;
+}
+
+.content-date-row input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #e5e1de;
+  border-radius: 7px;
+  outline: none;
+  background: white;
+  color: #6c6661;
+  font-size: 12px;
+}
+
+.text-input-wrap {
+  position: relative;
+}
+
+.text-input-wrap input {
+  padding-right: 35px;
+}
+
+.text-input-wrap button {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #aaa9ad;
+  color: white;
+  font-size: 11px;
+}
+
+.payment-detail-box {
+  margin-top: 18px;
+  padding: 15px 12px;
+  border-radius: 7px;
+  background: #f3f9f5;
+}
+
+.payment-detail-box h4 {
+  margin-bottom: 12px;
+}
+
+.payment-type-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.payment-type-row button {
+  padding: 11px 5px;
+  border: 1px solid #dfdcd8;
+  border-radius: 7px;
+  background: white;
+  color: #857f79;
+  font-size: 11px;
+}
+
+.payment-type-row button.selected {
+  border-color: #54c487;
+  color: #40b878;
+}
+
+.payment-info-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.9fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.payment-info-grid > div > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #827d78;
+  font-size: 10px;
+}
+
+.payer-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.payer-row button {
+  padding: 11px 4px;
+  border: 1px solid #d8d4d0;
+  background: white;
+  color: #8c8782;
+  font-size: 10px;
+}
+
+.payer-row button:first-child {
+  border-radius: 7px 0 0 7px;
+}
+
+.payer-row button:last-child {
+  border-radius: 0 7px 7px 0;
+}
+
+.payer-row button.selected {
+  border-color: #43bd7c;
+  color: #3bb474;
+}
+
+.share-amount {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #dfdcda;
+  border-radius: 7px;
+  background: white;
+  color: #52504e;
+  font-size: 16px;
+}
+
+.settlement-status {
+  padding: 8px;
+  border-radius: 7px;
+  background: #fff3f1;
+}
+
+.settlement-status > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.settlement-status button {
+  padding: 10px 2px;
+  border: 1px solid #dbd7d3;
+  border-radius: 7px;
+  background: white;
+  color: #9d9894;
+  font-size: 10px;
+}
+
+.settlement-status button.pending.selected {
+  border-color: #f3a72c;
+  color: #f2a022;
+}
+
+.settlement-status button.complete.selected {
+  border-color: #4abd80;
+  color: #39ae70;
+}
+
+.memo-block {
+  margin: 10px 15px 0;
+  border: 1px solid #f1eeeb;
+}
+
+.memo-textarea-wrap {
+  position: relative;
+}
+
+.memo-textarea-wrap textarea {
+  width: 100%;
+  height: 68px;
+  resize: none;
+  padding: 13px 15px 25px;
+  border: 1px solid #e7e3df;
+  border-radius: 6px;
+  outline: none;
+  color: #68635f;
+  font-size: 12px;
+}
+
+.memo-textarea-wrap span {
+  position: absolute;
+  right: 12px;
+  bottom: 9px;
+  color: #c3bfbb;
+  font-size: 10px;
+}
+
+.expense-save-area {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  padding: 12px 17px 16px;
+  background: #fffdfb;
+}
+
+.expense-save-area button {
+  width: 100%;
+  padding: 17px;
+  border-radius: 12px;
+  background: #219b55;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+@media (max-width: 380px) {
+  .expense-intro {
+    padding-left: 20px;
+  }
+
+  .expense-dog-image {
+    right: 2px;
+    width: 160px;
+  }
+
+  .expense-block {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .new-quick-buttons {
+    gap: 4px;
+  }
+
+  .payment-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* 새 소득 추가 시트 */
+
+.income-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(31, 28, 25, 0.45);
+}
+
+.income-sheet-new {
+  position: relative;
+  width: min(100%, 430px);
+  height: min(96vh, 930px);
+  overflow: hidden;
+  border-radius: 26px 26px 0 0;
+  background: #fffdf9;
+  box-shadow: 0 -16px 45px
+    rgba(49, 40, 32, 0.2);
+}
+
+.income-sheet-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px 1fr 46px;
+  align-items: center;
+  height: 72px;
+  padding: 0 18px;
+  border-bottom: 1px solid #eeeae5;
+  background: #fffdfb;
+}
+
+.income-sheet-header h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.income-back-button,
+.income-close-button {
+  padding: 0;
+  background: transparent;
+  color: #111;
+  line-height: 1;
+}
+
+.income-back-button {
+  font-size: 31px;
+}
+
+.income-close-button {
+  font-size: 35px;
+}
+
+.income-sheet-scroll {
+  height: calc(100% - 145px);
+  overflow-y: auto;
+  padding-bottom: 32px;
+}
+
+.income-intro {
+  position: relative;
+  min-height: 240px;
+  overflow: hidden;
+  padding: 45px 27px 25px;
+  background:
+    radial-gradient(
+      circle at 83% 33%,
+      rgba(255, 221, 175, 0.5),
+      transparent 34%
+    ),
+    #fffaf3;
+}
+
+.income-intro-text {
+  position: relative;
+  z-index: 2;
+}
+
+.income-intro h3 {
+  margin: 0 0 17px;
+  color: #3f3b37;
+  font-size: 21px;
+  line-height: 1.55;
+}
+
+.income-intro p {
+  margin: 0;
+  color: #9b948d;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.income-dog-area {
+  position: absolute;
+  right: 8px;
+  bottom: 5px;
+  width: 200px;
+  height: 200px;
+}
+
+.income-dog-area img {
+  position: absolute;
+  right: 1px;
+  bottom: 15px;
+  width: 160px;
+  height: 165px;
+  object-fit: contain;
+}
+
+.income-heart {
+  position: absolute;
+  top: 30px;
+  right: 3px;
+  color: #ff6464;
+  font-size: 28px;
+}
+
+.income-bowl-art {
+  position: absolute;
+  left: 3px;
+  bottom: 0;
+  width: 105px;
+  height: 73px;
+}
+
+.income-bowl-art::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  bottom: 0;
+  width: 93px;
+  height: 47px;
+  border: 3px solid #27794f;
+  border-radius: 11px 11px 28px 28px;
+  background: #46be77;
+  box-shadow:
+    inset 0 9px 0 #67d494,
+    0 8px 12px rgba(39, 87, 58, 0.14);
+}
+
+.income-kibble {
+  position: absolute;
+  left: 28px;
+  top: 2px;
+  z-index: 2;
+  color: #905d2f;
+  font-size: 14px;
+  line-height: 0.78;
+  letter-spacing: -1px;
+}
+
+.income-bowl-paw {
+  position: absolute;
+  left: 43px;
+  bottom: 11px;
+  z-index: 2;
+  font-size: 20px;
+}
+
+.income-block {
+  margin: 10px 20px 0;
+  padding: 22px 25px;
+  border: 1px solid #f0ede9;
+  background: white;
+}
+
+.income-block h4 {
+  margin: 0 0 17px;
+  color: #6f6964;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.income-amount-block {
+  margin-top: 0;
+}
+
+.income-new-amount-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 67px;
+  padding: 0 48px 0 25px;
+  border: 1px solid #dedbd7;
+  border-radius: 10px;
+  background: white;
+}
+
+.income-won-symbol {
+  color: #151515;
+  font-size: 24px;
+  text-decoration: line-through;
+}
+
+.income-new-amount-input input {
+  width: 100%;
+  min-width: 0;
+  padding: 0 14px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #2d2d2d;
+  font-size: 31px;
+  font-weight: 700;
+}
+
+.income-clear-button {
+  position: absolute;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
+  background: #a4a4a7;
+  color: white;
+  font-size: 13px;
+}
+
+.income-new-quick-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.income-new-quick-buttons button {
+  min-width: 0;
+  padding: 11px 2px;
+  border: 1px solid #d8ecdf;
+  border-radius: 14px;
+  background: #f8fcf9;
+  color: #2cb46d;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.income-type-grid-new {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 9px;
+}
+
+.income-type-grid-new button {
+  display: grid;
+  place-items: center;
+  gap: 9px;
+  min-height: 91px;
+  padding: 8px 3px;
+  border: 1px solid #e6e2de;
+  border-radius: 10px;
+  background: white;
+  color: #8e8883;
+}
+
+.income-type-grid-new button span {
+  font-size: 27px;
+  line-height: 1;
+}
+
+.income-type-grid-new button small {
+  font-size: 10px;
+}
+
+.income-type-grid-new button.selected {
+  border-color: #43bd7b;
+  background: #f2faf5;
+  color: #33ae6c;
+}
+
+.income-details {
+  display: grid;
+  gap: 22px;
+}
+
+.income-details label > span {
+  display: block;
+  margin-bottom: 10px;
+  color: #77716b;
+  font-size: 13px;
+}
+
+.income-details label > span small {
+  color: #a49e99;
+  font-size: 11px;
+}
+
+.income-details input[type="date"] {
+  width: 100%;
+  height: 47px;
+  padding: 0 15px;
+  border: 1px solid #e3dfdc;
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  color: #625d59;
+}
+
+.income-memo-wrap {
+  position: relative;
+}
+
+.income-memo-wrap textarea {
+  width: 100%;
+  height: 92px;
+  resize: none;
+  padding: 15px 16px 27px;
+  border: 1px solid #e6e2df;
+  border-radius: 8px;
+  outline: none;
+  color: #66615c;
+  font-size: 12px;
+}
+
+.income-memo-wrap > small {
+  position: absolute;
+  right: 14px;
+  bottom: 11px;
+  color: #c2bdb8;
+  font-size: 10px;
+}
+
+.income-preview-card {
+  margin: 15px 20px 0;
+  overflow: hidden;
+  border: 1px solid #dfeee5;
+  border-radius: 9px;
+  background: white;
+}
+
+.income-preview-card h4 {
+  margin: 0;
+  padding: 17px 21px;
+  background: #edf8f1;
+  color: #41ad70;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.income-preview-values {
+  display: grid;
+  grid-template-columns:
+    1fr 1px 1fr 35px 1fr;
+  align-items: center;
+  min-height: 125px;
+  padding: 20px 12px;
+}
+
+.income-preview-values > div:not(
+    .income-preview-divider,
+    .income-preview-arrow
+  ) {
+  text-align: center;
+}
+
+.income-preview-values span {
+  display: block;
+  margin-bottom: 10px;
+  color: #aca5a0;
+  font-size: 10px;
+}
+
+.income-preview-values strong {
+  display: block;
+  color: #77716c;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.income-preview-values small {
+  display: block;
+  margin-top: 8px;
+  color: #65c688;
+  font-size: 9px;
+}
+
+.income-preview-values .income-green {
+  color: #36b474;
+}
+
+.income-preview-divider {
+  width: 1px;
+  height: 76px;
+  background: #eeeae7;
+}
+
+.income-preview-arrow {
+  color: #c5decf;
+  font-size: 27px;
+  text-align: center;
+}
+
+.income-info-box {
+  margin: 15px 20px 15px;
+  padding: 16px 18px;
+  border-radius: 11px;
+  background: #fff7e7;
+  color: #b59052;
+  font-size: 11px;
+}
+
+.income-save-area-new {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  padding: 12px 20px 17px;
+  background: #fffdf9;
+}
+
+.income-save-area-new button {
+  width: 100%;
+  padding: 17px;
+  border-radius: 12px;
+  background: #259b58;
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+@media (max-width: 380px) {
+  .income-intro {
+    padding-left: 20px;
+  }
+
+  .income-dog-area {
+    right: -12px;
+    transform: scale(0.9);
+    transform-origin: right bottom;
+  }
+
+  .income-block {
+    margin-right: 12px;
+    margin-left: 12px;
+    padding-right: 17px;
+    padding-left: 17px;
+  }
+
+  .income-type-grid-new {
+    gap: 5px;
+  }
+
+  .income-type-grid-new button {
+    min-height: 84px;
+  }
+
+  .income-new-quick-buttons {
+    gap: 4px;
+  }
+
+  .income-preview-values {
+    grid-template-columns:
+      1fr 1px 1fr 22px 1fr;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .income-preview-values strong {
+    font-size: 13px;
+  }
+}
+.auth-loading {
+  width: min(100%, 430px);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+  background: #fffdf9;
+  color: #7d766f;
+  font-size: 14px;
+}
