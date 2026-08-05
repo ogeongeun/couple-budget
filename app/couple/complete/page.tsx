@@ -1,11 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import "./complete.css";
 
 export default function CoupleCompletePage() {
+  return (
+    <Suspense fallback={<CompleteLoading />}>
+      <CoupleCompleteContent />
+    </Suspense>
+  );
+}
+
+function CoupleCompleteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -33,17 +41,20 @@ export default function CoupleCompletePage() {
       `초대 코드: ${inviteCode}`,
     ].join("\n");
 
-    if (navigator.share) {
-      await navigator.share({
-        title: "커플 가계부 초대",
-        text: shareText,
-      });
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "커플 가계부 초대",
+          text: shareText,
+        });
+        return;
+      }
 
-      return;
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+    } catch (error) {
+      console.error("공유 실패:", error);
     }
-
-    await navigator.clipboard.writeText(shareText);
-    setCopied(true);
   };
 
   return (
@@ -100,6 +111,16 @@ export default function CoupleCompletePage() {
           <br />
           ‘초대 코드 입력하기’를 선택하면 돼요.
         </small>
+      </section>
+    </main>
+  );
+}
+
+function CompleteLoading() {
+  return (
+    <main className="couple-complete-page">
+      <section className="couple-complete-card">
+        초대 코드를 불러오고 있어요...
       </section>
     </main>
   );
