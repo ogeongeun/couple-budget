@@ -1,10 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import "./join-complete.css";
 
 export default function JoinCompletePage() {
+  return (
+    <Suspense fallback={<JoinCompleteLoading />}>
+      <JoinCompleteContent />
+    </Suspense>
+  );
+}
+
+function JoinCompleteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -45,6 +57,16 @@ export default function JoinCompletePage() {
         >
           가계부 시작하기
         </button>
+      </section>
+    </main>
+  );
+}
+
+function JoinCompleteLoading() {
+  return (
+    <main className="join-complete-page">
+      <section className="join-complete-card">
+        가계부 정보를 불러오고 있어요...
       </section>
     </main>
   );
