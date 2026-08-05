@@ -197,21 +197,16 @@ export default function ProfilePage() {
       return;
     }
 
-    const fileExtension =
-      file.name.split(".").pop()?.toLowerCase() ??
-      "jpg";
+   const filePath = `${user.id}/avatar`;
 
-    const filePath =
-      `${user.id}/avatar-${Date.now()}.${fileExtension}`;
-
-    const {
-      error: uploadError,
-    } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+const { error: uploadError } =
+  await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: true,
+      contentType: file.type,
+    });
 
     if (uploadError) {
       console.error(
@@ -230,9 +225,8 @@ export default function ProfilePage() {
       .from("avatars")
       .getPublicUrl(filePath);
 
-    const avatarUrl =
-      publicUrlData.publicUrl;
-
+   const avatarUrl =
+  `${publicUrlData.publicUrl}?v=${Date.now()}`;
     const {
       error: updateError,
     } = await supabase
