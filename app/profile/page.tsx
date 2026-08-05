@@ -494,7 +494,7 @@ const { error: uploadError } =
         </button>
       </section>
 
-    
+    <BottomNavigation active="profile" />
     </main>
   );
 }

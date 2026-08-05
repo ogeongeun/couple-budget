@@ -271,6 +271,16 @@ router.refresh();
 }
 
 function translateAuthError(message: string) {
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes(
+      "email rate limit exceeded",
+    )
+  ) {
+    return "인증 메일 발송 한도를 초과했어요. 약 60분 후 다시 시도해 주세요.";
+  }
+
   if (
     message.includes("Invalid login credentials")
   ) {
