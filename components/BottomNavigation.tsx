@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 type BottomNavigationProps = {
-  active: "home" | "calendar" | "statistics";
+  active: "home" | "calendar" | "statistics" | "profile";
 };
 
 export default function BottomNavigation({
@@ -38,6 +38,14 @@ export default function BottomNavigation({
       >
         <span>📊</span>
         통계
+      </button>
+      <button
+        type="button"
+        className={active === "profile" ? "active" : ""}
+        onClick={() => router.push("/profile")}
+      >
+        <span>👤</span>
+        마이
       </button>
     </nav>
   );

@@ -170,7 +170,7 @@ button {
 
 .budget-information {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   margin-top: 23px;
 }
 
@@ -567,7 +567,7 @@ button {
   width: min(calc(100% - 20px), 414px);
   transform: translateX(-50%);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   padding: 11px 15px 9px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.94);
