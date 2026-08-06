@@ -1,10 +1,13 @@
 "use client";
 
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
   useState,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 import {
   useRouter,
@@ -142,7 +145,12 @@ function getMonthRange(
   year: number,
   month: number,
 ) {
-  const start = new Date(year, month, 1);
+  const start = new Date(
+    year,
+    month,
+    1,
+  );
+
   const end = new Date(
     year,
     month + 1,
@@ -177,11 +185,30 @@ function formatKoreanDate(
   })`;
 }
 
+/*
+ * useSearchParams를 사용하는 내부 컴포넌트를
+ * Suspense로 감싼다.
+ */
 export default function SpendingPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  return (
+    <Suspense
+      fallback={
+        <main className="spending-loading">
+          소비 기록을 불러오고 있어요...
+        </main>
+      }
+    >
+      <SpendingPageContent />
+    </Suspense>
+  );
+}
 
-  const initialView =
+function SpendingPageContent() {
+  const router = useRouter();
+  const searchParams =
+    useSearchParams();
+
+  const initialView: ViewType =
     searchParams.get("view") ===
     "partner"
       ? "partner"
@@ -265,7 +292,8 @@ export default function SpendingPage() {
       const {
         data: { user },
         error: userError,
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
       if (userError || !user) {
         router.replace("/login");
@@ -290,6 +318,7 @@ export default function SpendingPage() {
         setMessage(
           "프로필 정보를 불러오지 못했어요.",
         );
+
         setLoading(false);
         return;
       }
@@ -301,6 +330,7 @@ export default function SpendingPage() {
         router.replace(
           "/couple/connect",
         );
+
         return;
       }
 
@@ -362,26 +392,24 @@ export default function SpendingPage() {
         error: expenseError,
       } = await supabase
         .from("expenses")
-        .select(
-          `
-            id,
-            couple_id,
-            user_id,
-            amount,
-            category,
-            title,
-            memo,
-            expense_date,
-            use_type,
-            payment_type,
-            payer_id,
-            my_share,
-            partner_share,
-            settlement_status,
-            settled_at,
-            created_at
-          `,
-        )
+        .select(`
+          id,
+          couple_id,
+          user_id,
+          amount,
+          category,
+          title,
+          memo,
+          expense_date,
+          use_type,
+          payment_type,
+          payer_id,
+          my_share,
+          partner_share,
+          settlement_status,
+          settled_at,
+          created_at
+        `)
         .eq(
           "couple_id",
           profile.couple_id,
@@ -445,7 +473,9 @@ export default function SpendingPage() {
       expenses.reduce(
         (sum, expense) =>
           sum +
-          Number(expense.amount || 0),
+          Number(
+            expense.amount || 0,
+          ),
         0,
       ),
     [expenses],
@@ -458,7 +488,8 @@ export default function SpendingPage() {
           const amount = expenses
             .filter(
               (expense) =>
-                expense.category === name,
+                expense.category ===
+                name,
             )
             .reduce(
               (sum, expense) =>
@@ -472,7 +503,8 @@ export default function SpendingPage() {
           const percentage =
             total > 0
               ? Math.round(
-                  (amount / total) * 100,
+                  (amount / total) *
+                    100,
                 )
               : 0;
 
@@ -481,11 +513,11 @@ export default function SpendingPage() {
             amount,
             percentage,
             icon:
-              categoryInfo[name]?.icon ??
-              "•••",
+              categoryInfo[name]
+                ?.icon ?? "•••",
             color:
-              categoryInfo[name]?.color ??
-              "#bdbdbd",
+              categoryInfo[name]
+                ?.color ?? "#bdbdbd",
           };
         })
         .filter(
@@ -530,22 +562,22 @@ export default function SpendingPage() {
 
       const parts = categories.map(
         (category) => {
+          const exactPercentage =
+            (category.amount /
+              total) *
+            100;
+
           const start = current;
+
           const end =
             current +
-            category.percentage;
+            exactPercentage;
 
           current = end;
 
           return `${category.color} ${start}% ${end}%`;
         },
       );
-
-      if (current < 100) {
-        parts.push(
-          `#eeeeee ${current}% 100%`,
-        );
-      }
 
       return `conic-gradient(${parts.join(
         ", ",
@@ -576,6 +608,7 @@ export default function SpendingPage() {
     setYear(nextDate.getFullYear());
     setMonth(nextDate.getMonth());
     setSelectedCategory(null);
+    setSelectedExpense(null);
   };
 
   const openEdit = (
@@ -626,118 +659,120 @@ export default function SpendingPage() {
     setMessage("");
   };
 
-  const handleUpdate = async () => {
-    if (
-      !selectedExpense ||
-      !userId
-    ) {
-      return;
-    }
+  const handleUpdate =
+    async () => {
+      if (
+        !selectedExpense ||
+        !userId
+      ) {
+        return;
+      }
 
-    const numericAmount = Number(
-      editForm.amount || 0,
-    );
-
-    if (numericAmount <= 0) {
-      setMessage(
-        "금액을 입력해 주세요.",
-      );
-      return;
-    }
-
-    if (!editForm.expenseDate) {
-      setMessage(
-        "날짜를 선택해 주세요.",
-      );
-      return;
-    }
-
-    const isTogether =
-      editForm.useType === "함께";
-
-    const isSplit =
-      isTogether &&
-      editForm.paymentType ===
-        "나눠내기";
-
-    const myShare = isSplit
-      ? Math.floor(
-          numericAmount / 2,
-        )
-      : numericAmount;
-
-    const partnerShare = isSplit
-      ? numericAmount - myShare
-      : 0;
-
-    const payerId =
-      !isTogether ||
-      editForm.payer === "me"
-        ? userId
-        : partnerId;
-
-    setSaving(true);
-    setMessage("");
-
-    const { error } = await supabase
-      .from("expenses")
-      .update({
-        amount: numericAmount,
-        category:
-          editForm.category,
-        title:
-          editForm.title.trim() ||
-          null,
-        memo:
-          editForm.memo.trim() ||
-          null,
-        expense_date:
-          editForm.expenseDate,
-        use_type:
-          editForm.useType,
-        payment_type: isTogether
-          ? editForm.paymentType
-          : null,
-        payer_id: payerId,
-        my_share: myShare,
-        partner_share:
-          partnerShare,
-        settlement_status:
-          isSplit
-            ? editForm.settlementStatus
-            : "해당없음",
-        settled_at:
-          isSplit &&
-          editForm.settlementStatus ===
-            "정산완료"
-            ? new Date().toISOString()
-            : null,
-      })
-      .eq(
-        "id",
-        selectedExpense.id,
-      )
-      .eq("user_id", userId);
-
-    if (error) {
-      console.error(
-        "소비 수정 오류:",
-        error,
+      const numericAmount = Number(
+        editForm.amount || 0,
       );
 
-      setMessage(
-        "소비 기록을 수정하지 못했어요.",
-      );
+      if (numericAmount <= 0) {
+        setMessage(
+          "금액을 입력해 주세요.",
+        );
+        return;
+      }
 
+      if (!editForm.expenseDate) {
+        setMessage(
+          "날짜를 선택해 주세요.",
+        );
+        return;
+      }
+
+      const isTogether =
+        editForm.useType === "함께";
+
+      const isSplit =
+        isTogether &&
+        editForm.paymentType ===
+          "나눠내기";
+
+      const myShare = isSplit
+        ? Math.floor(
+            numericAmount / 2,
+          )
+        : numericAmount;
+
+      const partnerShare = isSplit
+        ? numericAmount - myShare
+        : 0;
+
+      const payerId =
+        !isTogether ||
+        editForm.payer === "me"
+          ? userId
+          : partnerId;
+
+      setSaving(true);
+      setMessage("");
+
+      const { error } =
+        await supabase
+          .from("expenses")
+          .update({
+            amount: numericAmount,
+            category:
+              editForm.category,
+            title:
+              editForm.title.trim() ||
+              null,
+            memo:
+              editForm.memo.trim() ||
+              null,
+            expense_date:
+              editForm.expenseDate,
+            use_type:
+              editForm.useType,
+            payment_type: isTogether
+              ? editForm.paymentType
+              : null,
+            payer_id: payerId,
+            my_share: myShare,
+            partner_share:
+              partnerShare,
+            settlement_status:
+              isSplit
+                ? editForm.settlementStatus
+                : "해당없음",
+            settled_at:
+              isSplit &&
+              editForm.settlementStatus ===
+                "정산완료"
+                ? new Date().toISOString()
+                : null,
+          })
+          .eq(
+            "id",
+            selectedExpense.id,
+          )
+          .eq("user_id", userId);
+
+      if (error) {
+        console.error(
+          "소비 수정 오류:",
+          error,
+        );
+
+        setMessage(
+          "소비 기록을 수정하지 못했어요.",
+        );
+
+        setSaving(false);
+        return;
+      }
+
+      setSelectedExpense(null);
       setSaving(false);
-      return;
-    }
 
-    setSelectedExpense(null);
-    setSaving(false);
-
-    await loadData();
-  };
+      await loadData();
+    };
 
   const handleDelete = async (
     expense: ExpenseRecord,
@@ -766,11 +801,12 @@ export default function SpendingPage() {
     setSaving(true);
     setMessage("");
 
-    const { error } = await supabase
-      .from("expenses")
-      .delete()
-      .eq("id", expense.id)
-      .eq("user_id", userId);
+    const { error } =
+      await supabase
+        .from("expenses")
+        .delete()
+        .eq("id", expense.id)
+        .eq("user_id", userId);
 
     if (error) {
       console.error(
@@ -858,6 +894,7 @@ export default function SpendingPage() {
           onClick={() =>
             router.back()
           }
+          aria-label="뒤로 가기"
         >
           ←
         </button>
@@ -870,6 +907,7 @@ export default function SpendingPage() {
             onClick={() =>
               changeMonth(-1)
             }
+            aria-label="이전 달"
           >
             ‹
           </button>
@@ -883,6 +921,7 @@ export default function SpendingPage() {
             onClick={() =>
               changeMonth(1)
             }
+            aria-label="다음 달"
           >
             ›
           </button>
@@ -1137,6 +1176,7 @@ function CategoryDetail({
         <button
           type="button"
           onClick={onBack}
+          aria-label="뒤로 가기"
         >
           ←
         </button>
@@ -1229,12 +1269,9 @@ function CategoryDetail({
                           }}
                         >
                           <div className="history-icon">
-                            {
-                              categoryInfo[
-                                expense
-                                  .category
-                              ]?.icon
-                            }
+                            {categoryInfo[
+                              expense.category
+                            ]?.icon ?? "•••"}
                           </div>
 
                           <div className="history-content">
@@ -1373,8 +1410,8 @@ function ExpenseEditSheet({
   onDelete,
 }: {
   form: EditForm;
-  setForm: React.Dispatch<
-    React.SetStateAction<EditForm>
+  setForm: Dispatch<
+    SetStateAction<EditForm>
   >;
   saving: boolean;
   message: string;
