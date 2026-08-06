@@ -1,0 +1,498 @@
+* {
+  box-sizing: border-box;
+}
+
+button {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.settlement-page {
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-bottom: 50px;
+  background: #fffdfb;
+  color: #56504c;
+}
+
+.settlement-loading {
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+  background: #fffdfb;
+  color: #99928d;
+  font-size: 13px;
+}
+
+/* 헤더 */
+
+.settlement-page-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 100px;
+  align-items: center;
+  min-height: 82px;
+  padding: 21px 18px 12px;
+  border-bottom: 1px solid #e9f4ed;
+}
+
+.settlement-page-header > button {
+  padding: 0;
+  background: transparent;
+  color: #55504b;
+  font-size: 27px;
+  text-align: left;
+}
+
+.settlement-page-header h1 {
+  margin: 0;
+  font-size: 22px;
+  text-align: center;
+}
+
+.settlement-page-header h1 span {
+  font-size: 18px;
+}
+
+.settlement-month-control {
+  display: grid;
+  grid-template-columns: 23px 1fr 23px;
+  align-items: center;
+  border: 1px solid #e7eee9;
+  border-radius: 999px;
+  background: white;
+}
+
+.settlement-month-control button {
+  padding: 7px 0;
+  background: transparent;
+  color: #94908c;
+  font-size: 17px;
+}
+
+.settlement-month-control strong {
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 정산 요약 */
+
+.settlement-summary {
+  margin: 18px 16px 0;
+  padding: 20px 18px;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 5px 20px rgba(48, 40, 34, 0.04);
+}
+
+.settlement-summary > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 17px;
+  border-bottom: 1px solid #eeeae7;
+}
+
+.settlement-summary > header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.settlement-summary > header span {
+  color: #9d9792;
+  font-size: 11px;
+}
+
+.settlement-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.settlement-summary-grid article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 18px 15px;
+}
+
+.settlement-summary-grid article.receive {
+  background: #effaf4;
+}
+
+.settlement-summary-grid article.pay {
+  background: #fff4f4;
+}
+
+.settlement-summary-grid article span {
+  display: block;
+  margin-bottom: 10px;
+  color: #86807c;
+  font-size: 11px;
+}
+
+.settlement-summary-grid article strong {
+  display: block;
+  font-size: 24px;
+  white-space: nowrap;
+}
+
+.settlement-summary-grid article.receive strong {
+  color: #32b873;
+}
+
+.settlement-summary-grid article.pay strong {
+  color: #ff6f71;
+}
+
+.settlement-summary-grid article strong small {
+  margin-left: 3px;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.settlement-money-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 22px;
+}
+
+.settlement-final {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 17px 10px 4px;
+  border-top: 1px solid #eeeae7;
+}
+
+.settlement-final span {
+  display: block;
+  color: #8d8782;
+  font-size: 11px;
+}
+
+.settlement-final strong {
+  display: block;
+  margin-top: 6px;
+  color: #31af6c;
+  font-size: 22px;
+}
+
+.settlement-final strong small {
+  margin-left: 3px;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.settlement-final em {
+  color: #8f8984;
+  font-size: 11px;
+  font-style: normal;
+}
+
+/* 필터 */
+
+.settlement-filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 25px 16px 0;
+  padding: 4px;
+  border: 1px solid #eeeae7;
+  border-radius: 999px;
+  background: #faf9f8;
+}
+
+.settlement-filters button {
+  padding: 13px 5px;
+  border-radius: 999px;
+  background: transparent;
+  color: #aaa49f;
+  font-size: 12px;
+}
+
+.settlement-filters button.active {
+  border: 1px solid #80d6a5;
+  background: white;
+  color: #35b46f;
+  font-weight: 600;
+}
+
+/* 메시지 */
+
+.settlement-message {
+  margin: 13px 16px 0;
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: #eff9f3;
+  color: #35a969;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 목록 */
+
+.settlement-list-section {
+  margin-top: 22px;
+}
+
+.settlement-list-section > header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px 10px;
+}
+
+.settlement-list-section > header span,
+.settlement-list-section > header strong {
+  color: #9d9792;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.settlement-list {
+  background: white;
+}
+
+.settlement-item {
+  display: grid;
+  grid-template-columns:
+    55px minmax(0, 1fr)
+    91px 87px;
+  gap: 10px;
+  align-items: center;
+  min-height: 118px;
+  padding: 17px 17px;
+  border-bottom: 1px solid #f0ece9;
+}
+
+.settlement-category-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  font-size: 23px;
+}
+
+.settlement-category-icon.receive {
+  background: #edf8f1;
+}
+
+.settlement-category-icon.pay {
+  background: #fff1f1;
+}
+
+.settlement-item-content {
+  min-width: 0;
+}
+
+.settlement-item-content strong {
+  display: block;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settlement-item-content span {
+  display: block;
+  overflow: hidden;
+  margin-top: 8px;
+  color: #a49e99;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settlement-item-content small {
+  display: block;
+  margin-top: 8px;
+  color: #aaa49f;
+  font-size: 11px;
+}
+
+.settlement-item-status {
+  min-width: 0;
+  text-align: right;
+}
+
+.settlement-item-status > strong {
+  display: block;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.settlement-item-status > strong.receive {
+  color: #36b873;
+}
+
+.settlement-item-status > strong.pay {
+  color: #ff7173;
+}
+
+.settlement-item-status > span {
+  display: block;
+  margin-top: 5px;
+  color: #aaa49e;
+  font-size: 9px;
+}
+
+.settlement-item-status em {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.settlement-item-status em.pending {
+  background: #fff5e8;
+  color: #eea84b;
+}
+
+.settlement-item-status em.sent {
+  background: #eaf4ff;
+  color: #68a6df;
+}
+
+.settlement-item-status em.completed {
+  background: #eaf8f0;
+  color: #45b77a;
+}
+
+.settlement-item-action button {
+  width: 100%;
+  min-height: 43px;
+  padding: 9px 5px;
+  border-radius: 11px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.settlement-item-action button.send {
+  border: 1px solid #52c386;
+  background: white;
+  color: #38b875;
+}
+
+.settlement-item-action button.sent {
+  background: #eaf4ff;
+  color: #67a5dc;
+}
+
+.settlement-item-action button.complete {
+  background: #1db064;
+  color: white;
+}
+
+.settlement-item-action button.completed {
+  background: #edf1ee;
+  color: #aaa;
+}
+
+.settlement-item-action button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+/* 빈 목록 */
+
+.settlement-empty {
+  display: grid;
+  justify-items: center;
+  padding: 75px 20px;
+  text-align: center;
+}
+
+.settlement-empty > span {
+  font-size: 38px;
+}
+
+.settlement-empty strong {
+  margin-top: 15px;
+  font-size: 15px;
+}
+
+.settlement-empty p {
+  margin: 8px 0 0;
+  color: #aaa49f;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 390px) {
+  .settlement-page-header {
+    grid-template-columns: 40px 1fr 92px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .settlement-summary {
+    margin-right: 12px;
+    margin-left: 12px;
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .settlement-summary-grid {
+    gap: 7px;
+  }
+
+  .settlement-summary-grid article {
+    padding: 16px 10px;
+  }
+
+  .settlement-summary-grid article strong {
+    font-size: 20px;
+  }
+
+  .settlement-money-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .settlement-item {
+    grid-template-columns:
+      45px minmax(0, 1fr)
+      78px;
+    gap: 8px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .settlement-category-icon {
+    width: 43px;
+    height: 43px;
+    font-size: 19px;
+  }
+
+  .settlement-item-action {
+    grid-column: 2 / 4;
+  }
+
+  .settlement-item-action button {
+    min-height: 36px;
+  }
+
+  .settlement-item-status > strong {
+    font-size: 12px;
+  }
+}

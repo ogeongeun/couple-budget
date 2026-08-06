@@ -1,11 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 type IncomeSheetProps = {
   open: boolean;
   onClose: () => void;
+  coupleId: string | null;
   currentBudget: number;
   usedAmount: number;
   onSave: (amount: number) => void;
@@ -29,77 +33,191 @@ const incomeTypes: {
   { name: "기타 수입", icon: "•••" },
 ];
 
+function getTodayString() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(
+    now.getMonth() + 1,
+  ).padStart(2, "0");
+  const day = String(now.getDate()).padStart(
+    2,
+    "0",
+  );
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function IncomeSheet({
   open,
   onClose,
+  coupleId,
   currentBudget,
   usedAmount,
   onSave,
 }: IncomeSheetProps) {
-  const [amount, setAmount] = useState("1000000");
+  const [amount, setAmount] = useState("");
   const [incomeType, setIncomeType] =
     useState<IncomeType>("급여");
-  const [date, setDate] = useState("2026-07-30");
-  const [memo, setMemo] = useState("");
 
-  if (!open) return null;
+  const [date, setDate] = useState(
+    getTodayString(),
+  );
+
+  const [memo, setMemo] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setDate(getTodayString());
+    setMessage("");
+  }, [open]);
+
+  if (!open) {
+    return null;
+  }
 
   const numericAmount = Number(amount || 0);
+
   const formattedAmount =
     numericAmount.toLocaleString("ko-KR");
 
-  const nextBudget = currentBudget + numericAmount;
-  const currentAvailable = currentBudget - usedAmount;
-  const nextAvailable = nextBudget - usedAmount;
+  const nextBudget =
+    currentBudget + numericAmount;
+
+  const currentAvailable =
+    currentBudget - usedAmount;
+
+  const nextAvailable =
+    nextBudget - usedAmount;
 
   const addAmount = (value: number) => {
     setAmount((current) =>
       String(Number(current || 0) + value),
     );
+
+    setMessage("");
   };
 
   const clearAmount = () => {
     setAmount("");
+    setMessage("");
   };
 
-  const handleSave = () => {
-    if (numericAmount <= 0) {
-      alert("추가할 금액을 입력해 주세요.");
+  const resetForm = () => {
+    setAmount("");
+    setIncomeType("급여");
+    setDate(getTodayString());
+    setMemo("");
+    setMessage("");
+  };
+
+  const handleClose = () => {
+    if (saving) {
       return;
     }
 
-    const incomeData = {
-      amount: numericAmount,
-      incomeType,
-      date,
-      memo,
-      createdAt: new Date().toISOString(),
-    };
-
-    console.log("저장할 소득 내역:", incomeData);
-
-    onSave(numericAmount);
-
-    setAmount("");
-    setIncomeType("급여");
-    setMemo("");
+    setMessage("");
     onClose();
+  };
+
+  const handleSave = async () => {
+    if (saving) {
+      return;
+    }
+
+    setMessage("");
+
+    if (!coupleId) {
+      setMessage(
+        "연결된 가계부 정보를 찾지 못했어요.",
+      );
+      return;
+    }
+
+    if (numericAmount <= 0) {
+      setMessage(
+        "추가할 금액을 입력해 주세요.",
+      );
+      return;
+    }
+
+    if (!date) {
+      setMessage("날짜를 선택해 주세요.");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error(
+          "로그인 정보를 확인하지 못했어요.",
+        );
+      }
+
+      const { error: insertError } =
+        await supabase
+          .from("incomes")
+          .insert({
+            couple_id: coupleId,
+            user_id: user.id,
+            amount: numericAmount,
+            category: incomeType,
+            memo: memo.trim() || null,
+            income_date: date,
+          });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      onSave(numericAmount);
+      resetForm();
+      onClose();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "소득 저장 중 오류가 발생했어요.";
+
+      console.error(
+        "소득 저장 오류:",
+        error,
+      );
+
+      setMessage(errorMessage);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div
       className="income-sheet-backdrop"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <section
         className="income-sheet-new"
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) =>
+          event.stopPropagation()
+        }
       >
         <header className="income-sheet-header">
           <button
             type="button"
             className="income-back-button"
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={saving}
             aria-label="뒤로 가기"
           >
             ←
@@ -110,7 +228,8 @@ export default function IncomeSheet({
           <button
             type="button"
             className="income-close-button"
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={saving}
             aria-label="닫기"
           >
             ×
@@ -118,7 +237,6 @@ export default function IncomeSheet({
         </header>
 
         <div className="income-sheet-scroll">
-          {/* 소개 영역 */}
           <section className="income-intro">
             <div className="income-intro-text">
               <h3>
@@ -143,22 +261,13 @@ export default function IncomeSheet({
                 priority
               />
 
-              <div className="income-heart">♥</div>
-
-              <div className="income-bowl-art">
-                <span className="income-kibble">
-                  ● ● ●
-                  <br />
-                  ● ● ●
-                </span>
-                <span className="income-bowl-paw">
-                  🐾
-                </span>
+              <div className="income-heart">
+                ♥
               </div>
+
             </div>
           </section>
 
-          {/* 금액 입력 */}
           <section className="income-block income-amount-block">
             <h4>추가할 금액</h4>
 
@@ -174,6 +283,7 @@ export default function IncomeSheet({
                   amount ? formattedAmount : ""
                 }
                 placeholder="0"
+                disabled={saving}
                 onChange={(event) => {
                   const value =
                     event.target.value.replace(
@@ -182,6 +292,7 @@ export default function IncomeSheet({
                     );
 
                   setAmount(value);
+                  setMessage("");
                 }}
               />
 
@@ -190,6 +301,7 @@ export default function IncomeSheet({
                   type="button"
                   className="income-clear-button"
                   onClick={clearAmount}
+                  disabled={saving}
                   aria-label="금액 지우기"
                 >
                   ×
@@ -200,27 +312,37 @@ export default function IncomeSheet({
             <div className="income-new-quick-buttons">
               <button
                 type="button"
-                onClick={() => addAmount(100_000)}
+                disabled={saving}
+                onClick={() =>
+                  addAmount(100_000)
+                }
               >
                 + 10만원
               </button>
 
               <button
                 type="button"
-                onClick={() => addAmount(300_000)}
+                disabled={saving}
+                onClick={() =>
+                  addAmount(300_000)
+                }
               >
                 + 30만원
               </button>
 
               <button
                 type="button"
-                onClick={() => addAmount(500_000)}
+                disabled={saving}
+                onClick={() =>
+                  addAmount(500_000)
+                }
               >
                 + 50만원
               </button>
 
               <button
                 type="button"
+                disabled={saving}
                 onClick={() =>
                   addAmount(1_000_000)
                 }
@@ -230,6 +352,7 @@ export default function IncomeSheet({
 
               <button
                 type="button"
+                disabled={saving}
                 onClick={clearAmount}
               >
                 직접입력
@@ -237,7 +360,6 @@ export default function IncomeSheet({
             </div>
           </section>
 
-          {/* 소득 종류 */}
           <section className="income-block">
             <h4>어디에서 온 소득인가요?</h4>
 
@@ -246,6 +368,7 @@ export default function IncomeSheet({
                 <button
                   type="button"
                   key={item.name}
+                  disabled={saving}
                   className={
                     incomeType === item.name
                       ? "selected"
@@ -262,7 +385,6 @@ export default function IncomeSheet({
             </div>
           </section>
 
-          {/* 날짜와 메모 */}
           <section className="income-block income-details">
             <label>
               <span>날짜</span>
@@ -270,9 +392,11 @@ export default function IncomeSheet({
               <input
                 type="date"
                 value={date}
-                onChange={(event) =>
-                  setDate(event.target.value)
-                }
+                disabled={saving}
+                onChange={(event) => {
+                  setDate(event.target.value);
+                  setMessage("");
+                }}
               />
             </label>
 
@@ -285,7 +409,8 @@ export default function IncomeSheet({
                 <textarea
                   maxLength={50}
                   value={memo}
-                  placeholder="메모를 입력해주세요 (예: 7월 월급)"
+                  disabled={saving}
+                  placeholder="메모를 입력해주세요 (예: 8월 월급)"
                   onChange={(event) =>
                     setMemo(event.target.value)
                   }
@@ -296,13 +421,13 @@ export default function IncomeSheet({
             </label>
           </section>
 
-          {/* 예산 미리보기 */}
           <section className="income-preview-card">
             <h4>추가 후 예산 미리보기</h4>
 
             <div className="income-preview-values">
               <div>
                 <span>현재 예산</span>
+
                 <strong>
                   {currentBudget.toLocaleString(
                     "ko-KR",
@@ -323,6 +448,7 @@ export default function IncomeSheet({
 
               <div>
                 <span>추가 금액</span>
+
                 <strong className="income-green">
                   +
                   {numericAmount.toLocaleString(
@@ -338,6 +464,7 @@ export default function IncomeSheet({
 
               <div>
                 <span>추가 후 예산</span>
+
                 <strong>
                   {nextBudget.toLocaleString(
                     "ko-KR",
@@ -356,6 +483,12 @@ export default function IncomeSheet({
             </div>
           </section>
 
+          {message && (
+            <p className="income-save-message">
+              {message}
+            </p>
+          )}
+
           <div className="income-info-box">
             ⓘ 추가한 예산은 가계부의 ‘사용 가능
             금액’에 반영됩니다.
@@ -365,10 +498,18 @@ export default function IncomeSheet({
         <div className="income-save-area-new">
           <button
             type="button"
+            disabled={
+              saving ||
+              numericAmount <= 0 ||
+              !coupleId
+            }
             onClick={handleSave}
           >
-            🥣 {formattedAmount || "0"}원
-            추가하고 밥 주기
+            {saving
+              ? "저장하는 중..."
+              : `🥣 ${
+                  formattedAmount || "0"
+                }원 추가하고 밥 주기`}
           </button>
         </div>
       </section>

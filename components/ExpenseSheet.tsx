@@ -1,11 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 type ExpenseSheetProps = {
   open: boolean;
   onClose: () => void;
+  coupleId: string | null;
+  partnerId: string | null;
+  onSave: () => void;
 };
 
 type UseType = "alone" | "together";
@@ -24,88 +30,269 @@ const categories = [
   { name: "기타", icon: "＋" },
 ];
 
+function getTodayString() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(
+    now.getMonth() + 1,
+  ).padStart(2, "0");
+  const day = String(now.getDate()).padStart(
+    2,
+    "0",
+  );
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function ExpenseSheet({
   open,
   onClose,
+  coupleId,
+  partnerId,
+  onSave,
 }: ExpenseSheetProps) {
-  const [amount, setAmount] = useState("12000");
-  const [category, setCategory] = useState("식비");
-  const [useType, setUseType] = useState<UseType>("alone");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] =
+    useState("식비");
+  const [useType, setUseType] =
+    useState<UseType>("alone");
 
   const [paymentType, setPaymentType] =
     useState<PaymentType>("split");
 
-  const [payer, setPayer] = useState<Payer>("me");
+  const [payer, setPayer] =
+    useState<Payer>("me");
 
-  const [settlementStatus, setSettlementStatus] =
-    useState<SettlementStatus>("pending");
+  const [
+    settlementStatus,
+    setSettlementStatus,
+  ] = useState<SettlementStatus>("pending");
 
-  const [content, setContent] = useState("스타벅스");
-  const [memo, setMemo] = useState("");
-  const [date, setDate] = useState("2026-07-30");
+  const [content, setContent] =
+    useState("");
+  const [memo, setMemo] =
+    useState("");
+  const [date, setDate] =
+    useState(getTodayString());
 
-  if (!open) return null;
+  const [saving, setSaving] =
+    useState(false);
+  const [message, setMessage] =
+    useState("");
 
-  const numericAmount = Number(amount || 0);
-  const formattedAmount = numericAmount.toLocaleString("ko-KR");
-  const splitAmount = Math.floor(numericAmount / 2);
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setDate(getTodayString());
+    setMessage("");
+  }, [open]);
+
+  if (!open) {
+    return null;
+  }
+
+  const numericAmount =
+    Number(amount || 0);
+
+  const formattedAmount =
+    numericAmount.toLocaleString("ko-KR");
+
+  const myShare =
+    Math.floor(numericAmount / 2);
+
+  const partnerShare =
+    numericAmount - myShare;
 
   const addAmount = (value: number) => {
     setAmount((current) =>
-      String(Number(current || 0) + value),
+      String(
+        Number(current || 0) + value,
+      ),
     );
+
+    setMessage("");
   };
 
   const resetAmount = () => {
     setAmount("");
+    setMessage("");
   };
 
-  const handleSave = () => {
-    if (numericAmount <= 0) {
-      alert("금액을 입력해 주세요.");
+  const resetForm = () => {
+    setAmount("");
+    setCategory("식비");
+    setUseType("alone");
+    setPaymentType("split");
+    setPayer("me");
+    setSettlementStatus("pending");
+    setContent("");
+    setMemo("");
+    setDate(getTodayString());
+    setMessage("");
+  };
+
+  const handleClose = () => {
+    if (saving) {
       return;
     }
 
-    const expenseData = {
-      amount: numericAmount,
-      category,
-      useType,
-      content,
-      date,
-      memo,
-
-      paymentType:
-        useType === "together" ? paymentType : null,
-
-      payer:
-        useType === "together" ? payer : null,
-
-      myShare:
-        useType === "together" &&
-        paymentType === "split"
-          ? splitAmount
-          : numericAmount,
-
-      settlementStatus:
-        useType === "together" &&
-        paymentType === "split"
-          ? settlementStatus
-          : null,
-    };
-
-    console.log("저장할 소비 내역:", expenseData);
-
+    setMessage("");
     onClose();
+  };
+
+  const handleSave = async () => {
+    if (saving) {
+      return;
+    }
+
+    setMessage("");
+
+    if (!coupleId) {
+      setMessage(
+        "연결된 가계부를 찾지 못했어요.",
+      );
+      return;
+    }
+
+    if (numericAmount <= 0) {
+      setMessage(
+        "금액을 입력해 주세요.",
+      );
+      return;
+    }
+
+    if (!date) {
+      setMessage(
+        "날짜를 선택해 주세요.",
+      );
+      return;
+    }
+
+    if (
+      useType === "together" &&
+      payer === "partner" &&
+      !partnerId
+    ) {
+      setMessage(
+        "연결된 상대방 정보를 찾지 못했어요.",
+      );
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error(
+          "로그인 정보를 확인하지 못했어요.",
+        );
+      }
+
+      const isTogether =
+        useType === "together";
+
+      const isSplit =
+        isTogether &&
+        paymentType === "split";
+
+      const payerId =
+        !isTogether
+          ? user.id
+          : payer === "me"
+            ? user.id
+            : partnerId;
+
+      const { error: insertError } =
+        await supabase
+          .from("expenses")
+          .insert({
+            couple_id: coupleId,
+            user_id: user.id,
+            amount: numericAmount,
+            category,
+            title:
+              content.trim() || null,
+            memo:
+              memo.trim() || null,
+            expense_date: date,
+
+            use_type: isTogether
+              ? "함께"
+              : "혼자",
+
+            payment_type: isTogether
+              ? paymentType === "split"
+                ? "나눠내기"
+                : "사주기"
+              : null,
+
+            payer_id: payerId,
+
+            my_share: isSplit
+              ? myShare
+              : numericAmount,
+
+            partner_share: isSplit
+              ? partnerShare
+              : 0,
+
+            settlement_status: isSplit
+              ? settlementStatus ===
+                "pending"
+                ? "정산대기"
+                : "정산완료"
+              : "해당없음",
+
+            settled_at:
+              isSplit &&
+              settlementStatus ===
+                "complete"
+                ? new Date().toISOString()
+                : null,
+          });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      onSave();
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error(
+        "소비 저장 오류:",
+        error,
+      );
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "소비 저장 중 오류가 발생했어요.";
+
+      setMessage(errorMessage);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div
       className="expense-sheet-backdrop"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <section
         className="expense-sheet-new"
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) =>
+          event.stopPropagation()
+        }
       >
         <div className="expense-sheet-handle" />
 
@@ -114,7 +301,8 @@ export default function ExpenseSheet({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={saving}
             aria-label="닫기"
           >
             ×
@@ -122,11 +310,11 @@ export default function ExpenseSheet({
         </header>
 
         <div className="expense-sheet-scroll">
-          {/* 소개 영역 */}
           <section className="expense-intro">
             <div className="expense-intro-text">
               <h3>
-                오늘 얼마 썼어? <span>🐶</span>
+                오늘 얼마 썼어?{" "}
+                <span>🐶</span>
               </h3>
 
               <p>
@@ -151,12 +339,13 @@ export default function ExpenseSheet({
             </div>
           </section>
 
-          {/* 금액 */}
           <section className="expense-block amount-block">
             <h4>금액입력</h4>
 
             <div className="new-amount-input">
-              <span className="won-symbol">₩</span>
+              <span className="won-symbol">
+                ₩
+              </span>
 
               <input
                 type="text"
@@ -167,6 +356,7 @@ export default function ExpenseSheet({
                     : ""
                 }
                 placeholder="0"
+                disabled={saving}
                 onChange={(event) => {
                   const value =
                     event.target.value.replace(
@@ -175,6 +365,7 @@ export default function ExpenseSheet({
                     );
 
                   setAmount(value);
+                  setMessage("");
                 }}
               />
 
@@ -183,6 +374,7 @@ export default function ExpenseSheet({
                   type="button"
                   className="amount-clear-button"
                   onClick={resetAmount}
+                  disabled={saving}
                   aria-label="금액 지우기"
                 >
                   ×
@@ -193,34 +385,47 @@ export default function ExpenseSheet({
             <div className="new-quick-buttons">
               <button
                 type="button"
-                onClick={() => addAmount(1_000)}
+                disabled={saving}
+                onClick={() =>
+                  addAmount(1_000)
+                }
               >
                 + 1천원
               </button>
 
               <button
                 type="button"
-                onClick={() => addAmount(5_000)}
+                disabled={saving}
+                onClick={() =>
+                  addAmount(5_000)
+                }
               >
                 + 5천원
               </button>
 
               <button
                 type="button"
-                onClick={() => addAmount(10_000)}
+                disabled={saving}
+                onClick={() =>
+                  addAmount(10_000)
+                }
               >
                 + 1만원
               </button>
 
               <button
                 type="button"
-                onClick={() => addAmount(50_000)}
+                disabled={saving}
+                onClick={() =>
+                  addAmount(50_000)
+                }
               >
                 + 5만원
               </button>
 
               <button
                 type="button"
+                disabled={saving}
                 onClick={resetAmount}
               >
                 직접입력
@@ -228,7 +433,6 @@ export default function ExpenseSheet({
             </div>
           </section>
 
-          {/* 카테고리 */}
           <section className="expense-block">
             <h4>
               카테고리 선택
@@ -240,6 +444,7 @@ export default function ExpenseSheet({
                 <button
                   key={item.name}
                   type="button"
+                  disabled={saving}
                   className={
                     category === item.name
                       ? "selected"
@@ -267,13 +472,13 @@ export default function ExpenseSheet({
             </div>
           </section>
 
-          {/* 누구와 사용 */}
           <section className="expense-block">
             <h4>누구와 썼어?</h4>
 
             <div className="new-use-type">
               <button
                 type="button"
+                disabled={saving}
                 className={
                   useType === "alone"
                     ? "selected"
@@ -289,6 +494,7 @@ export default function ExpenseSheet({
 
               <button
                 type="button"
+                disabled={saving}
                 className={
                   useType === "together"
                     ? "selected"
@@ -310,6 +516,7 @@ export default function ExpenseSheet({
                 <div className="text-input-wrap">
                   <input
                     value={content}
+                    disabled={saving}
                     placeholder="사용 내용을 입력하세요"
                     onChange={(event) =>
                       setContent(
@@ -321,6 +528,7 @@ export default function ExpenseSheet({
                   {content && (
                     <button
                       type="button"
+                      disabled={saving}
                       onClick={() =>
                         setContent("")
                       }
@@ -337,14 +545,16 @@ export default function ExpenseSheet({
                 <input
                   type="date"
                   value={date}
+                  disabled={saving}
                   onChange={(event) =>
-                    setDate(event.target.value)
+                    setDate(
+                      event.target.value,
+                    )
                   }
                 />
               </label>
             </div>
 
-            {/* 둘이 함께 선택했을 때 */}
             {useType === "together" && (
               <div className="payment-detail-box">
                 <h4>어떻게 계산했어?</h4>
@@ -352,6 +562,7 @@ export default function ExpenseSheet({
                 <div className="payment-type-row">
                   <button
                     type="button"
+                    disabled={saving}
                     className={
                       paymentType === "split"
                         ? "selected"
@@ -366,6 +577,7 @@ export default function ExpenseSheet({
 
                   <button
                     type="button"
+                    disabled={saving}
                     className={
                       paymentType === "treat"
                         ? "selected"
@@ -386,6 +598,7 @@ export default function ExpenseSheet({
                     <div className="payer-row">
                       <button
                         type="button"
+                        disabled={saving}
                         className={
                           payer === "me"
                             ? "selected"
@@ -400,15 +613,16 @@ export default function ExpenseSheet({
 
                       <button
                         type="button"
+                        disabled={
+                          saving || !partnerId
+                        }
                         className={
                           payer === "partner"
                             ? "selected"
                             : ""
                         }
                         onClick={() =>
-                          setPayer(
-                            "partner",
-                          )
+                          setPayer("partner")
                         }
                       >
                         상대가 결제
@@ -422,7 +636,7 @@ export default function ExpenseSheet({
 
                       <div className="share-amount">
                         ₩{" "}
-                        {splitAmount.toLocaleString(
+                        {myShare.toLocaleString(
                           "ko-KR",
                         )}
                       </div>
@@ -436,6 +650,7 @@ export default function ExpenseSheet({
                       <div>
                         <button
                           type="button"
+                          disabled={saving}
                           className={
                             settlementStatus ===
                             "pending"
@@ -453,6 +668,7 @@ export default function ExpenseSheet({
 
                         <button
                           type="button"
+                          disabled={saving}
                           className={
                             settlementStatus ===
                             "complete"
@@ -475,14 +691,16 @@ export default function ExpenseSheet({
             )}
           </section>
 
-          {/* 메모 */}
           <section className="expense-block memo-block">
-            <h4>메모 <small>선택</small></h4>
+            <h4>
+              메모 <small>선택</small>
+            </h4>
 
             <div className="memo-textarea-wrap">
               <textarea
                 maxLength={50}
                 value={memo}
+                disabled={saving}
                 placeholder="메모를 입력해주세요 (최대 50자)"
                 onChange={(event) =>
                   setMemo(event.target.value)
@@ -492,14 +710,29 @@ export default function ExpenseSheet({
               <span>{memo.length}/50</span>
             </div>
           </section>
+
+          {message && (
+            <p className="expense-save-message">
+              {message}
+            </p>
+          )}
         </div>
 
         <div className="expense-save-area">
           <button
             type="button"
+            disabled={
+              saving ||
+              numericAmount <= 0 ||
+              !coupleId
+            }
             onClick={handleSave}
           >
-            💸 {formattedAmount || "0"}원 저장하기
+            {saving
+              ? "저장하는 중..."
+              : `💸 ${
+                  formattedAmount || "0"
+                }원 저장하기`}
           </button>
         </div>
       </section>
