@@ -6,7 +6,6 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import NotificationBell from "@/components/NotificationBell";
 import ExpenseSheet from "@/components/ExpenseSheet";
 import IncomeSheet from "@/components/IncomeSheet";
 import BottomNavigation from "@/components/BottomNavigation";
@@ -285,6 +284,14 @@ export default function HomePage() {
   const [refreshKey, setRefreshKey] =
     useState(0);
 
+  /*
+   * 실제 안 읽은 알림 개수
+   */
+  const [
+    unreadCount,
+    setUnreadCount,
+  ] = useState(0);
+
   const monthRange = getMonthRange();
 
   /*
@@ -360,6 +367,7 @@ export default function HomePage() {
         router.replace(
           "/couple/connect",
         );
+
         return;
       }
 
@@ -444,6 +452,86 @@ export default function HomePage() {
       mounted = false;
     };
   }, [router]);
+
+  /*
+   * 실제 안 읽은 알림 개수 조회 및 실시간 반영
+   */
+  useEffect(() => {
+    if (!userId) {
+      setUnreadCount(0);
+      return;
+    }
+
+    let mounted = true;
+
+    const loadUnreadCount =
+      async () => {
+        const {
+          count,
+          error,
+        } = await supabase
+          .from("notifications")
+          .select("id", {
+            count: "exact",
+            head: true,
+          })
+          .eq(
+            "recipient_id",
+            userId,
+          )
+          .eq("is_read", false);
+
+        if (!mounted) {
+          return;
+        }
+
+        if (error) {
+          console.error(
+            "안 읽은 알림 조회 오류:",
+            error,
+          );
+
+          setUnreadCount(0);
+          return;
+        }
+
+        setUnreadCount(
+          count ?? 0,
+        );
+      };
+
+    void loadUnreadCount();
+
+    /*
+     * 새 알림 생성 또는 읽음 처리 시
+     * 실제 안 읽은 개수를 다시 조회
+     */
+    const channel = supabase
+      .channel(
+        `home-notifications-${userId}`,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `recipient_id=eq.${userId}`,
+        },
+        () => {
+          void loadUnreadCount();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+
+      void supabase.removeChannel(
+        channel,
+      );
+    };
+  }, [userId]);
 
   /*
    * 이번 달 소득, 소비, 그래프, 정산 조회
@@ -608,12 +696,6 @@ export default function HomePage() {
 
       /*
        * 정산대기 기록 계산
-       *
-       * 내가 결제:
-       * 상대방 몫을 내가 받을 돈으로 계산
-       *
-       * 상대가 결제:
-       * 내 몫을 내가 줄 돈으로 계산
        */
       const pendingSettlements =
         allExpenses.filter(
@@ -754,37 +836,49 @@ export default function HomePage() {
           </p>
         </div>
 
-       <button
-  type="button"
-  className="home-notification-button"
-  aria-label="알림 보기"
-  onClick={() => router.push("/notifications")}
->
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <path
-      d="M18 8.5C18 5.46 15.54 3 12.5 3C9.46 3 7 5.46 7 8.5V11.2C7 12.68 6.46 14.11 5.48 15.22L4.5 16.33C4.03 16.86 4.41 17.7 5.12 17.7H19.88C20.59 17.7 20.97 16.86 20.5 16.33L19.52 15.22C18.54 14.11 18 12.68 18 11.2V8.5Z"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+        <button
+          type="button"
+          className="home-notification-button"
+          aria-label={`알림 보기${
+            unreadCount > 0
+              ? `, 안 읽은 알림 ${unreadCount}개`
+              : ""
+          }`}
+          onClick={() =>
+            router.push(
+              "/notifications",
+            )
+          }
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M18 8.5C18 5.46 15.54 3 12.5 3C9.46 3 7 5.46 7 8.5V11.2C7 12.68 6.46 14.11 5.48 15.22L4.5 16.33C4.03 16.86 4.41 17.7 5.12 17.7H19.88C20.59 17.7 20.97 16.86 20.5 16.33L19.52 15.22C18.54 14.11 18 12.68 18 11.2V8.5Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
 
-    <path
-      d="M10.2 20C10.62 20.62 11.41 21 12.5 21C13.59 21 14.38 20.62 14.8 20"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    />
-  </svg>
+            <path
+              d="M10.2 20C10.62 20.62 11.41 21 12.5 21C13.59 21 14.38 20.62 14.8 20"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
 
-  <span className="home-notification-count">
-    3
-  </span>
-</button>
+          {unreadCount > 0 && (
+            <span className="home-notification-count">
+              {unreadCount > 99
+                ? "99+"
+                : unreadCount}
+            </span>
+          )}
+        </button>
       </header>
 
       {message && (
@@ -814,19 +908,21 @@ export default function HomePage() {
           </button>
         </div>
 
-       
+        <div
+          className={`budget-amount ${
+            remaining < 0
+              ? "negative"
+              : ""
+          }`}
+        >
+          {dataLoading
+            ? "..."
+            : remaining.toLocaleString(
+                "ko-KR",
+              )}
 
-<div
-  className={`budget-amount ${
-    remaining < 0 ? "negative" : ""
-  }`}
->
-  {dataLoading
-    ? "..."
-    : remaining.toLocaleString("ko-KR")}
-
-  <span>원</span>
-</div>
+          <span>원</span>
+        </div>
 
         <div className="progress-area">
           <div className="progress-bar">
@@ -841,31 +937,37 @@ export default function HomePage() {
           <strong>{usageRate}%</strong>
         </div>
 
-       <div className="budget-information">
-  <div>
-    <span>이번 달 예산</span>
+        <div className="budget-information">
+          <div>
+            <span>이번 달 예산</span>
 
-    <strong>
-      {budget.toLocaleString("ko-KR")}원
-    </strong>
-  </div>
+            <strong>
+              {budget.toLocaleString(
+                "ko-KR",
+              )}
+              원
+            </strong>
+          </div>
 
-  <div>
-  <span>사용 금액</span>
+          <div>
+            <span>사용 금액</span>
 
-  <strong className="used-amount">
-    {used.toLocaleString("ko-KR")}원
-  </strong>
-</div>
+            <strong className="used-amount">
+              {used.toLocaleString(
+                "ko-KR",
+              )}
+              원
+            </strong>
+          </div>
 
-  <div>
-    <span>예산 사용률</span>
+          <div>
+            <span>예산 사용률</span>
 
-    <strong className="rate">
-      {usageRate}%
-    </strong>
-  </div>
-</div>
+            <strong className="rate">
+              {usageRate}%
+            </strong>
+          </div>
+        </div>
       </section>
 
       <section className="dog-card">
@@ -964,6 +1066,7 @@ export default function HomePage() {
                   : receivableAmount.toLocaleString(
                       "ko-KR",
                     )}
+
                 {!dataLoading && "원"}
               </strong>
             </small>
@@ -977,6 +1080,7 @@ export default function HomePage() {
                   : payableAmount.toLocaleString(
                       "ko-KR",
                     )}
+
                 {!dataLoading && "원"}
               </strong>
             </small>

@@ -241,191 +241,172 @@ export default function ExpenseSheet({
     onClose();
   };
 
-  const handleSave =
-    async () => {
-      if (saving) {
-        return;
-      }
+  const handleSave = async () => {
+  if (saving) {
+    return;
+  }
 
-      setMessage("");
+  setMessage("");
 
-      if (!coupleId) {
-        setMessage(
-          "연결된 가계부를 찾지 못했어요.",
-        );
+  if (!coupleId) {
+    setMessage("연결된 가계부를 찾지 못했어요.");
+    return;
+  }
 
-        return;
-      }
+  if (numericAmount <= 0) {
+    setMessage("금액을 입력해 주세요.");
+    return;
+  }
 
-      if (
-        numericAmount <= 0
-      ) {
-        setMessage(
-          "금액을 입력해 주세요.",
-        );
+  if (!date) {
+    setMessage("날짜를 선택해 주세요.");
+    return;
+  }
 
-        return;
-      }
+  if (
+    useType === "together" &&
+    payer === "partner" &&
+    !partnerId
+  ) {
+    setMessage("연결된 상대방 정보를 찾지 못했어요.");
+    return;
+  }
 
-      if (!date) {
-        setMessage(
-          "날짜를 선택해 주세요.",
-        );
+  setSaving(true);
 
-        return;
-      }
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-      if (
-        useType ===
-          "together" &&
-        payer === "partner" &&
-        !partnerId
-      ) {
-        setMessage(
-          "연결된 상대방 정보를 찾지 못했어요.",
-        );
+    if (userError || !user) {
+      throw new Error("로그인 정보를 확인하지 못했어요.");
+    }
 
-        return;
-      }
+    const isTogether = useType === "together";
 
-      setSaving(true);
+    const isSplit =
+      isTogether && paymentType === "split";
 
-      try {
-        const {
-          data: {
-            user,
-          },
-          error:
-            userError,
-        } =
-          await supabase.auth.getUser();
+    const payerId = !isTogether
+      ? user.id
+      : payer === "me"
+        ? user.id
+        : partnerId;
 
-        if (
-          userError ||
-          !user
-        ) {
-          throw new Error(
-            "로그인 정보를 확인하지 못했어요.",
-          );
-        }
+    // 소비를 저장하고 생성된 소비 id를 받아옴
+    const {
+      data: insertedExpense,
+      error: insertError,
+    } = await supabase
+      .from("expenses")
+      .insert({
+        couple_id: coupleId,
 
-        const isTogether =
-          useType ===
-          "together";
+        user_id: user.id,
 
-        const isSplit =
-          isTogether &&
-          paymentType ===
-            "split";
+        amount: numericAmount,
 
-        const payerId =
-          !isTogether
-            ? user.id
-            : payer === "me"
-              ? user.id
-              : partnerId;
+        category,
 
-        const {
-          error:
-            insertError,
-        } =
-          await supabase
-            .from(
-              "expenses",
-            )
-            .insert({
-              couple_id:
-                coupleId,
+        title: content.trim() || null,
 
-              user_id:
-                user.id,
+        memo: memo.trim() || null,
 
-              amount:
-                numericAmount,
+        expense_date: date,
 
-              category,
+        use_type: isTogether ? "함께" : "혼자",
 
-              title:
-                content.trim() ||
-                null,
+        payment_type: isTogether
+          ? paymentType === "split"
+            ? "나눠내기"
+            : "사주기"
+          : null,
 
-              memo:
-                memo.trim() ||
-                null,
+        payer_id: payerId,
 
-              expense_date:
-                date,
+        my_share: isSplit
+          ? myShare
+          : numericAmount,
 
-              use_type:
-                isTogether
-                  ? "함께"
-                  : "혼자",
+        partner_share: isSplit
+          ? partnerShare
+          : 0,
 
-              payment_type:
-                isTogether
-                  ? paymentType ===
-                    "split"
-                    ? "나눠내기"
-                    : "사주기"
-                  : null,
+        settlement_status: isSplit
+          ? settlementStatus === "pending"
+            ? "정산대기"
+            : "정산완료"
+          : "해당없음",
 
-              payer_id:
-                payerId,
+        settled_at:
+          isSplit &&
+          settlementStatus === "complete"
+            ? new Date().toISOString()
+            : null,
+      })
+      .select("id")
+      .single();
 
-              my_share:
-                isSplit
-                  ? myShare
-                  : numericAmount,
+    if (insertError) {
+      throw insertError;
+    }
 
-              partner_share:
-                isSplit
-                  ? partnerShare
-                  : 0,
+    // 연결된 상대방이 있을 때 상대방에게 알림 생성
+    if (partnerId && insertedExpense) {
+      const expenseTitle =
+        content.trim() || category;
 
-              settlement_status:
-                isSplit
-                  ? settlementStatus ===
-                    "pending"
-                    ? "정산대기"
-                    : "정산완료"
-                  : "해당없음",
+      const { error: notificationError } =
+        await supabase
+          .from("notifications")
+          .insert({
+            couple_id: coupleId,
 
-              settled_at:
-                isSplit &&
-                settlementStatus ===
-                  "complete"
-                  ? new Date().toISOString()
-                  : null,
-            });
+            // 기존 테이블 컬럼명은 receiver_id가 아니라 recipient_id
+            recipient_id: partnerId,
 
-        if (
-          insertError
-        ) {
-          throw insertError;
-        }
+            actor_id: user.id,
 
-        onSave();
-        resetForm();
-        onClose();
-      } catch (error) {
+            expense_id: insertedExpense.id,
+
+            type: "expense",
+
+            title: "새로운 소비 기록",
+
+            message: `${expenseTitle} ${numericAmount.toLocaleString(
+              "ko-KR",
+            )}원이 등록됐어요.`,
+
+            is_read: false,
+          });
+
+      if (notificationError) {
+        // 알림 저장이 실패해도 소비 기록 자체는 유지
         console.error(
-          "소비 저장 오류:",
-          error,
+          "알림 생성 오류:",
+          notificationError,
         );
-
-        const errorMessage =
-          error instanceof
-          Error
-            ? error.message
-            : "소비 저장 중 오류가 발생했어요.";
-
-        setMessage(
-          errorMessage,
-        );
-      } finally {
-        setSaving(false);
       }
-    };
+    }
+
+    onSave();
+    resetForm();
+    onClose();
+  } catch (error) {
+    console.error("소비 저장 오류:", error);
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "소비 저장 중 오류가 발생했어요.";
+
+    setMessage(errorMessage);
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <div
