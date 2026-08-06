@@ -707,3 +707,850 @@ button {
     grid-template-columns: 1fr 86px;
   }
 }
+/* 실제 데이터 통계 추가 스타일 */
+
+.analysis-loading {
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+  background: #fefcf9;
+  color: #98918b;
+  font-size: 13px;
+}
+
+.analysis-message {
+  margin: 0 0 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff0f0;
+  color: #e66f70;
+  font-size: 11px;
+  text-align: center;
+}
+
+.analysis-header {
+  grid-template-columns: 55px 1fr 115px;
+}
+
+.analysis-month-control {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #eee9e4;
+  border-radius: 22px;
+  background: white;
+  box-shadow:
+    0 3px 9px
+    rgba(52, 42, 34, 0.06);
+}
+
+.analysis-month-control button {
+  height: 38px;
+  padding: 0;
+  background: transparent;
+  color: #89837e;
+  font-size: 17px;
+}
+
+.analysis-month-control strong {
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.analysis-summary-item > strong.green-text {
+  color: #2baa68;
+}
+
+.analysis-empty {
+  padding: 45px 10px;
+  color: #aaa49e;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* 커플 소비 비교 */
+
+.couple-comparison-grid {
+  display: grid;
+  gap: 19px;
+  margin-top: 19px;
+}
+
+.couple-comparison-grid > div > span {
+  display: block;
+  color: #8f8983;
+  font-size: 10px;
+}
+
+.couple-comparison-grid > div > strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 15px;
+}
+
+.couple-progress {
+  height: 9px;
+  overflow: hidden;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #edf0ed;
+}
+
+.couple-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #37b570;
+}
+
+.couple-progress.partner span {
+  background: #9a74cd;
+}
+
+.couple-comparison-message {
+  margin: 17px 0 0;
+  padding: 13px;
+  border-radius: 11px;
+  background: #f4faf6;
+  color: #5f5955;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* 카테고리 분석 */
+
+.category-analysis-layout {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  gap: 17px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.category-analysis-donut {
+  width: 140px;
+  height: 140px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.category-analysis-donut > div {
+  width: 83px;
+  height: 83px;
+  display: grid;
+  place-content: center;
+  border-radius: 50%;
+  background: white;
+  text-align: center;
+}
+
+.category-analysis-donut strong {
+  display: block;
+  max-width: 76px;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-analysis-donut span {
+  margin-top: 2px;
+  color: #99938e;
+  font-size: 9px;
+}
+
+.category-analysis-list {
+  display: grid;
+  gap: 10px;
+}
+
+.category-analysis-list > div {
+  display: grid;
+  grid-template-columns:
+    9px minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-analysis-list i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.category-analysis-list span {
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-analysis-list strong {
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.category-analysis-list small {
+  color: #99938e;
+  font-size: 8px;
+  text-align: right;
+}
+
+/* 혼자 / 함께 */
+
+.use-type-statistics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.use-type-statistics > div {
+  padding: 17px 13px;
+  border-radius: 13px;
+  background: #f5faf7;
+}
+
+.use-type-statistics > div + div {
+  background: #f7f3fb;
+}
+
+.use-type-statistics span {
+  display: block;
+  color: #817b76;
+  font-size: 10px;
+}
+
+.use-type-statistics strong {
+  display: block;
+  margin-top: 9px;
+  font-size: 16px;
+}
+
+.use-type-statistics small {
+  display: block;
+  margin-top: 5px;
+  color: #99938e;
+  font-size: 9px;
+}
+
+/* 사주기 분석 */
+
+.treat-analysis-card {
+  background:
+    linear-gradient(
+      180deg,
+      #fffdf9,
+      #fffaf3
+    );
+}
+
+.treat-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 17px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff3e3;
+}
+
+.treat-total span {
+  color: #8e7e6b;
+  font-size: 10px;
+}
+
+.treat-total strong {
+  color: #d88d37;
+  font-size: 17px;
+}
+
+.treat-comparison {
+  display: grid;
+  gap: 19px;
+  margin-top: 20px;
+}
+
+.treat-comparison header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.treat-comparison header span {
+  color: #716a65;
+  font-size: 11px;
+}
+
+.treat-comparison header strong {
+  font-size: 13px;
+}
+
+.treat-progress {
+  height: 11px;
+  overflow: hidden;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #f1ece7;
+}
+
+.treat-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #f6a84d,
+      #f2c064
+    );
+}
+
+.treat-progress.partner span {
+  background:
+    linear-gradient(
+      90deg,
+      #9d79cf,
+      #c9a9e8
+    );
+}
+
+.treat-result {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 19px;
+  padding: 14px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #f0e8dc;
+}
+
+.treat-result > span {
+  font-size: 25px;
+}
+
+.treat-result p {
+  margin: 0;
+  color: #625b56;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.biggest-treat {
+  margin-top: 11px;
+  padding: 13px 14px;
+  border-radius: 11px;
+  background: #f9f6f2;
+}
+
+.biggest-treat > span {
+  color: #99918a;
+  font-size: 9px;
+}
+
+.biggest-treat > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 7px;
+}
+
+.biggest-treat strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.biggest-treat b {
+  color: #dd8c35;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* 월 비교 감소 */
+
+.month-change-card.decrease {
+  background: #eff9f3;
+}
+
+.month-change-card.decrease strong {
+  color: #2eac69;
+}
+
+@media (max-width: 380px) {
+  .analysis-header {
+    grid-template-columns:
+      42px 1fr 108px;
+  }
+
+  .category-analysis-layout {
+    grid-template-columns:
+      125px 1fr;
+    gap: 10px;
+  }
+
+  .category-analysis-donut {
+    width: 120px;
+    height: 120px;
+  }
+
+  .category-analysis-donut > div {
+    width: 74px;
+    height: 74px;
+  }
+
+  .category-analysis-list > div {
+    grid-template-columns:
+      8px minmax(0, 1fr)
+      auto;
+  }
+
+  .category-analysis-list small {
+    display: none;
+  }
+}
+/* 나 / 상대 통계 탭 */
+
+.statistics-person-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin: 0 0 12px;
+  padding: 5px;
+  border: 1px solid #ebe7e3;
+  border-radius: 15px;
+  background: #f4f2ef;
+}
+
+.statistics-person-tabs button {
+  min-height: 43px;
+  padding: 10px;
+  border-radius: 11px;
+  background: transparent;
+  color: #918b85;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statistics-person-tabs button.active {
+  background: white;
+  color: #31ad6a;
+  box-shadow:
+    0 3px 11px
+    rgba(54, 43, 34, 0.09);
+}
+
+.statistics-person-tabs button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 로딩 */
+
+.analysis-loading {
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+  background: #fefcf9;
+  color: #98918b;
+  font-size: 13px;
+}
+
+.analysis-message {
+  margin: 0 0 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff0f0;
+  color: #e66f70;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* 월 이동 */
+
+.analysis-header {
+  grid-template-columns: 55px 1fr 115px;
+}
+
+.analysis-month-control {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #eee9e4;
+  border-radius: 22px;
+  background: white;
+  box-shadow:
+    0 3px 9px
+    rgba(52, 42, 34, 0.06);
+}
+
+.analysis-month-control button {
+  height: 38px;
+  padding: 0;
+  background: transparent;
+  color: #89837e;
+  font-size: 17px;
+}
+
+.analysis-month-control strong {
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.analysis-summary-item > strong.green-text {
+  color: #2baa68;
+}
+
+.analysis-empty {
+  padding: 45px 10px;
+  color: #aaa49e;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* 커플 소비 비교 */
+
+.couple-comparison-grid {
+  display: grid;
+  gap: 19px;
+  margin-top: 19px;
+}
+
+.couple-comparison-grid > div > span {
+  display: block;
+  color: #8f8983;
+  font-size: 10px;
+}
+
+.couple-comparison-grid > div > strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 15px;
+}
+
+.couple-progress {
+  height: 9px;
+  overflow: hidden;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #edf0ed;
+}
+
+.couple-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #37b570;
+}
+
+.couple-progress.partner span {
+  background: #9a74cd;
+}
+
+.couple-comparison-message {
+  margin: 17px 0 0;
+  padding: 13px;
+  border-radius: 11px;
+  background: #f4faf6;
+  color: #5f5955;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* 카테고리 */
+
+.category-analysis-layout {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  gap: 17px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.category-analysis-donut {
+  width: 140px;
+  height: 140px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.category-analysis-donut > div {
+  width: 83px;
+  height: 83px;
+  display: grid;
+  place-content: center;
+  border-radius: 50%;
+  background: white;
+  text-align: center;
+}
+
+.category-analysis-donut strong {
+  display: block;
+  max-width: 76px;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-analysis-donut span {
+  margin-top: 2px;
+  color: #99938e;
+  font-size: 9px;
+}
+
+.category-analysis-list {
+  display: grid;
+  gap: 10px;
+}
+
+.category-analysis-list > div {
+  display: grid;
+  grid-template-columns:
+    9px minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-analysis-list i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.category-analysis-list span {
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-analysis-list strong {
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.category-analysis-list small {
+  color: #99938e;
+  font-size: 8px;
+  text-align: right;
+}
+
+/* 혼자 / 함께 */
+
+.use-type-statistics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.use-type-statistics > div {
+  padding: 17px 13px;
+  border-radius: 13px;
+  background: #f5faf7;
+}
+
+.use-type-statistics > div + div {
+  background: #f7f3fb;
+}
+
+.use-type-statistics span {
+  display: block;
+  color: #817b76;
+  font-size: 10px;
+}
+
+.use-type-statistics strong {
+  display: block;
+  margin-top: 9px;
+  font-size: 16px;
+}
+
+.use-type-statistics small {
+  display: block;
+  margin-top: 5px;
+  color: #99938e;
+  font-size: 9px;
+}
+
+/* 사주기 */
+
+.treat-analysis-card {
+  background:
+    linear-gradient(
+      180deg,
+      #fffdf9,
+      #fffaf3
+    );
+}
+
+.treat-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 17px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff3e3;
+}
+
+.treat-total span {
+  color: #8e7e6b;
+  font-size: 10px;
+}
+
+.treat-total strong {
+  color: #d88d37;
+  font-size: 17px;
+}
+
+.treat-comparison {
+  display: grid;
+  gap: 19px;
+  margin-top: 20px;
+}
+
+.treat-comparison header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.treat-comparison header span {
+  color: #716a65;
+  font-size: 11px;
+}
+
+.treat-comparison header strong {
+  font-size: 13px;
+}
+
+.treat-progress {
+  height: 11px;
+  overflow: hidden;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #f1ece7;
+}
+
+.treat-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #f6a84d,
+      #f2c064
+    );
+}
+
+.treat-progress.partner span {
+  background:
+    linear-gradient(
+      90deg,
+      #9d79cf,
+      #c9a9e8
+    );
+}
+
+.treat-result {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 19px;
+  padding: 14px;
+  border: 1px solid #f0e8dc;
+  border-radius: 12px;
+  background: white;
+}
+
+.treat-result > span {
+  font-size: 25px;
+}
+
+.treat-result p {
+  margin: 0;
+  color: #625b56;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.biggest-treat {
+  margin-top: 11px;
+  padding: 13px 14px;
+  border-radius: 11px;
+  background: #f9f6f2;
+}
+
+.biggest-treat > span {
+  color: #99918a;
+  font-size: 9px;
+}
+
+.biggest-treat > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 7px;
+}
+
+.biggest-treat strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.biggest-treat b {
+  color: #dd8c35;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+  .analysis-header {
+    grid-template-columns:
+      42px 1fr 108px;
+  }
+
+  .category-analysis-layout {
+    grid-template-columns:
+      125px 1fr;
+    gap: 10px;
+  }
+
+  .category-analysis-donut {
+    width: 120px;
+    height: 120px;
+  }
+
+  .category-analysis-donut > div {
+    width: 74px;
+    height: 74px;
+  }
+
+  .category-analysis-list > div {
+    grid-template-columns:
+      8px minmax(0, 1fr) auto;
+  }
+
+  .category-analysis-list small {
+    display: none;
+  }
+}

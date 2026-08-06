@@ -1,0 +1,647 @@
+.expense-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(30, 27, 24, 0.48);
+  backdrop-filter: blur(2px);
+}
+
+.expense-sheet-new {
+  position: relative;
+  width: min(100%, 430px);
+  height: min(94dvh, 900px);
+  overflow: hidden;
+  border-radius: 26px 26px 0 0;
+  background: #fffdfb;
+  color: #4f4945;
+  box-shadow:
+    0 -16px 45px
+    rgba(52, 40, 31, 0.22);
+  animation: expense-sheet-open 0.22s ease-out;
+}
+
+@keyframes expense-sheet-open {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.expense-sheet-new *,
+.expense-sheet-new *::before,
+.expense-sheet-new *::after {
+  box-sizing: border-box;
+}
+
+.expense-sheet-new button,
+.expense-sheet-new input,
+.expense-sheet-new textarea {
+  font: inherit;
+}
+
+.expense-sheet-new button {
+  border: 0;
+  cursor: pointer;
+}
+
+.expense-sheet-handle {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  z-index: 10;
+  width: 46px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #cbc7c3;
+}
+
+.expense-sheet-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68px;
+  padding-top: 7px;
+  border-bottom: 1px solid #eeeae6;
+  background: #fffdfb;
+}
+
+.expense-sheet-title h2 {
+  margin: 0;
+  color: #36312d;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.expense-sheet-title button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 0;
+  background: transparent;
+  color: #514b47;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.expense-sheet-scroll {
+  height: calc(100% - 142px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 25px;
+  scrollbar-width: none;
+}
+
+.expense-sheet-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 소개 */
+
+.expense-intro {
+  position: relative;
+  min-height: 165px;
+  overflow: hidden;
+  padding: 29px 24px 20px;
+  background:
+    radial-gradient(
+      circle at 82% 24%,
+      rgba(255, 219, 175, 0.55),
+      transparent 36%
+    ),
+    #fff8ef;
+}
+
+.expense-intro-text {
+  position: relative;
+  z-index: 2;
+}
+
+.expense-intro h3 {
+  margin: 0 0 9px;
+  color: #423c37;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.expense-intro h3 span {
+  font-size: 19px;
+}
+
+.expense-intro p {
+  margin: 0;
+  color: #918a84;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.expense-dog-image {
+  position: absolute;
+  right: 4px;
+  bottom: -25px;
+  width: 175px;
+  height: 165px;
+}
+
+.expense-dog-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.expense-user-badge {
+  position: absolute;
+  top: 4px;
+  right: 11px;
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border: 1px solid #f1cda9;
+  border-radius: 50%;
+  background: white;
+  color: #2db775;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 공통 블록 */
+
+.expense-block {
+  padding: 20px 20px;
+  border-top: 1px solid #f0ece8;
+  background: white;
+}
+
+.expense-block h4 {
+  margin: 0 0 14px;
+  color: #665f5a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.expense-block h4 small {
+  color: #aaa39d;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+/* 금액 */
+
+.amount-block {
+  margin: 12px 14px 0;
+  padding: 17px 14px;
+  border: 1px solid #f0ece8;
+  border-radius: 18px;
+  box-shadow:
+    0 8px 24px
+    rgba(54, 44, 36, 0.05);
+}
+
+.new-amount-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 62px;
+  padding: 0 43px 0 19px;
+  border: 1px solid #dedad6;
+  border-radius: 11px;
+  background: white;
+}
+
+.won-symbol {
+  color: #77716c;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.new-amount-input input {
+  width: 100%;
+  min-width: 0;
+  padding: 0 11px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #292521;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.new-amount-input input::placeholder {
+  color: #cbc7c3;
+}
+
+.amount-clear-button {
+  position: absolute;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
+  background: #aaa7a4;
+  color: white;
+  font-size: 12px;
+}
+
+.new-quick-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.new-quick-buttons button {
+  min-width: 0;
+  padding: 10px 2px;
+  border: 1px solid #d9eee1;
+  border-radius: 12px;
+  background: #f5fbf7;
+  color: #2eb36f;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* 카테고리 */
+
+.new-category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+}
+
+.new-category-grid button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  min-height: 78px;
+  padding: 8px 3px;
+  border: 1px solid #eae6e2;
+  border-radius: 11px;
+  background: white;
+  color: #918b85;
+}
+
+.new-category-grid button.selected {
+  border-color: #51c585;
+  background: #eff9f3;
+  color: #37ae70;
+}
+
+.category-check {
+  position: absolute;
+  top: -7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #28a865;
+  color: white;
+  font-size: 12px;
+}
+
+.category-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.category-name {
+  font-size: 10px;
+}
+
+/* 혼자 / 함께 */
+
+.new-use-type {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.new-use-type button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 45px;
+  padding: 10px 8px;
+  border: 1px solid #e3dfdb;
+  border-radius: 10px;
+  background: white;
+  color: #85807c;
+  font-size: 12px;
+}
+
+.new-use-type button.selected {
+  border-color: #4fc283;
+  background: #f0faf4;
+  color: #35b572;
+}
+
+/* 내용, 날짜 */
+
+.content-date-row {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 11px;
+  margin-top: 17px;
+}
+
+.content-date-row label > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #89837e;
+  font-size: 10px;
+}
+
+.content-date-row input {
+  width: 100%;
+  height: 43px;
+  min-width: 0;
+  padding: 0 11px;
+  border: 1px solid #e3dfdb;
+  border-radius: 9px;
+  outline: none;
+  background: white;
+  color: #625c57;
+  font-size: 11px;
+}
+
+.content-date-row input:focus {
+  border-color: #50bf81;
+}
+
+.text-input-wrap {
+  position: relative;
+}
+
+.text-input-wrap input {
+  padding-right: 34px;
+}
+
+.text-input-wrap button {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #aaa7a4;
+  color: white;
+  font-size: 10px;
+}
+
+/* 함께 사용 상세 */
+
+.payment-detail-box {
+  margin-top: 17px;
+  padding: 15px 12px;
+  border-radius: 12px;
+  background: #f2f9f5;
+}
+
+.payment-detail-box h4 {
+  margin-bottom: 12px;
+}
+
+.payment-type-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.payment-type-row button {
+  min-height: 41px;
+  padding: 9px 5px;
+  border: 1px solid #ddd9d5;
+  border-radius: 9px;
+  background: white;
+  color: #857f79;
+  font-size: 11px;
+}
+
+.payment-type-row button.selected {
+  border-color: #54c487;
+  background: #f7fcf9;
+  color: #38b273;
+}
+
+.payment-info-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr 1fr;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.payment-info-grid > div > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #827d78;
+  font-size: 9px;
+}
+
+.payer-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.payer-row button {
+  min-height: 40px;
+  padding: 9px 3px;
+  border: 1px solid #d8d4d0;
+  background: white;
+  color: #8c8782;
+  font-size: 9px;
+}
+
+.payer-row button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.payer-row button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.payer-row button.selected {
+  z-index: 1;
+  border-color: #43bd7c;
+  color: #3bb474;
+}
+
+.payer-row button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.share-amount {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 9px;
+  border: 1px solid #dfdcda;
+  border-radius: 8px;
+  background: white;
+  color: #52504e;
+  font-size: 13px;
+}
+
+.settlement-status {
+  padding: 7px;
+  border-radius: 9px;
+  background: #fff3f1;
+}
+
+.settlement-status > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.settlement-status button {
+  min-height: 34px;
+  padding: 7px 2px;
+  border: 1px solid #dbd7d3;
+  border-radius: 7px;
+  background: white;
+  color: #9d9894;
+  font-size: 8px;
+}
+
+.settlement-status button.pending.selected {
+  border-color: #f3a72c;
+  color: #f2a022;
+}
+
+.settlement-status button.complete.selected {
+  border-color: #4abd80;
+  color: #39ae70;
+}
+
+/* 메모 */
+
+.memo-block {
+  margin: 10px 14px 0;
+  border: 1px solid #f0ece8;
+  border-radius: 14px;
+}
+
+.memo-textarea-wrap {
+  position: relative;
+}
+
+.memo-textarea-wrap textarea {
+  width: 100%;
+  height: 76px;
+  resize: none;
+  padding: 12px 13px 24px;
+  border: 1px solid #e5e1dd;
+  border-radius: 9px;
+  outline: none;
+  background: white;
+  color: #68635f;
+  font-size: 11px;
+}
+
+.memo-textarea-wrap textarea:focus {
+  border-color: #50bf81;
+}
+
+.memo-textarea-wrap span {
+  position: absolute;
+  right: 11px;
+  bottom: 8px;
+  color: #bbb5b0;
+  font-size: 9px;
+}
+
+/* 오류 메시지 */
+
+.expense-sheet-message {
+  margin: 10px 14px 0;
+  padding: 11px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #e36f70;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* 저장 버튼 */
+
+.expense-save-area {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  padding:
+    11px 16px
+    calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid #eeeae6;
+  background: rgba(255, 253, 251, 0.98);
+}
+
+.expense-save-area button {
+  width: 100%;
+  min-height: 51px;
+  padding: 14px;
+  border-radius: 13px;
+  background: #2eaa67;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.expense-save-area button:disabled {
+  background: #b9d9c5;
+  cursor: default;
+}
+
+/* 모바일 */
+
+@media (max-width: 380px) {
+  .expense-sheet-new {
+    height: 96dvh;
+  }
+
+  .expense-intro {
+    min-height: 150px;
+    padding-left: 18px;
+  }
+
+  .expense-dog-image {
+    right: -10px;
+    width: 155px;
+  }
+
+  .expense-block {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .new-quick-buttons {
+    gap: 4px;
+  }
+
+  .new-quick-buttons button {
+    font-size: 8px;
+  }
+
+  .payment-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
