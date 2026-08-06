@@ -948,4 +948,14 @@ button {
   .history-price strong {
     font-size: 11px;
   }
+}.history-actions {
+  position: relative;
+  z-index: 10;
+}
+
+.history-actions button {
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  touch-action: manipulation;
 }

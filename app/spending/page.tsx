@@ -1338,17 +1338,17 @@ function CategoryDetail({
                               수정
                             </button>
 
-                            <button
-                              type="button"
-                              className="delete"
-                              onClick={() =>
-                                onDelete(
-                                  expense,
-                                )
-                              }
-                            >
-                              삭제
-                            </button>
+                           <button
+  type="button"
+  className="delete"
+  onClick={(event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onDelete(expense);
+  }}
+>
+  삭제
+</button>
                           </div>
                         )}
                       </div>
