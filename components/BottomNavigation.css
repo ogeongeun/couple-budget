@@ -1,0 +1,51 @@
+.bottom-navigation {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  z-index: 1000;
+
+  width: min(calc(100% - 20px), 414px);
+  transform: translateX(-50%);
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  padding:
+    11px 15px
+    calc(9px + env(safe-area-inset-bottom));
+
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 28px rgba(60, 44, 32, 0.15);
+  backdrop-filter: blur(15px);
+}
+
+.bottom-navigation button {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #b6b0aa;
+
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.bottom-navigation button span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.bottom-navigation button.active {
+  background: transparent;
+  color: #ff7d75;
+}
+
+.bottom-navigation button:active {
+  transform: scale(0.95);
+}

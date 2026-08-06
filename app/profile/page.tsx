@@ -280,16 +280,17 @@ const { error: uploadError } =
     router.refresh();
   };
 
-  if (loading) {
-    return (
-      <main className="profile-page">
-        <p className="profile-loading">
-          불러오는 중...
-        </p>
-      </main>
-    );
-  }
+ if (loading) {
+  return (
+    <main className="profile-page">
+      <p className="profile-loading">
+        불러오는 중...
+      </p>
 
+      <BottomNavigation active="profile" />
+    </main>
+  );
+}
   return (
     <main className="profile-page">
       <header className="profile-header">
