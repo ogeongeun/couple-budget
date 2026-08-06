@@ -35,14 +35,11 @@ type ExpenseData = {
   user_id: string;
   amount: number;
   category: string;
-
   use_type: string;
   payment_type: string | null;
   payer_id: string | null;
-
   my_share: number;
   partner_share: number;
-
   settlement_status: string;
 };
 
@@ -51,6 +48,16 @@ type ChartCategory = {
   amount: number;
   percentage: number;
   color: string;
+};
+
+type NotificationData = {
+  id: string;
+  recipient_id: string;
+  actor_id: string;
+  title: string | null;
+  message: string | null;
+  is_read: boolean;
+  created_at: string;
 };
 
 const chartCategoryInfo = [
@@ -284,15 +291,36 @@ export default function HomePage() {
   const [refreshKey, setRefreshKey] =
     useState(0);
 
-  /*
-   * 실제 안 읽은 알림 개수
-   */
   const [
     unreadCount,
     setUnreadCount,
   ] = useState(0);
 
+  const [
+    notificationPermission,
+    setNotificationPermission,
+  ] =
+    useState<NotificationPermission>(
+      "default",
+    );
+
   const monthRange = getMonthRange();
+
+  /*
+   * 현재 브라우저 알림 권한 확인
+   */
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      !("Notification" in window)
+    ) {
+      return;
+    }
+
+    setNotificationPermission(
+      Notification.permission,
+    );
+  }, []);
 
   /*
    * 로그인 사용자, 커플, 상대방 정보 조회
@@ -454,7 +482,8 @@ export default function HomePage() {
   }, [router]);
 
   /*
-   * 실제 안 읽은 알림 개수 조회 및 실시간 반영
+   * 실제 안 읽은 알림 개수 조회
+   * 새 알림이 생기면 브라우저 알림 표시
    */
   useEffect(() => {
     if (!userId) {
@@ -495,17 +524,11 @@ export default function HomePage() {
           return;
         }
 
-        setUnreadCount(
-          count ?? 0,
-        );
+        setUnreadCount(count ?? 0);
       };
 
     void loadUnreadCount();
 
-    /*
-     * 새 알림 생성 또는 읽음 처리 시
-     * 실제 안 읽은 개수를 다시 조회
-     */
     const channel = supabase
       .channel(
         `home-notifications-${userId}`,
@@ -513,7 +536,50 @@ export default function HomePage() {
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `recipient_id=eq.${userId}`,
+        },
+        (payload) => {
+          void loadUnreadCount();
+
+          const notification =
+            payload.new as NotificationData;
+
+          if (
+            typeof window !==
+              "undefined" &&
+            "Notification" in window &&
+            Notification.permission ===
+              "granted"
+          ) {
+            try {
+              new Notification(
+                notification.title ||
+                  "새로운 알림",
+                {
+                  body:
+                    notification.message ||
+                    "새로운 소비 기록이 등록됐어요.",
+
+                  icon:
+                    "/chorong-v2.png",
+                },
+              );
+            } catch (error) {
+              console.error(
+                "브라우저 알림 표시 오류:",
+                error,
+              );
+            }
+          }
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
           schema: "public",
           table: "notifications",
           filter: `recipient_id=eq.${userId}`,
@@ -522,7 +588,24 @@ export default function HomePage() {
           void loadUnreadCount();
         },
       )
-      .subscribe();
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "notifications",
+          filter: `recipient_id=eq.${userId}`,
+        },
+        () => {
+          void loadUnreadCount();
+        },
+      )
+      .subscribe((status) => {
+        console.log(
+          "알림 실시간 연결 상태:",
+          status,
+        );
+      });
 
     return () => {
       mounted = false;
@@ -638,9 +721,6 @@ export default function HomePage() {
           | ExpenseData[]
           | null) ?? [];
 
-      /*
-       * 내 소비와 상대 소비 분리
-       */
       const myExpenses =
         allExpenses.filter(
           (expense) =>
@@ -694,9 +774,6 @@ export default function HomePage() {
         ),
       );
 
-      /*
-       * 정산대기 기록 계산
-       */
       const pendingSettlements =
         allExpenses.filter(
           (expense) =>
@@ -781,6 +858,36 @@ export default function HomePage() {
     );
   };
 
+  /*
+   * 알림 버튼을 눌렀을 때 권한 요청
+   */
+  const openNotificationPage =
+    async () => {
+      if (
+        typeof window !==
+          "undefined" &&
+        "Notification" in window &&
+        notificationPermission ===
+          "default"
+      ) {
+        try {
+          const permission =
+            await Notification.requestPermission();
+
+          setNotificationPermission(
+            permission,
+          );
+        } catch (error) {
+          console.error(
+            "알림 권한 요청 오류:",
+            error,
+          );
+        }
+      }
+
+      router.push("/notifications");
+    };
+
   const remaining = budget - used;
 
   const usageRate =
@@ -844,11 +951,9 @@ export default function HomePage() {
               ? `, 안 읽은 알림 ${unreadCount}개`
               : ""
           }`}
-          onClick={() =>
-            router.push(
-              "/notifications",
-            )
-          }
+          onClick={() => {
+            void openNotificationPage();
+          }}
         >
           <svg
             viewBox="0 0 24 24"
