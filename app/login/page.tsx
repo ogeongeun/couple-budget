@@ -39,20 +39,30 @@ export default function LoginPage() {
   const [isError, setIsError] =
     useState(false);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+ useEffect(() => {
+  let mounted = true;
 
-      if (session) {
-        router.replace("/");
-      }
-    };
+  const checkSession = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    void checkSession();
-  }, [router, supabase]);
+    if (!mounted) {
+      return;
+    }
 
+    if (session) {
+      router.replace("/");
+      router.refresh();
+    }
+  };
+
+  void checkSession();
+
+  return () => {
+    mounted = false;
+  };
+}, [router, supabase]);
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>,
   ) => {
