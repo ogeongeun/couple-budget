@@ -1866,3 +1866,49 @@ button {
 .budget-information > div:nth-child(3) strong {
   color: #56504c;
 }
+.home-notification-button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #ebe7e2;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #4f4a46;
+  box-shadow:
+    0 3px 10px
+    rgba(54, 43, 34, 0.05);
+  cursor: pointer;
+}
+
+.home-notification-button svg {
+  width: 21px;
+  height: 21px;
+  display: block;
+}
+
+.home-notification-button:active {
+  transform: scale(0.95);
+}
+
+.home-notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #ff725e;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}

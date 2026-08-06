@@ -1435,10 +1435,10 @@ export default function StatisticsPage() {
             )}
             icon={
               difference > 0
-                ? "↗"
+                ? "↑"
                 : difference < 0
-                  ? "↘"
-                  : "→"
+                  ? "↓"
+                  : "−"
             }
             iconClass={
               difference > 0
@@ -1529,7 +1529,7 @@ export default function StatisticsPage() {
             <svg
               className="monthly-svg"
               viewBox="0 0 500 210"
-              preserveAspectRatio="none"
+              preserveAspectRatio="xMidYMid meet"
             >
               <polyline
                 points={
@@ -1540,11 +1540,13 @@ export default function StatisticsPage() {
                 strokeWidth="5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
               />
 
               {monthlyPoints.map(
                 (point, index) => (
                   <circle
+                    className="monthly-chart-point"
                     key={index}
                     cx={point.x}
                     cy={point.y}
@@ -1552,6 +1554,7 @@ export default function StatisticsPage() {
                     fill="#ffffff"
                     stroke="#33ad6d"
                     strokeWidth="4"
+                    vectorEffect="non-scaling-stroke"
                   />
                 ),
               )}
@@ -2106,14 +2109,24 @@ function SummaryItem({
         {value}
       </strong>
 
-      {subValue && (
+      {subValue ? (
         <small>{subValue}</small>
+      ) : (
+        <small
+          className="summary-empty-sub"
+          aria-hidden="true"
+        >
+          &nbsp;
+        </small>
       )}
 
       <div
         className={`summary-round-icon ${iconClass}`}
+        aria-hidden="true"
       >
-        {icon}
+        <span className="summary-icon-content">
+          {icon}
+        </span>
       </div>
     </article>
   );

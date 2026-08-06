@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-
+import NotificationBell from "@/components/NotificationBell";
 import ExpenseSheet from "@/components/ExpenseSheet";
 import IncomeSheet from "@/components/IncomeSheet";
 import BottomNavigation from "@/components/BottomNavigation";
@@ -754,17 +754,37 @@ export default function HomePage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="notification-button"
-          aria-label="알림 확인"
-        >
-          🔔
+       <button
+  type="button"
+  className="home-notification-button"
+  aria-label="알림 보기"
+  onClick={() => router.push("/notifications")}
+>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M18 8.5C18 5.46 15.54 3 12.5 3C9.46 3 7 5.46 7 8.5V11.2C7 12.68 6.46 14.11 5.48 15.22L4.5 16.33C4.03 16.86 4.41 17.7 5.12 17.7H19.88C20.59 17.7 20.97 16.86 20.5 16.33L19.52 15.22C18.54 14.11 18 12.68 18 11.2V8.5Z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
 
-          <span className="notification-count">
-            3
-          </span>
-        </button>
+    <path
+      d="M10.2 20C10.62 20.62 11.41 21 12.5 21C13.59 21 14.38 20.62 14.8 20"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+
+  <span className="home-notification-count">
+    3
+  </span>
+</button>
       </header>
 
       {message && (
