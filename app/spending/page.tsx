@@ -110,6 +110,10 @@ const categoryInfo: Record<
     icon: "💊",
     color: "#58b5ad",
   },
+미용: {
+  icon: "💄",
+  color: "#f39ab5",
+},
   기타: {
     icon: "•••",
     color: "#bdbdbd",
@@ -124,6 +128,7 @@ const categoryNames = [
   "문화",
   "생활",
   "의료",
+  "미용",
   "기타",
 ];
 
