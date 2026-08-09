@@ -8,6 +8,7 @@ import {
 import { useRouter } from "next/navigation";
 import ExpenseSheet from "@/components/ExpenseSheet";
 import IncomeSheet from "@/components/IncomeSheet";
+import SavingSheet from "@/components/SavingSheet";
 import BottomNavigation from "@/components/BottomNavigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -57,6 +58,16 @@ type NotificationData = {
   title: string | null;
   message: string | null;
   is_read: boolean;
+  created_at: string;
+};
+
+type SavingRecord = {
+  id: string;
+  user_id: string;
+  type: "deposit" | "withdraw";
+  amount: number;
+  memo: string | null;
+  saving_date: string;
   created_at: string;
 };
 
@@ -238,6 +249,23 @@ export default function HomePage() {
   const [incomeOpen, setIncomeOpen] =
     useState(false);
 
+  const [
+    savingSheetOpen,
+    setSavingSheetOpen,
+  ] = useState(false);
+
+  const [
+    savingMenuOpen,
+    setSavingMenuOpen,
+  ] = useState(false);
+
+  const [
+    savingMode,
+    setSavingMode,
+  ] = useState<
+    "deposit" | "withdraw"
+  >("deposit");
+
   const [userId, setUserId] =
     useState<string | null>(null);
 
@@ -260,6 +288,9 @@ export default function HomePage() {
 
   const [budget, setBudget] =
     useState(0);
+
+  const [savings, setSavings] =
+    useState<SavingRecord[]>([]);
 
   const [used, setUsed] =
     useState(0);
@@ -621,7 +652,7 @@ export default function HomePage() {
   }, [userId]);
 
   /*
-   * 이번 달 소득, 소비, 그래프, 정산 조회
+   * 이번 달 소득, 소비, 저금, 그래프, 정산 조회
    */
   useEffect(() => {
     let mounted = true;
@@ -671,12 +702,34 @@ export default function HomePage() {
           monthRange.end,
         );
 
+      const savingsQuery = supabase
+        .from("savings")
+        .select(`
+          id,
+          user_id,
+          type,
+          amount,
+          memo,
+          saving_date,
+          created_at
+        `)
+        .eq("couple_id", coupleId)
+        .eq("user_id", userId)
+        .order("saving_date", {
+          ascending: false,
+        })
+        .order("created_at", {
+          ascending: false,
+        });
+
       const [
         incomeResult,
         expenseResult,
+        savingsResult,
       ] = await Promise.all([
         incomeQuery,
         expenseQuery,
+        savingsQuery,
       ]);
 
       if (!mounted) {
@@ -697,6 +750,21 @@ export default function HomePage() {
               | AmountData[]
               | null,
           ),
+        );
+      }
+
+      if (savingsResult.error) {
+        console.error(
+          "저금 조회 오류:",
+          savingsResult.error,
+        );
+
+        setSavings([]);
+      } else {
+        setSavings(
+          (savingsResult.data as
+            | SavingRecord[]
+            | null) ?? [],
         );
       }
 
@@ -862,6 +930,14 @@ export default function HomePage() {
     );
   };
 
+  const handleSavingSave = () => {
+    setSavingSheetOpen(false);
+
+    setRefreshKey(
+      (current) => current + 1,
+    );
+  };
+
   /*
    * 알림 버튼을 눌렀을 때 권한 요청
    */
@@ -892,8 +968,69 @@ export default function HomePage() {
       router.push("/notifications");
     };
 
-  const remaining = budget - used;
+  const totalSaved = savings
+    .filter(
+      (saving) =>
+        saving.type === "deposit",
+    )
+    .reduce(
+      (sum, saving) =>
+        sum +
+        Number(
+          saving.amount || 0,
+        ),
+      0,
+    );
 
+  const totalWithdrawn = savings
+    .filter(
+      (saving) =>
+        saving.type === "withdraw",
+    )
+    .reduce(
+      (sum, saving) =>
+        sum +
+        Number(
+          saving.amount || 0,
+        ),
+      0,
+    );
+
+  const savingBalance =
+    totalSaved - totalWithdrawn;
+
+  const netSavingThisMonth =
+    savings
+      .filter(
+        (saving) =>
+          saving.saving_date >=
+            monthRange.start &&
+          saving.saving_date <
+            monthRange.end,
+      )
+      .reduce(
+        (sum, saving) =>
+          saving.type === "deposit"
+            ? sum +
+              Number(
+                saving.amount || 0,
+              )
+            : sum -
+              Number(
+                saving.amount || 0,
+              ),
+        0,
+      );
+
+  const remaining =
+    budget -
+    used -
+    netSavingThisMonth;
+
+  /*
+   * 저금은 소비가 아니기 때문에
+   * 예산 사용률에는 소비만 반영해요.
+   */
   const usageRate =
     budget > 0
       ? Math.round(
@@ -1076,10 +1213,84 @@ export default function HomePage() {
               {usageRate}%
             </strong>
           </div>
+<div>
+  <span>저금통</span>
+
+  <strong className="saving-budget-amount">
+    {savingBalance.toLocaleString(
+      "ko-KR",
+    )}
+    원
+  </strong>
+</div>
         </div>
       </section>
 
       <section className="dog-card">
+        <button
+          type="button"
+          className="piggy-bank-button"
+          aria-label="저금통 열기"
+          aria-expanded={savingMenuOpen}
+          onClick={() =>
+            setSavingMenuOpen(
+              (current) => !current,
+            )
+          }
+        >
+          <span aria-hidden="true">
+            🐷
+          </span>
+
+          {savingBalance > 0 && (
+            <i aria-hidden="true" />
+          )}
+        </button>
+
+        {savingMenuOpen && (
+          <div className="piggy-bank-menu">
+            <div className="piggy-bank-menu-top">
+              <span>내 저금통</span>
+
+              <strong>
+                {dataLoading
+                  ? "..."
+                  : savingBalance.toLocaleString(
+                      "ko-KR",
+                    )}
+                {!dataLoading && "원"}
+              </strong>
+            </div>
+
+            <div className="piggy-bank-menu-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setSavingMode("deposit");
+                  setSavingMenuOpen(false);
+                  setSavingSheetOpen(true);
+                }}
+              >
+                ＋ 저금
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  savingBalance <= 0
+                }
+                onClick={() => {
+                  setSavingMode("withdraw");
+                  setSavingMenuOpen(false);
+                  setSavingSheetOpen(true);
+                }}
+              >
+                🔨 깨기
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="speech-bubble">
           오늘도
           <br />
@@ -1089,9 +1300,10 @@ export default function HomePage() {
         <button
           type="button"
           className="dog-button"
-          onClick={() =>
-            setExpenseOpen(true)
-          }
+          onClick={() => {
+            setSavingMenuOpen(false);
+            setExpenseOpen(true);
+          }}
           aria-label="소비 기록하기"
         >
           <Image
@@ -1106,9 +1318,10 @@ export default function HomePage() {
         <button
           type="button"
           className="expense-button"
-          onClick={() =>
-            setExpenseOpen(true)
-          }
+          onClick={() => {
+            setSavingMenuOpen(false);
+            setExpenseOpen(true);
+          }}
         >
           <span className="plus">
             ＋
@@ -1128,9 +1341,10 @@ export default function HomePage() {
         <button
           type="button"
           className="bowl-button"
-          onClick={() =>
-            setIncomeOpen(true)
-          }
+          onClick={() => {
+            setSavingMenuOpen(false);
+            setIncomeOpen(true);
+          }}
         >
           <div className="bowl">
             <span>🐾</span>
@@ -1282,8 +1496,25 @@ export default function HomePage() {
         onSave={handleIncomeSave}
       />
 
+      <SavingSheet
+        open={savingSheetOpen}
+        mode={savingMode}
+        onClose={() =>
+          setSavingSheetOpen(false)
+        }
+        coupleId={coupleId}
+        userId={userId}
+        currentBalance={savingBalance}
+        availableBudget={Math.max(
+          remaining,
+          0,
+        )}
+        onSave={handleSavingSave}
+      />
+
       {!expenseOpen &&
-        !incomeOpen && (
+        !incomeOpen &&
+        !savingSheetOpen && (
           <BottomNavigation active="home" />
         )}
     </main>

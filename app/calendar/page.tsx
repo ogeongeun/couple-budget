@@ -17,6 +17,8 @@ import "./calendar.css";
 
 const supabase = createClient();
 
+type ViewType = "me" | "partner";
+
 type ProfileData = {
   id: string;
   nickname: string | null;
@@ -106,6 +108,10 @@ const categoryInfo: Record<
   의료: {
     icon: "💊",
     color: "#59b2aa",
+  },
+  미용: {
+    icon: "💄",
+    color: "#f39ab5",
   },
   기타: {
     icon: "•••",
@@ -206,6 +212,9 @@ export default function CalendarPage() {
 
   const now = new Date();
 
+  const [view, setView] =
+    useState<ViewType>("me");
+
   const [year, setYear] = useState(
     now.getFullYear(),
   );
@@ -228,6 +237,14 @@ export default function CalendarPage() {
 
   const [partnerId, setPartnerId] =
     useState<string | null>(null);
+
+  const [myNickname, setMyNickname] =
+    useState("나");
+
+  const [
+    partnerNickname,
+    setPartnerNickname,
+  ] = useState("상대");
 
   const [incomes, setIncomes] =
     useState<IncomeRecord[]>([]);
@@ -254,6 +271,14 @@ export default function CalendarPage() {
     () => getMonthRange(year, month),
     [year, month],
   );
+
+  const selectedNickname =
+    view === "me"
+      ? myNickname
+      : partnerNickname;
+
+  const isMyCalendar =
+    view === "me";
 
   const loadCalendarData =
     useCallback(async () => {
@@ -305,12 +330,15 @@ export default function CalendarPage() {
         router.replace(
           "/couple/connect",
         );
-
         return;
       }
 
       setUserId(user.id);
       setCoupleId(profile.couple_id);
+
+      setMyNickname(
+        profile.nickname ?? "나",
+      );
 
       const {
         data: partnerData,
@@ -340,9 +368,29 @@ export default function CalendarPage() {
           | ProfileData
           | null;
 
+      const resolvedPartnerId =
+        partner?.id ?? null;
+
       setPartnerId(
-        partner?.id ?? null,
+        resolvedPartnerId,
       );
+
+      setPartnerNickname(
+        partner?.nickname ?? "상대",
+      );
+
+      const targetUserId =
+        view === "me"
+          ? user.id
+          : resolvedPartnerId;
+
+      if (!targetUserId) {
+        setIncomes([]);
+        setExpenses([]);
+        setSnapshots([]);
+        setLoading(false);
+        return;
+      }
 
       const [
         incomeResult,
@@ -354,7 +402,10 @@ export default function CalendarPage() {
           .select(
             "amount, income_date",
           )
-          .eq("user_id", user.id)
+          .eq(
+            "user_id",
+            targetUserId,
+          )
           .eq(
             "couple_id",
             profile.couple_id,
@@ -383,7 +434,10 @@ export default function CalendarPage() {
             settlement_status,
             created_at
           `)
-          .eq("user_id", user.id)
+          .eq(
+            "user_id",
+            targetUserId,
+          )
           .eq(
             "couple_id",
             profile.couple_id,
@@ -415,7 +469,10 @@ export default function CalendarPage() {
             recommended_amount,
             used_amount
           `)
-          .eq("user_id", user.id)
+          .eq(
+            "user_id",
+            targetUserId,
+          )
           .gte(
             "budget_date",
             monthRange.start,
@@ -466,150 +523,180 @@ export default function CalendarPage() {
       setExpenses(loadedExpenses);
       setSnapshots(loadedSnapshots);
 
-      const daysInMonth =
-        getDaysInMonth(year, month);
-
-      const today = new Date();
-
-      const selectedMonthStart =
-        new Date(year, month, 1);
-
-      const currentMonthStart =
-        new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          1,
-        );
-
-      let saveThroughDay = 0;
-
-      if (
-        selectedMonthStart <
-        currentMonthStart
-      ) {
-        saveThroughDay =
-          daysInMonth;
-      } else if (
-        year === today.getFullYear() &&
-        month === today.getMonth()
-      ) {
-        saveThroughDay =
-          today.getDate();
-      }
-
-      if (saveThroughDay > 0) {
-        const monthlyBudget =
-          sumAmounts(
-            loadedIncomes,
+      /*
+       * 내 캘린더를 볼 때만
+       * daily_budget_snapshots를 갱신한다.
+       *
+       * 상대 캘린더는 조회 전용.
+       */
+      if (view === "me") {
+        const daysInMonth =
+          getDaysInMonth(
+            year,
+            month,
           );
 
-        const snapshotMap =
-          new Map(
-            loadedSnapshots.map(
-              (snapshot) => [
-                snapshot.budget_date,
-                snapshot,
-              ],
-            ),
+        const today = new Date();
+
+        const selectedMonthStart =
+          new Date(
+            year,
+            month,
+            1,
           );
 
-        const usedByDate =
-          new Map<string, number>();
+        const currentMonthStart =
+          new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            1,
+          );
 
-        loadedExpenses.forEach(
-          (expense) => {
-            const previous =
-              usedByDate.get(
-                expense.expense_date,
-              ) ?? 0;
+        let saveThroughDay = 0;
 
-            usedByDate.set(
-              expense.expense_date,
-              previous +
-                Number(
-                  expense.amount || 0,
-                ),
-            );
-          },
-        );
-
-        let remainingAmount =
-          monthlyBudget;
-
-        const snapshotRows: DailySnapshot[] =
-          [];
-
-        for (
-          let day = 1;
-          day <= saveThroughDay;
-          day += 1
+        if (
+          selectedMonthStart <
+          currentMonthStart
         ) {
-          const date = formatDate(
-            new Date(
-              year,
-              month,
-              day,
-            ),
-          );
-
-          const existingSnapshot =
-            snapshotMap.get(date);
-
-          const remainingDays =
-            daysInMonth - day + 1;
-
-          const calculatedRecommended =
-            remainingDays > 0
-              ? Math.max(
-                  0,
-                  Math.floor(
-                    remainingAmount /
-                      remainingDays,
-                  ),
-                )
-              : 0;
-
-          const recommendedAmount =
-            existingSnapshot
-              ?.recommended_amount ??
-            calculatedRecommended;
-
-          const usedAmount =
-            usedByDate.get(date) ?? 0;
-
-          snapshotRows.push({
-            user_id: user.id,
-            couple_id:
-              profile.couple_id,
-            budget_date: date,
-            recommended_amount:
-              recommendedAmount,
-            used_amount: usedAmount,
-          });
-
-          remainingAmount -=
-            usedAmount;
+          saveThroughDay =
+            daysInMonth;
+        } else if (
+          year ===
+            today.getFullYear() &&
+          month ===
+            today.getMonth()
+        ) {
+          saveThroughDay =
+            today.getDate();
         }
 
-        const { error: upsertError } =
-          await supabase
+        if (saveThroughDay > 0) {
+          const monthlyBudget =
+            sumAmounts(
+              loadedIncomes,
+            );
+
+          const snapshotMap =
+            new Map(
+              loadedSnapshots.map(
+                (snapshot) => [
+                  snapshot.budget_date,
+                  snapshot,
+                ],
+              ),
+            );
+
+          const usedByDate =
+            new Map<
+              string,
+              number
+            >();
+
+          loadedExpenses.forEach(
+            (expense) => {
+              const previous =
+                usedByDate.get(
+                  expense.expense_date,
+                ) ?? 0;
+
+              usedByDate.set(
+                expense.expense_date,
+                previous +
+                  Number(
+                    expense.amount || 0,
+                  ),
+              );
+            },
+          );
+
+          let remainingAmount =
+            monthlyBudget;
+
+          const snapshotRows: DailySnapshot[] =
+            [];
+
+          for (
+            let day = 1;
+            day <= saveThroughDay;
+            day += 1
+          ) {
+            const date =
+              formatDate(
+                new Date(
+                  year,
+                  month,
+                  day,
+                ),
+              );
+
+            const existingSnapshot =
+              snapshotMap.get(date);
+
+            const remainingDays =
+              daysInMonth -
+              day +
+              1;
+
+            const calculatedRecommended =
+              remainingDays > 0
+                ? Math.max(
+                    0,
+                    Math.floor(
+                      remainingAmount /
+                        remainingDays,
+                    ),
+                  )
+                : 0;
+
+            const recommendedAmount =
+              existingSnapshot
+                ?.recommended_amount ??
+              calculatedRecommended;
+
+            const usedAmount =
+              usedByDate.get(
+                date,
+              ) ?? 0;
+
+            snapshotRows.push({
+              user_id: user.id,
+              couple_id:
+                profile.couple_id,
+              budget_date: date,
+              recommended_amount:
+                recommendedAmount,
+              used_amount:
+                usedAmount,
+            });
+
+            remainingAmount -=
+              usedAmount;
+          }
+
+          const {
+            error: upsertError,
+          } = await supabase
             .from(
               "daily_budget_snapshots",
             )
-            .upsert(snapshotRows, {
-              onConflict:
-                "user_id,budget_date",
-            });
+            .upsert(
+              snapshotRows,
+              {
+                onConflict:
+                  "user_id,budget_date",
+              },
+            );
 
-        if (upsertError) {
-          console.error(
-            "권장 한도 저장 오류:",
-            upsertError,
-          );
-        } else {
-          setSnapshots(
-            snapshotRows,
-          );
+          if (upsertError) {
+            console.error(
+              "권장 한도 저장 오류:",
+              upsertError,
+            );
+          } else {
+            setSnapshots(
+              snapshotRows,
+            );
+          }
         }
       }
 
@@ -620,6 +707,7 @@ export default function CalendarPage() {
       monthRange.start,
       refreshKey,
       router,
+      view,
       year,
     ]);
 
@@ -627,15 +715,17 @@ export default function CalendarPage() {
     void loadCalendarData();
   }, [loadCalendarData]);
 
-  const monthlyBudget = useMemo(
-    () => sumAmounts(incomes),
-    [incomes],
-  );
+  const monthlyBudget =
+    useMemo(
+      () => sumAmounts(incomes),
+      [incomes],
+    );
 
-  const monthlyUsed = useMemo(
-    () => sumAmounts(expenses),
-    [expenses],
-  );
+  const monthlyUsed =
+    useMemo(
+      () => sumAmounts(expenses),
+      [expenses],
+    );
 
   const remainingAmount =
     monthlyBudget - monthlyUsed;
@@ -654,7 +744,8 @@ export default function CalendarPage() {
   const averageUsed =
     recordedDates > 0
       ? Math.round(
-          monthlyUsed / recordedDates,
+          monthlyUsed /
+            recordedDates,
         )
       : 0;
 
@@ -671,62 +762,73 @@ export default function CalendarPage() {
       result.set(
         expense.expense_date,
         current +
-          Number(expense.amount || 0),
+          Number(
+            expense.amount || 0,
+          ),
       );
     });
 
     return result;
   }, [expenses]);
 
-  const highestDay = useMemo(() => {
-    let result = {
-      date: "",
-      amount: 0,
-    };
+  const highestDay =
+    useMemo(() => {
+      let result = {
+        date: "",
+        amount: 0,
+      };
 
-    usedByDate.forEach(
-      (amount, date) => {
-        if (amount > result.amount) {
-          result = {
-            date,
-            amount,
-          };
-        }
-      },
-    );
+      usedByDate.forEach(
+        (amount, date) => {
+          if (
+            amount > result.amount
+          ) {
+            result = {
+              date,
+              amount,
+            };
+          }
+        },
+      );
 
-    return result;
-  }, [usedByDate]);
+      return result;
+    }, [usedByDate]);
 
   const snapshotMap = useMemo(
     () =>
       new Map(
-        snapshots.map((snapshot) => [
-          snapshot.budget_date,
-          snapshot,
-        ]),
+        snapshots.map(
+          (snapshot) => [
+            snapshot.budget_date,
+            snapshot,
+          ],
+        ),
       ),
     [snapshots],
   );
 
-  const todayString = formatDate(
-    new Date(),
-  );
+  const todayString =
+    formatDate(new Date());
 
   const currentRecommendedAmount =
     useMemo(() => {
       const today = new Date();
 
       const isCurrentMonth =
-        year === today.getFullYear() &&
-        month === today.getMonth();
+        year ===
+          today.getFullYear() &&
+        month ===
+          today.getMonth();
 
       if (!isCurrentMonth) {
         return 0;
       }
 
       const remainingDays =
-        getDaysInMonth(year, month) -
+        getDaysInMonth(
+          year,
+          month,
+        ) -
         today.getDate() +
         1;
 
@@ -746,9 +848,14 @@ export default function CalendarPage() {
     ]);
 
   const calendarDays =
-    useMemo<CalendarDayData[]>(() => {
+    useMemo<
+      CalendarDayData[]
+    >(() => {
       const daysInMonth =
-        getDaysInMonth(year, month);
+        getDaysInMonth(
+          year,
+          month,
+        );
 
       const firstWeekday =
         new Date(
@@ -767,7 +874,8 @@ export default function CalendarPage() {
         [];
 
       for (
-        let index = firstWeekday - 1;
+        let index =
+          firstWeekday - 1;
         index >= 0;
         index -= 1
       ) {
@@ -856,7 +964,9 @@ export default function CalendarPage() {
 
       let nextDay = 1;
 
-      while (result.length % 7 !== 0) {
+      while (
+        result.length % 7 !== 0
+      ) {
         result.push({
           day: nextDay,
           date: "",
@@ -888,19 +998,27 @@ export default function CalendarPage() {
             expense.expense_date ===
             selectedDate,
         ),
-      [expenses, selectedDate],
+      [
+        expenses,
+        selectedDate,
+      ],
     );
 
   const selectedUsedAmount =
-    usedByDate.get(selectedDate) ?? 0;
+    usedByDate.get(
+      selectedDate,
+    ) ?? 0;
 
   const selectedSnapshot =
-    snapshotMap.get(selectedDate);
+    snapshotMap.get(
+      selectedDate,
+    );
 
   const selectedRecommendedAmount =
     selectedSnapshot
       ?.recommended_amount ??
-    (selectedDate > todayString
+    (selectedDate >
+    todayString
       ? currentRecommendedAmount
       : 0);
 
@@ -922,13 +1040,33 @@ export default function CalendarPage() {
       1,
     );
 
-    setYear(nextDate.getFullYear());
-    setMonth(nextDate.getMonth());
+    setYear(
+      nextDate.getFullYear(),
+    );
+
+    setMonth(
+      nextDate.getMonth(),
+    );
 
     setSelectedDate(
       formatDate(nextDate),
     );
 
+    setDetailOpen(false);
+    setExpenseOpen(false);
+  };
+
+  const changeView = (
+    nextView: ViewType,
+  ) => {
+    if (
+      nextView === "partner" &&
+      !partnerId
+    ) {
+      return;
+    }
+
+    setView(nextView);
     setDetailOpen(false);
     setExpenseOpen(false);
   };
@@ -944,6 +1082,10 @@ export default function CalendarPage() {
   };
 
   const openExpenseSheet = () => {
+    if (!isMyCalendar) {
+      return;
+    }
+
     if (!coupleId) {
       setMessage(
         "커플 정보를 불러오는 중이에요.",
@@ -958,7 +1100,8 @@ export default function CalendarPage() {
     setExpenseOpen(false);
 
     setRefreshKey(
-      (current) => current + 1,
+      (current) =>
+        current + 1,
     );
   };
 
@@ -975,7 +1118,9 @@ export default function CalendarPage() {
       <>
         <DayDetail
           date={selectedDate}
-          expenses={selectedExpenses}
+          expenses={
+            selectedExpenses
+          }
           usedAmount={
             selectedUsedAmount
           }
@@ -985,6 +1130,12 @@ export default function CalendarPage() {
           difference={
             selectedDifference
           }
+          nickname={
+            selectedNickname
+          }
+          canAddExpense={
+            isMyCalendar
+          }
           onBack={() =>
             setDetailOpen(false)
           }
@@ -993,16 +1144,22 @@ export default function CalendarPage() {
           }
         />
 
-        <ExpenseSheet
-  open={expenseOpen}
-  onClose={() =>
-    setExpenseOpen(false)
-  }
-  coupleId={coupleId}
-  partnerId={partnerId}
-  initialDate={selectedDate}
-  onSave={handleExpenseSave}
-/>
+        {isMyCalendar && (
+          <ExpenseSheet
+            open={expenseOpen}
+            onClose={() =>
+              setExpenseOpen(false)
+            }
+            coupleId={coupleId}
+            partnerId={partnerId}
+            initialDate={
+              selectedDate
+            }
+            onSave={
+              handleExpenseSave
+            }
+          />
+        )}
       </>
     );
   }
@@ -1022,7 +1179,9 @@ export default function CalendarPage() {
         </button>
 
         <div className="calendar-title">
-          <strong>캘린더</strong>
+          <strong>
+            캘린더
+          </strong>
 
           <span>
             {year}년 {month + 1}월
@@ -1052,6 +1211,55 @@ export default function CalendarPage() {
         </div>
       </header>
 
+      {/* 나 / 상대 탭 */}
+      <div className="calendar-person-tabs">
+        <button
+          type="button"
+          className={
+            view === "me"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            changeView("me")
+          }
+        >
+          {myNickname}
+        </button>
+
+        <button
+          type="button"
+          className={
+            view === "partner"
+              ? "active"
+              : ""
+          }
+          disabled={!partnerId}
+          onClick={() =>
+            changeView(
+              "partner",
+            )
+          }
+        >
+          {partnerNickname}
+        </button>
+      </div>
+
+      {view === "partner" && (
+        <div className="partner-readonly-message">
+          <span>👀</span>
+
+          <p>
+            {partnerNickname}님의
+            소비 기록을 보고 있어요.
+            <strong>
+              상대 기록은 조회만
+              가능해요.
+            </strong>
+          </p>
+        </div>
+      )}
+
       {message && (
         <p className="calendar-message">
           {message}
@@ -1061,13 +1269,16 @@ export default function CalendarPage() {
       <section className="calendar-hero">
         <div>
           <h2>
-            {month + 1}월 소비 계획 🐶
+            {selectedNickname}님의{" "}
+            {month + 1}월 소비 계획
+            🐶
           </h2>
 
           <p>
             남은 금액을 기준으로
             <br />
-            하루 권장 한도를 계산해요.
+            하루 권장 한도를
+            계산해요.
           </p>
         </div>
 
@@ -1172,20 +1383,22 @@ export default function CalendarPage() {
             "목",
             "금",
             "토",
-          ].map((day, index) => (
-            <span
-              key={day}
-              className={
-                index === 0
-                  ? "sunday"
-                  : index === 6
-                    ? "saturday"
-                    : ""
-              }
-            >
-              {day}
-            </span>
-          ))}
+          ].map(
+            (day, index) => (
+              <span
+                key={day}
+                className={
+                  index === 0
+                    ? "sunday"
+                    : index === 6
+                      ? "saturday"
+                      : ""
+                }
+              >
+                {day}
+              </span>
+            ),
+          )}
         </div>
 
         <div className="calendar-grid">
@@ -1223,7 +1436,9 @@ export default function CalendarPage() {
                     !item.currentMonth
                   }
                   onClick={() =>
-                    handleDayClick(item)
+                    handleDayClick(
+                      item,
+                    )
                   }
                 >
                   <span className="day-number">
@@ -1318,7 +1533,9 @@ export default function CalendarPage() {
           <strong>
             {Math.abs(
               selectedDifference,
-            ).toLocaleString("ko-KR")}
+            ).toLocaleString(
+              "ko-KR",
+            )}
             원
             {selectedDifference < 0
               ? " 초과"
@@ -1327,10 +1544,18 @@ export default function CalendarPage() {
         </div>
 
         <ExpenseList
-          expenses={selectedExpenses}
+          expenses={
+            selectedExpenses
+          }
         />
 
-        <div className="calendar-card-actions">
+        <div
+          className={
+            isMyCalendar
+              ? "calendar-card-actions"
+              : "calendar-card-actions single"
+          }
+        >
           <button
             type="button"
             className="calendar-detail-button"
@@ -1341,28 +1566,36 @@ export default function CalendarPage() {
             날짜 상세 보기
           </button>
 
-          <button
-            type="button"
-            className="calendar-add-button"
-            onClick={
-              openExpenseSheet
-            }
-          >
-            ＋ 소비 기록하기
-          </button>
+          {isMyCalendar && (
+            <button
+              type="button"
+              className="calendar-add-button"
+              onClick={
+                openExpenseSheet
+              }
+            >
+              ＋ 소비 기록하기
+            </button>
+          )}
         </div>
       </section>
 
-      <ExpenseSheet
-  open={expenseOpen}
-  onClose={() =>
-    setExpenseOpen(false)
-  }
-  coupleId={coupleId}
-  partnerId={partnerId}
-  initialDate={selectedDate}
-  onSave={handleExpenseSave}
-/>
+      {isMyCalendar && (
+        <ExpenseSheet
+          open={expenseOpen}
+          onClose={() =>
+            setExpenseOpen(false)
+          }
+          coupleId={coupleId}
+          partnerId={partnerId}
+          initialDate={
+            selectedDate
+          }
+          onSave={
+            handleExpenseSave
+          }
+        />
+      )}
 
       {!expenseOpen && (
         <BottomNavigation active="calendar" />
@@ -1396,13 +1629,17 @@ function SummaryItem({
 
       <strong
         className={
-          coral ? "coral" : ""
+          coral
+            ? "coral"
+            : ""
         }
       >
         {value}
       </strong>
 
-      {sub && <small>{sub}</small>}
+      {sub && (
+        <small>{sub}</small>
+      )}
     </div>
   );
 }
@@ -1415,7 +1652,8 @@ function ExpenseList({
   if (expenses.length === 0) {
     return (
       <p className="empty-expense">
-        이 날짜에는 소비 기록이 없어요.
+        이 날짜에는 소비 기록이
+        없어요.
       </p>
     );
   }
@@ -1424,7 +1662,9 @@ function ExpenseList({
     <div className="calendar-expense-list">
       {expenses.map((item) => {
         const info =
-          categoryInfo[item.category] ??
+          categoryInfo[
+            item.category
+          ] ??
           categoryInfo.기타;
 
         return (
@@ -1474,7 +1714,9 @@ function ExpenseList({
 
               {item.settlement_status ===
                 "정산대기" && (
-                <span>정산전</span>
+                <span>
+                  정산전
+                </span>
               )}
 
               {item.settlement_status ===
@@ -1497,6 +1739,8 @@ function DayDetail({
   usedAmount,
   recommendedAmount,
   difference,
+  nickname,
+  canAddExpense,
   onBack,
   onAddExpense,
 }: {
@@ -1505,12 +1749,15 @@ function DayDetail({
   usedAmount: number;
   recommendedAmount: number;
   difference: number;
+  nickname: string;
+  canAddExpense: boolean;
   onBack: () => void;
   onAddExpense: () => void;
 }) {
-  const dateObject = new Date(
-    `${date}T00:00:00`,
-  );
+  const dateObject =
+    new Date(
+      `${date}T00:00:00`,
+    );
 
   const usageRate =
     recommendedAmount > 0
@@ -1521,10 +1768,14 @@ function DayDetail({
         )
       : 0;
 
-  const progressWidth = Math.min(
-    Math.max(usageRate, 0),
-    100,
-  );
+  const progressWidth =
+    Math.min(
+      Math.max(
+        usageRate,
+        0,
+      ),
+      100,
+    );
 
   return (
     <main className="day-detail-page">
@@ -1538,17 +1789,27 @@ function DayDetail({
         </button>
 
         <h1>
-          {dateObject.getMonth() + 1}
-          월 {dateObject.getDate()}일 (
+          {dateObject.getMonth() +
+            1}
+          월{" "}
+          {dateObject.getDate()}일 (
           {getWeekdayLabel(date)})
         </h1>
 
         <span>🗓️</span>
       </header>
 
+      {!canAddExpense && (
+        <div className="day-detail-owner">
+          {nickname}님의 소비 기록
+        </div>
+      )}
+
       <section className="day-budget-summary">
         <div>
-          <span>오늘 권장 한도</span>
+          <span>
+            오늘 권장 한도
+          </span>
 
           <strong>
             {recommendedAmount.toLocaleString(
@@ -1585,7 +1846,9 @@ function DayDetail({
           >
             {Math.abs(
               difference,
-            ).toLocaleString("ko-KR")}
+            ).toLocaleString(
+              "ko-KR",
+            )}
             원
           </strong>
         </div>
@@ -1663,7 +1926,9 @@ function DayDetail({
                   </small>
 
                   {item.memo && (
-                    <p>{item.memo}</p>
+                    <p>
+                      {item.memo}
+                    </p>
                   )}
                 </div>
 
@@ -1679,7 +1944,9 @@ function DayDetail({
 
                   {item.settlement_status ===
                     "정산대기" && (
-                    <span>정산전</span>
+                    <span>
+                      정산전
+                    </span>
                   )}
                 </div>
               </article>
@@ -1689,13 +1956,17 @@ function DayDetail({
       </section>
 
       <div className="day-detail-actions">
-        <button
-          type="button"
-          className="primary"
-          onClick={onAddExpense}
-        >
-          ＋ 소비 기록하기
-        </button>
+        {canAddExpense && (
+          <button
+            type="button"
+            className="primary"
+            onClick={
+              onAddExpense
+            }
+          >
+            ＋ 소비 기록하기
+          </button>
+        )}
 
         <button
           type="button"

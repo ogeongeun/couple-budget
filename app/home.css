@@ -170,10 +170,9 @@ button {
 
 .budget-information {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 23px;
 }
-
 .budget-information > div {
   padding: 0 7px;
   text-align: center;
@@ -1619,7 +1618,7 @@ button {
   color: #7d766f;
   font-size: 14px;
 }
-\.income-save-message {
+.income-save-message {
   margin: 14px 20px 0;
   padding: 12px 14px;
   border-radius: 10px;
@@ -1911,4 +1910,124 @@ button {
   font-size: 9px;
   font-weight: 800;
   line-height: 1;
+}
+
+
+/* =========================
+   작은 저금통 버튼 / 팝오버
+========================= */
+
+.piggy-bank-button {
+  position: absolute;
+  top: 15px;
+  left: 17px;
+  z-index: 8;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #f1ddd6;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 5px 14px
+    rgba(72, 53, 39, 0.07);
+  backdrop-filter: blur(8px);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.piggy-bank-button > span {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.piggy-bank-button > i {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.piggy-bank-button:active {
+  transform: scale(0.95);
+}
+
+.piggy-bank-menu {
+  position: absolute;
+  top: 65px;
+  left: 17px;
+  z-index: 10;
+  width: 174px;
+  padding: 13px;
+  border: 1px solid #eee7e1;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow:
+    0 9px 25px
+    rgba(61, 46, 35, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.piggy-bank-menu-top span {
+  display: block;
+  color: #99918b;
+  font-size: 9px;
+}
+
+.piggy-bank-menu-top strong {
+  display: block;
+  margin-top: 4px;
+  color: #514b46;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.piggy-bank-menu-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.piggy-bank-menu-actions button {
+  min-height: 34px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #edf8f1;
+  color: #3caf70;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.piggy-bank-menu-actions
+  button:nth-child(2) {
+  background: #fff3e7;
+  color: #dc994a;
+}
+
+.piggy-bank-menu-actions
+  button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (max-width: 380px) {
+  .piggy-bank-button {
+    left: 13px;
+  }
+
+  .piggy-bank-menu {
+    left: 13px;
+  }
+}
+
+.saving-budget-amount {
+  color: #e3a05a !important;
 }
