@@ -89,6 +89,10 @@ const chartCategoryInfo = [
     name: "의료",
     color: "#58b5ad",
   },
+미용: {
+  name: "미용",
+  color: "#f39ab5",
+},
   {
     name: "기타",
     color: "#bdbdbd",
