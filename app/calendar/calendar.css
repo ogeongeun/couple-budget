@@ -848,3 +848,274 @@ button {
   font-weight: 600;
   text-align: center;
 }
+/* ========================================
+   현재 저금액
+======================================== */
+
+.summary-item strong.saving {
+  color: #dc9748;
+}
+
+
+/* ========================================
+   달력 안 저금 차액
+======================================== */
+
+.day-saving {
+  display: block;
+
+  max-width: 100%;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  font-size: 7px;
+  font-weight: 600;
+  line-height: 1.2;
+
+  text-align: center;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-saving.deposit {
+  color: #dc9748;
+}
+
+.day-saving.withdraw {
+  color: #54a979;
+}
+
+
+/* ========================================
+   선택 날짜 저금 차액
+======================================== */
+
+.selected-saving-change {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: 10px;
+  padding: 11px 13px;
+
+  border-radius: 11px;
+}
+
+.selected-saving-change.deposit {
+  border: 1px solid #f1dcc3;
+  background: #fff7ec;
+}
+
+.selected-saving-change.withdraw {
+  border: 1px solid #dcece3;
+  background: #f2faf5;
+}
+
+.selected-saving-change span {
+  color: #8f8780;
+
+  font-size: 9px;
+}
+
+.selected-saving-change strong {
+  flex-shrink: 0;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.selected-saving-change.deposit strong {
+  color: #dc9748;
+}
+
+.selected-saving-change.withdraw strong {
+  color: #4eaa77;
+}
+
+
+/* ========================================
+   저금 기록 목록
+======================================== */
+
+.calendar-saving-list {
+  margin-top: 14px;
+}
+
+.calendar-saving-title {
+  margin-bottom: 8px;
+
+  color: #8f8882;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.calendar-saving-item {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 58px;
+
+  padding: 10px 11px;
+
+  border: 1px solid #eee7e1;
+  border-radius: 12px;
+
+  background: #fffdfb;
+}
+
+.calendar-saving-item
+  + .calendar-saving-item {
+  margin-top: 7px;
+}
+
+.saving-calendar-icon {
+  flex-shrink: 0;
+
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  font-size: 18px;
+}
+
+.saving-calendar-icon.deposit {
+  background: #fff3e5;
+}
+
+.saving-calendar-icon.withdraw {
+  background: #edf8f1;
+}
+
+.saving-calendar-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.saving-calendar-info strong {
+  display: block;
+
+  color: #514b46;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.saving-calendar-info span {
+  display: block;
+
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: #a19a94;
+
+  font-size: 9px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saving-calendar-price {
+  flex-shrink: 0;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.saving-calendar-price.deposit {
+  color: #dc9748;
+}
+
+.saving-calendar-price.withdraw {
+  color: #4eaa77;
+}
+
+
+/* ========================================
+   날짜 상세 저금 차액
+======================================== */
+
+.day-saving-net {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: 13px;
+  padding: 13px 14px;
+
+  border-radius: 12px;
+}
+
+.day-saving-net.deposit {
+  border: 1px solid #f1dcc3;
+  background: #fff7ec;
+}
+
+.day-saving-net.withdraw {
+  border: 1px solid #dcece3;
+  background: #f2faf5;
+}
+
+.day-saving-net span {
+  color: #8d857e;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.day-saving-net strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.day-saving-net.deposit strong {
+  color: #dc9748;
+}
+
+.day-saving-net.withdraw strong {
+  color: #4eaa77;
+}
+
+
+/* ========================================
+   날짜 상세 저금 목록
+======================================== */
+
+.day-detail-saving-section {
+  margin-top: 18px;
+}
+
+.day-detail-saving-section > h2 {
+  margin: 0 0 9px;
+
+  color: #67605b;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.day-detail-saving-section
+  .calendar-saving-list {
+  margin-top: 0;
+}
+
+.day-detail-saving-section
+  .calendar-saving-title {
+  display: none;
+}

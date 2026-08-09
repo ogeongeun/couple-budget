@@ -43,11 +43,35 @@ type ExpenseRecord = {
     | "나눠내기"
     | "사주기"
     | null;
+
   settlement_status:
     | "해당없음"
     | "정산대기"
     | "정산완료";
+
   created_at: string;
+};
+
+type SavingRecord = {
+  id: string;
+  user_id: string;
+
+  type:
+    | "deposit"
+    | "withdraw";
+
+  amount: number;
+  memo: string | null;
+  saving_date: string;
+  created_at: string;
+};
+
+type SavingBalanceRecord = {
+  type:
+    | "deposit"
+    | "withdraw";
+
+  amount: number;
 };
 
 type DailySnapshot = {
@@ -62,10 +86,17 @@ type DailySnapshot = {
 type CalendarDayData = {
   day: number;
   date: string;
+
   currentMonth: boolean;
+
   usedAmount: number;
+
+  savingDifference: number;
+
   recommendedAmount: number;
+
   difference: number;
+
   status:
     | "safe"
     | "warning"
@@ -85,50 +116,69 @@ const categoryInfo: Record<
     icon: "🍚",
     color: "#57ba7d",
   },
+
   카페: {
     icon: "☕",
     color: "#d6995d",
   },
+
   교통: {
     icon: "🚌",
     color: "#67a5df",
   },
+
   쇼핑: {
     icon: "🛍️",
     color: "#9c78cc",
   },
+
   문화: {
     icon: "🎬",
     color: "#f0aa42",
   },
+
   생활: {
     icon: "🏠",
     color: "#e98a8a",
   },
+
   의료: {
     icon: "💊",
     color: "#59b2aa",
   },
+
   미용: {
     icon: "💄",
     color: "#f39ab5",
   },
+
   기타: {
     icon: "•••",
     color: "#aaa5a0",
   },
 };
 
-function formatDate(date: Date) {
-  const year = date.getFullYear();
+function formatDate(
+  date: Date,
+) {
+  const year =
+    date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, "0");
+  const month =
+    String(
+      date.getMonth() + 1,
+    ).padStart(
+      2,
+      "0",
+    );
 
-  const day = String(
-    date.getDate(),
-  ).padStart(2, "0");
+  const day =
+    String(
+      date.getDate(),
+    ).padStart(
+      2,
+      "0",
+    );
 
   return `${year}-${month}-${day}`;
 }
@@ -139,11 +189,19 @@ function getMonthRange(
 ) {
   return {
     start: formatDate(
-      new Date(year, month, 1),
+      new Date(
+        year,
+        month,
+        1,
+      ),
     ),
 
     end: formatDate(
-      new Date(year, month + 1, 1),
+      new Date(
+        year,
+        month + 1,
+        1,
+      ),
     ),
   };
 }
@@ -162,9 +220,10 @@ function getDaysInMonth(
 function getWeekdayLabel(
   dateString: string,
 ) {
-  const date = new Date(
-    `${dateString}T00:00:00`,
-  );
+  const date =
+    new Date(
+      `${dateString}T00:00:00`,
+    );
 
   const weekdays = [
     "일",
@@ -176,13 +235,24 @@ function getWeekdayLabel(
     "토",
   ];
 
-  return weekdays[date.getDay()];
+  return weekdays[
+    date.getDay()
+  ];
 }
 
-function formatTime(dateString: string) {
-  const date = new Date(dateString);
+function formatTime(
+  dateString: string,
+) {
+  const date =
+    new Date(
+      dateString,
+    );
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
     return "";
   }
 
@@ -199,78 +269,188 @@ function sumAmounts<
   T extends {
     amount: number;
   },
->(items: T[]) {
+>(
+  items: T[],
+) {
   return items.reduce(
-    (sum, item) =>
-      sum + Number(item.amount || 0),
+    (
+      sum,
+      item,
+    ) =>
+      sum +
+      Number(
+        item.amount ||
+          0,
+      ),
     0,
   );
 }
 
 export default function CalendarPage() {
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const now = new Date();
+  const now =
+    new Date();
 
-  const [view, setView] =
-    useState<ViewType>("me");
+  const [
+    view,
+    setView,
+  ] =
+    useState<ViewType>(
+      "me",
+    );
 
-  const [year, setYear] = useState(
-    now.getFullYear(),
-  );
+  const [
+    year,
+    setYear,
+  ] =
+    useState(
+      now.getFullYear(),
+    );
 
-  const [month, setMonth] = useState(
-    now.getMonth(),
-  );
+  const [
+    month,
+    setMonth,
+  ] =
+    useState(
+      now.getMonth(),
+    );
 
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    loading,
+    setLoading,
+  ] =
+    useState(
+      true,
+    );
 
-  const [message, setMessage] =
+  const [
+    message,
+    setMessage,
+  ] =
     useState("");
 
-  const [userId, setUserId] =
-    useState<string | null>(null);
+  const [
+    userId,
+    setUserId,
+  ] =
+    useState<
+      string | null
+    >(null);
 
-  const [coupleId, setCoupleId] =
-    useState<string | null>(null);
+  const [
+    coupleId,
+    setCoupleId,
+  ] =
+    useState<
+      string | null
+    >(null);
 
-  const [partnerId, setPartnerId] =
-    useState<string | null>(null);
+  const [
+    partnerId,
+    setPartnerId,
+  ] =
+    useState<
+      string | null
+    >(null);
 
-  const [myNickname, setMyNickname] =
+  const [
+    myNickname,
+    setMyNickname,
+  ] =
     useState("나");
 
   const [
     partnerNickname,
     setPartnerNickname,
-  ] = useState("상대");
+  ] =
+    useState(
+      "상대",
+    );
 
-  const [incomes, setIncomes] =
-    useState<IncomeRecord[]>([]);
+  const [
+    incomes,
+    setIncomes,
+  ] =
+    useState<
+      IncomeRecord[]
+    >([]);
 
-  const [expenses, setExpenses] =
-    useState<ExpenseRecord[]>([]);
+  const [
+    expenses,
+    setExpenses,
+  ] =
+    useState<
+      ExpenseRecord[]
+    >([]);
 
-  const [snapshots, setSnapshots] =
-    useState<DailySnapshot[]>([]);
+  const [
+    savings,
+    setSavings,
+  ] =
+    useState<
+      SavingRecord[]
+    >([]);
 
-  const [selectedDate, setSelectedDate] =
-    useState(formatDate(now));
-
-  const [detailOpen, setDetailOpen] =
-    useState(false);
-
-  const [expenseOpen, setExpenseOpen] =
-    useState(false);
-
-  const [refreshKey, setRefreshKey] =
+  const [
+    currentSavingBalance,
+    setCurrentSavingBalance,
+  ] =
     useState(0);
 
-  const monthRange = useMemo(
-    () => getMonthRange(year, month),
-    [year, month],
-  );
+  const [
+    snapshots,
+    setSnapshots,
+  ] =
+    useState<
+      DailySnapshot[]
+    >([]);
+
+  const [
+    selectedDate,
+    setSelectedDate,
+  ] =
+    useState(
+      formatDate(
+        now,
+      ),
+    );
+
+  const [
+    detailOpen,
+    setDetailOpen,
+  ] =
+    useState(
+      false,
+    );
+
+  const [
+    expenseOpen,
+    setExpenseOpen,
+  ] =
+    useState(
+      false,
+    );
+
+  const [
+    refreshKey,
+    setRefreshKey,
+  ] =
+    useState(0);
+
+  const monthRange =
+    useMemo(
+      () =>
+        getMonthRange(
+          year,
+          month,
+        ),
+      [
+        year,
+        month,
+      ],
+    );
 
   const selectedNickname =
     view === "me"
@@ -281,720 +461,1370 @@ export default function CalendarPage() {
     view === "me";
 
   const loadCalendarData =
-    useCallback(async () => {
-      setLoading(true);
-      setMessage("");
-
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        router.replace("/login");
-        return;
-      }
-
-      const {
-        data: profileData,
-        error: profileError,
-      } = await supabase
-        .from("profiles")
-        .select(
-          "id, nickname, couple_id",
-        )
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (
-        profileError ||
-        !profileData
-      ) {
-        console.error(
-          "프로필 조회 오류:",
-          profileError,
+    useCallback(
+      async () => {
+        setLoading(
+          true,
         );
 
         setMessage(
-          "프로필 정보를 불러오지 못했어요.",
+          "",
         );
 
-        setLoading(false);
-        return;
-      }
+        const {
+          data: {
+            user,
+          },
+          error:
+            userError,
+        } =
+          await supabase.auth.getUser();
 
-      const profile =
-        profileData as ProfileData;
+        if (
+          userError ||
+          !user
+        ) {
+          router.replace(
+            "/login",
+          );
 
-      if (!profile.couple_id) {
-        router.replace(
-          "/couple/connect",
+          return;
+        }
+
+        const {
+          data:
+            profileData,
+          error:
+            profileError,
+        } =
+          await supabase
+            .from(
+              "profiles",
+            )
+            .select(
+              "id, nickname, couple_id",
+            )
+            .eq(
+              "id",
+              user.id,
+            )
+            .maybeSingle();
+
+        if (
+          profileError ||
+          !profileData
+        ) {
+          console.error(
+            "프로필 조회 오류:",
+            profileError,
+          );
+
+          setMessage(
+            "프로필 정보를 불러오지 못했어요.",
+          );
+
+          setLoading(
+            false,
+          );
+
+          return;
+        }
+
+        const profile =
+          profileData as ProfileData;
+
+        if (
+          !profile.couple_id
+        ) {
+          router.replace(
+            "/couple/connect",
+          );
+
+          return;
+        }
+
+        setUserId(
+          user.id,
         );
-        return;
-      }
 
-      setUserId(user.id);
-      setCoupleId(profile.couple_id);
-
-      setMyNickname(
-        profile.nickname ?? "나",
-      );
-
-      const {
-        data: partnerData,
-        error: partnerError,
-      } = await supabase
-        .from("profiles")
-        .select(
-          "id, nickname, couple_id",
-        )
-        .eq(
-          "couple_id",
+        setCoupleId(
           profile.couple_id,
-        )
-        .neq("id", user.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (partnerError) {
-        console.error(
-          "상대방 조회 오류:",
-          partnerError,
         );
-      }
 
-      const partner =
-        partnerData as
-          | ProfileData
-          | null;
+        setMyNickname(
+          profile.nickname ??
+            "나",
+        );
 
-      const resolvedPartnerId =
-        partner?.id ?? null;
+        const {
+          data:
+            partnerData,
+          error:
+            partnerError,
+        } =
+          await supabase
+            .from(
+              "profiles",
+            )
+            .select(
+              "id, nickname, couple_id",
+            )
+            .eq(
+              "couple_id",
+              profile.couple_id,
+            )
+            .neq(
+              "id",
+              user.id,
+            )
+            .limit(
+              1,
+            )
+            .maybeSingle();
 
-      setPartnerId(
-        resolvedPartnerId,
-      );
+        if (
+          partnerError
+        ) {
+          console.error(
+            "상대방 조회 오류:",
+            partnerError,
+          );
+        }
 
-      setPartnerNickname(
-        partner?.nickname ?? "상대",
-      );
+        const partner =
+          partnerData as
+            | ProfileData
+            | null;
 
-      const targetUserId =
-        view === "me"
-          ? user.id
-          : resolvedPartnerId;
+        const resolvedPartnerId =
+          partner?.id ??
+          null;
 
-      if (!targetUserId) {
-        setIncomes([]);
-        setExpenses([]);
-        setSnapshots([]);
-        setLoading(false);
-        return;
-      }
+        setPartnerId(
+          resolvedPartnerId,
+        );
 
-      const [
-        incomeResult,
-        expenseResult,
-        snapshotResult,
-      ] = await Promise.all([
-        supabase
-          .from("incomes")
-          .select(
-            "amount, income_date",
-          )
-          .eq(
-            "user_id",
-            targetUserId,
-          )
-          .eq(
-            "couple_id",
-            profile.couple_id,
-          )
-          .gte(
-            "income_date",
-            monthRange.start,
-          )
-          .lt(
-            "income_date",
-            monthRange.end,
+        setPartnerNickname(
+          partner?.nickname ??
+            "상대",
+        );
+
+        const targetUserId =
+          view === "me"
+            ? user.id
+            : resolvedPartnerId;
+
+        if (
+          !targetUserId
+        ) {
+          setIncomes(
+            [],
+          );
+
+          setExpenses(
+            [],
+          );
+
+          setSavings(
+            [],
+          );
+
+          setSnapshots(
+            [],
+          );
+
+          setCurrentSavingBalance(
+            0,
+          );
+
+          setLoading(
+            false,
+          );
+
+          return;
+        }
+
+        const [
+          incomeResult,
+          expenseResult,
+          savingResult,
+          savingBalanceResult,
+          snapshotResult,
+        ] =
+          await Promise.all([
+            /*
+             * 이번 달 예산
+             */
+            supabase
+              .from(
+                "incomes",
+              )
+              .select(
+                "amount, income_date",
+              )
+              .eq(
+                "user_id",
+                targetUserId,
+              )
+              .eq(
+                "couple_id",
+                profile.couple_id,
+              )
+              .gte(
+                "income_date",
+                monthRange.start,
+              )
+              .lt(
+                "income_date",
+                monthRange.end,
+              ),
+
+            /*
+             * 이번 달 소비
+             */
+            supabase
+              .from(
+                "expenses",
+              )
+              .select(`
+                id,
+                user_id,
+                amount,
+                category,
+                title,
+                memo,
+                expense_date,
+                use_type,
+                payment_type,
+                settlement_status,
+                created_at
+              `)
+              .eq(
+                "user_id",
+                targetUserId,
+              )
+              .eq(
+                "couple_id",
+                profile.couple_id,
+              )
+              .gte(
+                "expense_date",
+                monthRange.start,
+              )
+              .lt(
+                "expense_date",
+                monthRange.end,
+              )
+              .order(
+                "expense_date",
+                {
+                  ascending:
+                    true,
+                },
+              )
+              .order(
+                "created_at",
+                {
+                  ascending:
+                    true,
+                },
+              ),
+
+            /*
+             * 이번 달 저금 기록
+             * 캘린더 표시용
+             */
+            supabase
+              .from(
+                "savings",
+              )
+              .select(`
+                id,
+                user_id,
+                type,
+                amount,
+                memo,
+                saving_date,
+                created_at
+              `)
+              .eq(
+                "user_id",
+                targetUserId,
+              )
+              .eq(
+                "couple_id",
+                profile.couple_id,
+              )
+              .gte(
+                "saving_date",
+                monthRange.start,
+              )
+              .lt(
+                "saving_date",
+                monthRange.end,
+              )
+              .order(
+                "saving_date",
+                {
+                  ascending:
+                    true,
+                },
+              )
+              .order(
+                "created_at",
+                {
+                  ascending:
+                    true,
+                },
+              ),
+
+            /*
+             * 전체 저금 기록
+             * 현재 저금통 잔액 계산용
+             */
+            supabase
+              .from(
+                "savings",
+              )
+              .select(
+                "type, amount",
+              )
+              .eq(
+                "user_id",
+                targetUserId,
+              )
+              .eq(
+                "couple_id",
+                profile.couple_id,
+              ),
+
+            /*
+             * 하루 권장 한도
+             */
+            supabase
+              .from(
+                "daily_budget_snapshots",
+              )
+              .select(`
+                id,
+                user_id,
+                couple_id,
+                budget_date,
+                recommended_amount,
+                used_amount
+              `)
+              .eq(
+                "user_id",
+                targetUserId,
+              )
+              .gte(
+                "budget_date",
+                monthRange.start,
+              )
+              .lt(
+                "budget_date",
+                monthRange.end,
+              ),
+          ]);
+
+        if (
+          incomeResult.error
+        ) {
+          console.error(
+            "소득 조회 오류:",
+            incomeResult.error,
+          );
+        }
+
+        if (
+          expenseResult.error
+        ) {
+          console.error(
+            "소비 조회 오류:",
+            expenseResult.error,
+          );
+        }
+
+        if (
+          savingResult.error
+        ) {
+          console.error(
+            "저금 조회 오류:",
+            savingResult.error,
+          );
+        }
+
+        if (
+          savingBalanceResult.error
+        ) {
+          console.error(
+            "저금통 잔액 조회 오류:",
+            savingBalanceResult.error,
+          );
+        }
+
+        if (
+          snapshotResult.error
+        ) {
+          console.error(
+            "권장 한도 조회 오류:",
+            snapshotResult.error,
+          );
+        }
+
+        const loadedIncomes =
+          (
+            incomeResult.data as
+              | IncomeRecord[]
+              | null
+          ) ??
+          [];
+
+        const loadedExpenses =
+          (
+            expenseResult.data as
+              | ExpenseRecord[]
+              | null
+          ) ??
+          [];
+
+        const loadedSavings =
+          (
+            savingResult.data as
+              | SavingRecord[]
+              | null
+          ) ??
+          [];
+
+        const allSavings =
+          (
+            savingBalanceResult.data as
+              | SavingBalanceRecord[]
+              | null
+          ) ??
+          [];
+
+        const loadedSnapshots =
+          (
+            snapshotResult.data as
+              | DailySnapshot[]
+              | null
+          ) ??
+          [];
+
+        setIncomes(
+          loadedIncomes,
+        );
+
+        setExpenses(
+          loadedExpenses,
+        );
+
+        setSavings(
+          loadedSavings,
+        );
+
+        setSnapshots(
+          loadedSnapshots,
+        );
+
+        /*
+         * 현재 저금통 잔액
+         *
+         * 전체 저금
+         * -
+         * 전체 꺼낸 금액
+         */
+        const totalDeposits =
+          allSavings
+            .filter(
+              (
+                saving,
+              ) =>
+                saving.type ===
+                "deposit",
+            )
+            .reduce(
+              (
+                total,
+                saving,
+              ) =>
+                total +
+                Number(
+                  saving.amount ||
+                    0,
+                ),
+              0,
+            );
+
+        const totalWithdrawals =
+          allSavings
+            .filter(
+              (
+                saving,
+              ) =>
+                saving.type ===
+                "withdraw",
+            )
+            .reduce(
+              (
+                total,
+                saving,
+              ) =>
+                total +
+                Number(
+                  saving.amount ||
+                    0,
+                ),
+              0,
+            );
+
+        setCurrentSavingBalance(
+          Math.max(
+            0,
+            totalDeposits -
+              totalWithdrawals,
           ),
+        );
 
-        supabase
-          .from("expenses")
-          .select(`
-            id,
-            user_id,
+        /*
+         * 내 캘린더를 볼 때만
+         * 권장 한도를 업데이트한다.
+         */
+        if (
+          view === "me"
+        ) {
+          const daysInMonth =
+            getDaysInMonth(
+              year,
+              month,
+            );
+
+          const today =
+            new Date();
+
+          const selectedMonthStart =
+            new Date(
+              year,
+              month,
+              1,
+            );
+
+          const currentMonthStart =
+            new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              1,
+            );
+
+          let saveThroughDay =
+            0;
+
+          if (
+            selectedMonthStart <
+            currentMonthStart
+          ) {
+            saveThroughDay =
+              daysInMonth;
+          } else if (
+            year ===
+              today.getFullYear() &&
+            month ===
+              today.getMonth()
+          ) {
+            saveThroughDay =
+              today.getDate();
+          }
+
+          if (
+            saveThroughDay >
+            0
+          ) {
+            const monthlyBudget =
+              sumAmounts(
+                loadedIncomes,
+              );
+
+            const oldSnapshotMap =
+              new Map(
+                loadedSnapshots.map(
+                  (
+                    snapshot,
+                  ) => [
+                    snapshot.budget_date,
+                    snapshot,
+                  ],
+                ),
+              );
+
+            const usedMap =
+              new Map<
+                string,
+                number
+              >();
+
+            loadedExpenses.forEach(
+              (
+                expense,
+              ) => {
+                const previous =
+                  usedMap.get(
+                    expense.expense_date,
+                  ) ??
+                  0;
+
+                usedMap.set(
+                  expense.expense_date,
+                  previous +
+                    Number(
+                      expense.amount ||
+                        0,
+                    ),
+                );
+              },
+            );
+
+            const savingMap =
+              new Map<
+                string,
+                number
+              >();
+
+            loadedSavings.forEach(
+              (
+                saving,
+              ) => {
+                const previous =
+                  savingMap.get(
+                    saving.saving_date,
+                  ) ??
+                  0;
+
+                /*
+                 * 저금 +
+                 * 꺼내기 -
+                 *
+                 * 즉 저금통으로 이동한
+                 * 순금액
+                 */
+                const change =
+                  saving.type ===
+                  "deposit"
+                    ? Number(
+                        saving.amount ||
+                          0,
+                      )
+                    : -Number(
+                        saving.amount ||
+                          0,
+                      );
+
+                savingMap.set(
+                  saving.saving_date,
+                  previous +
+                    change,
+                );
+              },
+            );
+
+            let usableAmount =
+              monthlyBudget;
+
+            const snapshotRows: DailySnapshot[] =
+              [];
+
+            for (
+              let day = 1;
+              day <=
+              saveThroughDay;
+              day += 1
+            ) {
+              const date =
+                formatDate(
+                  new Date(
+                    year,
+                    month,
+                    day,
+                  ),
+                );
+
+              const existingSnapshot =
+                oldSnapshotMap.get(
+                  date,
+                );
+
+              const remainingDays =
+                daysInMonth -
+                day +
+                1;
+
+              const calculatedRecommended =
+                remainingDays >
+                0
+                  ? Math.max(
+                      0,
+                      Math.floor(
+                        usableAmount /
+                          remainingDays,
+                      ),
+                    )
+                  : 0;
+
+              const recommendedAmount =
+                existingSnapshot
+                  ?.recommended_amount ??
+                calculatedRecommended;
+
+              const usedAmount =
+                usedMap.get(
+                  date,
+                ) ??
+                0;
+
+              const savingDifference =
+                savingMap.get(
+                  date,
+                ) ??
+                0;
+
+              snapshotRows.push(
+                {
+                  user_id:
+                    user.id,
+
+                  couple_id:
+                    profile.couple_id,
+
+                  budget_date:
+                    date,
+
+                  recommended_amount:
+                    recommendedAmount,
+
+                  used_amount:
+                    usedAmount,
+                },
+              );
+
+              /*
+               * 사용 가능 예산:
+               *
+               * 소비하면 감소
+               * 저금하면 감소
+               * 꺼내면 증가
+               */
+              usableAmount -=
+                usedAmount;
+
+              usableAmount -=
+                savingDifference;
+            }
+
+            const {
+              error:
+                upsertError,
+            } =
+              await supabase
+                .from(
+                  "daily_budget_snapshots",
+                )
+                .upsert(
+                  snapshotRows,
+                  {
+                    onConflict:
+                      "user_id,budget_date",
+                  },
+                );
+
+            if (
+              upsertError
+            ) {
+              console.error(
+                "권장 한도 저장 오류:",
+                upsertError,
+              );
+            } else {
+              setSnapshots(
+                snapshotRows,
+              );
+            }
+          }
+        }
+
+        setLoading(
+          false,
+        );
+      },
+      [
+        month,
+        monthRange.end,
+        monthRange.start,
+        refreshKey,
+        router,
+        view,
+        year,
+      ],
+    );
+
+  useEffect(
+    () => {
+      void loadCalendarData();
+    },
+    [
+      loadCalendarData,
+    ],
+  );
+
+  /*
+   * 이번 달 예산
+   */
+  const monthlyBudget =
+    useMemo(
+      () =>
+        sumAmounts(
+          incomes,
+        ),
+      [
+        incomes,
+      ],
+    );
+
+  /*
+   * 이번 달 소비
+   */
+  const monthlyUsed =
+    useMemo(
+      () =>
+        sumAmounts(
+          expenses,
+        ),
+      [
+        expenses,
+      ],
+    );
+
+  /*
+   * 이번 달 저금한 금액
+   */
+  const monthlySaved =
+    useMemo(
+      () =>
+        savings
+          .filter(
+            (
+              saving,
+            ) =>
+              saving.type ===
+              "deposit",
+          )
+          .reduce(
+            (
+              total,
+              saving,
+            ) =>
+              total +
+              Number(
+                saving.amount ||
+                  0,
+              ),
+            0,
+          ),
+      [
+        savings,
+      ],
+    );
+
+  /*
+   * 이번 달 꺼낸 금액
+   */
+  const monthlyWithdrawn =
+    useMemo(
+      () =>
+        savings
+          .filter(
+            (
+              saving,
+            ) =>
+              saving.type ===
+              "withdraw",
+          )
+          .reduce(
+            (
+              total,
+              saving,
+            ) =>
+              total +
+              Number(
+                saving.amount ||
+                  0,
+              ),
+            0,
+          ),
+      [
+        savings,
+      ],
+    );
+
+  /*
+   * 현재 사용 가능 예산
+   *
+   * 이번 달 예산
+   * - 이번 달 소비
+   * - 이번 달 저금
+   * + 이번 달 꺼낸 돈
+   */
+  const remainingAmount =
+    monthlyBudget -
+    monthlyUsed -
+    monthlySaved +
+    monthlyWithdrawn;
+
+  /*
+   * 날짜별 소비
+   */
+  const usedByDate =
+    useMemo(
+      () => {
+        const result =
+          new Map<
+            string,
+            number
+          >();
+
+        expenses.forEach(
+          (
+            expense,
+          ) => {
+            const current =
+              result.get(
+                expense.expense_date,
+              ) ??
+              0;
+
+            result.set(
+              expense.expense_date,
+              current +
+                Number(
+                  expense.amount ||
+                    0,
+                ),
+            );
+          },
+        );
+
+        return result;
+      },
+      [
+        expenses,
+      ],
+    );
+
+  /*
+   * 날짜별 저금 차액
+   *
+   * deposit  +금액
+   * withdraw -금액
+   *
+   * 예:
+   * 저금 50,000
+   * 꺼냄 20,000
+   * = +30,000
+   */
+  const savingDifferenceByDate =
+    useMemo(
+      () => {
+        const result =
+          new Map<
+            string,
+            number
+          >();
+
+        savings.forEach(
+          (
+            saving,
+          ) => {
+            const current =
+              result.get(
+                saving.saving_date,
+              ) ??
+              0;
+
+            const difference =
+              saving.type ===
+              "deposit"
+                ? Number(
+                    saving.amount ||
+                      0,
+                  )
+                : -Number(
+                    saving.amount ||
+                      0,
+                  );
+
+            result.set(
+              saving.saving_date,
+              current +
+                difference,
+            );
+          },
+        );
+
+        return result;
+      },
+      [
+        savings,
+      ],
+    );
+
+  /*
+   * 최고 소비 날짜
+   */
+  const highestDay =
+    useMemo(
+      () => {
+        let result = {
+          date: "",
+          amount: 0,
+        };
+
+        usedByDate.forEach(
+          (
             amount,
-            category,
-            title,
-            memo,
-            expense_date,
-            use_type,
-            payment_type,
-            settlement_status,
-            created_at
-          `)
-          .eq(
-            "user_id",
-            targetUserId,
-          )
-          .eq(
-            "couple_id",
-            profile.couple_id,
-          )
-          .gte(
-            "expense_date",
-            monthRange.start,
-          )
-          .lt(
-            "expense_date",
-            monthRange.end,
-          )
-          .order("expense_date", {
-            ascending: true,
-          })
-          .order("created_at", {
-            ascending: true,
-          }),
+            date,
+          ) => {
+            if (
+              amount >
+              result.amount
+            ) {
+              result = {
+                date,
+                amount,
+              };
+            }
+          },
+        );
 
-        supabase
-          .from(
-            "daily_budget_snapshots",
-          )
-          .select(`
-            id,
-            user_id,
-            couple_id,
-            budget_date,
-            recommended_amount,
-            used_amount
-          `)
-          .eq(
-            "user_id",
-            targetUserId,
-          )
-          .gte(
-            "budget_date",
-            monthRange.start,
-          )
-          .lt(
-            "budget_date",
-            monthRange.end,
+        return result;
+      },
+      [
+        usedByDate,
+      ],
+    );
+
+  const snapshotMap =
+    useMemo(
+      () =>
+        new Map(
+          snapshots.map(
+            (
+              snapshot,
+            ) => [
+              snapshot.budget_date,
+              snapshot,
+            ],
           ),
-      ]);
+        ),
+      [
+        snapshots,
+      ],
+    );
 
-      if (incomeResult.error) {
-        console.error(
-          "소득 조회 오류:",
-          incomeResult.error,
-        );
-      }
+  const todayString =
+    formatDate(
+      new Date(),
+    );
 
-      if (expenseResult.error) {
-        console.error(
-          "소비 조회 오류:",
-          expenseResult.error,
-        );
-      }
+  /*
+   * 오늘 권장 한도
+   */
+  const currentRecommendedAmount =
+    useMemo(
+      () => {
+        const today =
+          new Date();
 
-      if (snapshotResult.error) {
-        console.error(
-          "권장 한도 조회 오류:",
-          snapshotResult.error,
-        );
-      }
+        const isCurrentMonth =
+          year ===
+            today.getFullYear() &&
+          month ===
+            today.getMonth();
 
-      const loadedIncomes =
-        (incomeResult.data as
-          | IncomeRecord[]
-          | null) ?? [];
+        if (
+          !isCurrentMonth
+        ) {
+          return 0;
+        }
 
-      const loadedExpenses =
-        (expenseResult.data as
-          | ExpenseRecord[]
-          | null) ?? [];
+        const remainingDays =
+          getDaysInMonth(
+            year,
+            month,
+          ) -
+          today.getDate() +
+          1;
 
-      const loadedSnapshots =
-        (snapshotResult.data as
-          | DailySnapshot[]
-          | null) ?? [];
+        return remainingDays >
+          0
+          ? Math.max(
+              0,
+              Math.floor(
+                remainingAmount /
+                  remainingDays,
+              ),
+            )
+          : 0;
+      },
+      [
+        month,
+        remainingAmount,
+        year,
+      ],
+    );
 
-      setIncomes(loadedIncomes);
-      setExpenses(loadedExpenses);
-      setSnapshots(loadedSnapshots);
-
-      /*
-       * 내 캘린더를 볼 때만
-       * daily_budget_snapshots를 갱신한다.
-       *
-       * 상대 캘린더는 조회 전용.
-       */
-      if (view === "me") {
+  /*
+   * 달력 데이터
+   */
+  const calendarDays =
+    useMemo<
+      CalendarDayData[]
+    >(
+      () => {
         const daysInMonth =
           getDaysInMonth(
             year,
             month,
           );
 
-        const today = new Date();
-
-        const selectedMonthStart =
+        const firstWeekday =
           new Date(
             year,
             month,
             1,
+          ).getDay();
+
+        const previousMonthDays =
+          getDaysInMonth(
+            year,
+            month - 1,
           );
 
-        const currentMonthStart =
-          new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            1,
+        const result: CalendarDayData[] =
+          [];
+
+        /*
+         * 이전 달
+         */
+        for (
+          let index =
+            firstWeekday -
+            1;
+          index >=
+          0;
+          index -=
+          1
+        ) {
+          result.push(
+            {
+              day:
+                previousMonthDays -
+                index,
+
+              date: "",
+
+              currentMonth:
+                false,
+
+              usedAmount:
+                0,
+
+              savingDifference:
+                0,
+
+              recommendedAmount:
+                0,
+
+              difference:
+                0,
+
+              status:
+                "none",
+            },
           );
-
-        let saveThroughDay = 0;
-
-        if (
-          selectedMonthStart <
-          currentMonthStart
-        ) {
-          saveThroughDay =
-            daysInMonth;
-        } else if (
-          year ===
-            today.getFullYear() &&
-          month ===
-            today.getMonth()
-        ) {
-          saveThroughDay =
-            today.getDate();
         }
 
-        if (saveThroughDay > 0) {
-          const monthlyBudget =
-            sumAmounts(
-              loadedIncomes,
-            );
-
-          const snapshotMap =
-            new Map(
-              loadedSnapshots.map(
-                (snapshot) => [
-                  snapshot.budget_date,
-                  snapshot,
-                ],
+        /*
+         * 현재 달
+         */
+        for (
+          let day = 1;
+          day <=
+          daysInMonth;
+          day += 1
+        ) {
+          const date =
+            formatDate(
+              new Date(
+                year,
+                month,
+                day,
               ),
             );
 
-          const usedByDate =
-            new Map<
-              string,
-              number
-            >();
+          const usedAmount =
+            usedByDate.get(
+              date,
+            ) ??
+            0;
 
-          loadedExpenses.forEach(
-            (expense) => {
-              const previous =
-                usedByDate.get(
-                  expense.expense_date,
-                ) ?? 0;
+          const savingDifference =
+            savingDifferenceByDate.get(
+              date,
+            ) ??
+            0;
 
-              usedByDate.set(
-                expense.expense_date,
-                previous +
-                  Number(
-                    expense.amount || 0,
-                  ),
-              );
+          const snapshot =
+            snapshotMap.get(
+              date,
+            );
+
+          const isFuture =
+            date >
+            todayString;
+
+          const recommendedAmount =
+            snapshot
+              ?.recommended_amount ??
+            (
+              isFuture
+                ? currentRecommendedAmount
+                : 0
+            );
+
+          const difference =
+            recommendedAmount -
+            usedAmount;
+
+          let status: CalendarDayData["status"] =
+            "none";
+
+          if (
+            isFuture
+          ) {
+            status =
+              "future";
+          } else if (
+            recommendedAmount <=
+            0
+          ) {
+            status =
+              usedAmount >
+              0
+                ? "over"
+                : "none";
+          } else if (
+            usedAmount >
+            recommendedAmount
+          ) {
+            status =
+              "over";
+          } else if (
+            usedAmount >=
+            recommendedAmount *
+              0.8
+          ) {
+            status =
+              "warning";
+          } else {
+            status =
+              "safe";
+          }
+
+          result.push(
+            {
+              day,
+              date,
+
+              currentMonth:
+                true,
+
+              usedAmount,
+
+              savingDifference,
+
+              recommendedAmount,
+
+              difference,
+
+              status,
+            },
+          );
+        }
+
+        /*
+         * 다음 달
+         */
+        let nextDay =
+          1;
+
+        while (
+          result.length %
+            7 !==
+          0
+        ) {
+          result.push(
+            {
+              day:
+                nextDay,
+
+              date: "",
+
+              currentMonth:
+                false,
+
+              usedAmount:
+                0,
+
+              savingDifference:
+                0,
+
+              recommendedAmount:
+                0,
+
+              difference:
+                0,
+
+              status:
+                "none",
             },
           );
 
-          let remainingAmount =
-            monthlyBudget;
-
-          const snapshotRows: DailySnapshot[] =
-            [];
-
-          for (
-            let day = 1;
-            day <= saveThroughDay;
-            day += 1
-          ) {
-            const date =
-              formatDate(
-                new Date(
-                  year,
-                  month,
-                  day,
-                ),
-              );
-
-            const existingSnapshot =
-              snapshotMap.get(date);
-
-            const remainingDays =
-              daysInMonth -
-              day +
-              1;
-
-            const calculatedRecommended =
-              remainingDays > 0
-                ? Math.max(
-                    0,
-                    Math.floor(
-                      remainingAmount /
-                        remainingDays,
-                    ),
-                  )
-                : 0;
-
-            const recommendedAmount =
-              existingSnapshot
-                ?.recommended_amount ??
-              calculatedRecommended;
-
-            const usedAmount =
-              usedByDate.get(
-                date,
-              ) ?? 0;
-
-            snapshotRows.push({
-              user_id: user.id,
-              couple_id:
-                profile.couple_id,
-              budget_date: date,
-              recommended_amount:
-                recommendedAmount,
-              used_amount:
-                usedAmount,
-            });
-
-            remainingAmount -=
-              usedAmount;
-          }
-
-          const {
-            error: upsertError,
-          } = await supabase
-            .from(
-              "daily_budget_snapshots",
-            )
-            .upsert(
-              snapshotRows,
-              {
-                onConflict:
-                  "user_id,budget_date",
-              },
-            );
-
-          if (upsertError) {
-            console.error(
-              "권장 한도 저장 오류:",
-              upsertError,
-            );
-          } else {
-            setSnapshots(
-              snapshotRows,
-            );
-          }
-        }
-      }
-
-      setLoading(false);
-    }, [
-      month,
-      monthRange.end,
-      monthRange.start,
-      refreshKey,
-      router,
-      view,
-      year,
-    ]);
-
-  useEffect(() => {
-    void loadCalendarData();
-  }, [loadCalendarData]);
-
-  const monthlyBudget =
-    useMemo(
-      () => sumAmounts(incomes),
-      [incomes],
-    );
-
-  const monthlyUsed =
-    useMemo(
-      () => sumAmounts(expenses),
-      [expenses],
-    );
-
-  const remainingAmount =
-    monthlyBudget - monthlyUsed;
-
-  const recordedDates = useMemo(
-    () =>
-      new Set(
-        expenses.map(
-          (expense) =>
-            expense.expense_date,
-        ),
-      ).size,
-    [expenses],
-  );
-
-  const averageUsed =
-    recordedDates > 0
-      ? Math.round(
-          monthlyUsed /
-            recordedDates,
-        )
-      : 0;
-
-  const usedByDate = useMemo(() => {
-    const result =
-      new Map<string, number>();
-
-    expenses.forEach((expense) => {
-      const current =
-        result.get(
-          expense.expense_date,
-        ) ?? 0;
-
-      result.set(
-        expense.expense_date,
-        current +
-          Number(
-            expense.amount || 0,
-          ),
-      );
-    });
-
-    return result;
-  }, [expenses]);
-
-  const highestDay =
-    useMemo(() => {
-      let result = {
-        date: "",
-        amount: 0,
-      };
-
-      usedByDate.forEach(
-        (amount, date) => {
-          if (
-            amount > result.amount
-          ) {
-            result = {
-              date,
-              amount,
-            };
-          }
-        },
-      );
-
-      return result;
-    }, [usedByDate]);
-
-  const snapshotMap = useMemo(
-    () =>
-      new Map(
-        snapshots.map(
-          (snapshot) => [
-            snapshot.budget_date,
-            snapshot,
-          ],
-        ),
-      ),
-    [snapshots],
-  );
-
-  const todayString =
-    formatDate(new Date());
-
-  const currentRecommendedAmount =
-    useMemo(() => {
-      const today = new Date();
-
-      const isCurrentMonth =
-        year ===
-          today.getFullYear() &&
-        month ===
-          today.getMonth();
-
-      if (!isCurrentMonth) {
-        return 0;
-      }
-
-      const remainingDays =
-        getDaysInMonth(
-          year,
-          month,
-        ) -
-        today.getDate() +
-        1;
-
-      return remainingDays > 0
-        ? Math.max(
-            0,
-            Math.floor(
-              remainingAmount /
-                remainingDays,
-            ),
-          )
-        : 0;
-    }, [
-      month,
-      remainingAmount,
-      year,
-    ]);
-
-  const calendarDays =
-    useMemo<
-      CalendarDayData[]
-    >(() => {
-      const daysInMonth =
-        getDaysInMonth(
-          year,
-          month,
-        );
-
-      const firstWeekday =
-        new Date(
-          year,
-          month,
-          1,
-        ).getDay();
-
-      const previousMonthDays =
-        getDaysInMonth(
-          year,
-          month - 1,
-        );
-
-      const result: CalendarDayData[] =
-        [];
-
-      for (
-        let index =
-          firstWeekday - 1;
-        index >= 0;
-        index -= 1
-      ) {
-        result.push({
-          day:
-            previousMonthDays -
-            index,
-          date: "",
-          currentMonth: false,
-          usedAmount: 0,
-          recommendedAmount: 0,
-          difference: 0,
-          status: "none",
-        });
-      }
-
-      for (
-        let day = 1;
-        day <= daysInMonth;
-        day += 1
-      ) {
-        const date = formatDate(
-          new Date(
-            year,
-            month,
-            day,
-          ),
-        );
-
-        const usedAmount =
-          usedByDate.get(date) ?? 0;
-
-        const snapshot =
-          snapshotMap.get(date);
-
-        const isFuture =
-          date > todayString;
-
-        const recommendedAmount =
-          snapshot
-            ?.recommended_amount ??
-          (isFuture
-            ? currentRecommendedAmount
-            : 0);
-
-        const difference =
-          recommendedAmount -
-          usedAmount;
-
-        let status: CalendarDayData["status"] =
-          "none";
-
-        if (isFuture) {
-          status = "future";
-        } else if (
-          recommendedAmount <= 0
-        ) {
-          status =
-            usedAmount > 0
-              ? "over"
-              : "none";
-        } else if (
-          usedAmount >
-          recommendedAmount
-        ) {
-          status = "over";
-        } else if (
-          usedAmount >=
-          recommendedAmount * 0.8
-        ) {
-          status = "warning";
-        } else {
-          status = "safe";
+          nextDay +=
+            1;
         }
 
-        result.push({
-          day,
-          date,
-          currentMonth: true,
-          usedAmount,
-          recommendedAmount,
-          difference,
-          status,
-        });
-      }
+        return result;
+      },
+      [
+        currentRecommendedAmount,
+        month,
+        savingDifferenceByDate,
+        snapshotMap,
+        todayString,
+        usedByDate,
+        year,
+      ],
+    );
 
-      let nextDay = 1;
-
-      while (
-        result.length % 7 !== 0
-      ) {
-        result.push({
-          day: nextDay,
-          date: "",
-          currentMonth: false,
-          usedAmount: 0,
-          recommendedAmount: 0,
-          difference: 0,
-          status: "none",
-        });
-
-        nextDay += 1;
-      }
-
-      return result;
-    }, [
-      currentRecommendedAmount,
-      month,
-      snapshotMap,
-      todayString,
-      usedByDate,
-      year,
-    ]);
-
+  /*
+   * 선택 날짜 소비
+   */
   const selectedExpenses =
     useMemo(
       () =>
         expenses.filter(
-          (expense) =>
+          (
+            expense,
+          ) =>
             expense.expense_date ===
             selectedDate,
         ),
@@ -1004,10 +1834,36 @@ export default function CalendarPage() {
       ],
     );
 
+  /*
+   * 선택 날짜 저금 기록
+   */
+  const selectedSavings =
+    useMemo(
+      () =>
+        savings.filter(
+          (
+            saving,
+          ) =>
+            saving.saving_date ===
+            selectedDate,
+        ),
+      [
+        savings,
+        selectedDate,
+      ],
+    );
+
   const selectedUsedAmount =
     usedByDate.get(
       selectedDate,
-    ) ?? 0;
+    ) ??
+    0;
+
+  const selectedSavingDifference =
+    savingDifferenceByDate.get(
+      selectedDate,
+    ) ??
+    0;
 
   const selectedSnapshot =
     snapshotMap.get(
@@ -1017,10 +1873,12 @@ export default function CalendarPage() {
   const selectedRecommendedAmount =
     selectedSnapshot
       ?.recommended_amount ??
-    (selectedDate >
-    todayString
-      ? currentRecommendedAmount
-      : 0);
+    (
+      selectedDate >
+      todayString
+        ? currentRecommendedAmount
+        : 0
+    );
 
   const selectedDifference =
     selectedRecommendedAmount -
@@ -1034,11 +1892,13 @@ export default function CalendarPage() {
   const changeMonth = (
     amount: number,
   ) => {
-    const nextDate = new Date(
-      year,
-      month + amount,
-      1,
-    );
+    const nextDate =
+      new Date(
+        year,
+        month +
+          amount,
+        1,
+      );
 
     setYear(
       nextDate.getFullYear(),
@@ -1049,63 +1909,99 @@ export default function CalendarPage() {
     );
 
     setSelectedDate(
-      formatDate(nextDate),
+      formatDate(
+        nextDate,
+      ),
     );
 
-    setDetailOpen(false);
-    setExpenseOpen(false);
+    setDetailOpen(
+      false,
+    );
+
+    setExpenseOpen(
+      false,
+    );
   };
 
   const changeView = (
     nextView: ViewType,
   ) => {
     if (
-      nextView === "partner" &&
+      nextView ===
+        "partner" &&
       !partnerId
     ) {
       return;
     }
 
-    setView(nextView);
-    setDetailOpen(false);
-    setExpenseOpen(false);
+    setView(
+      nextView,
+    );
+
+    setDetailOpen(
+      false,
+    );
+
+    setExpenseOpen(
+      false,
+    );
   };
 
   const handleDayClick = (
     item: CalendarDayData,
   ) => {
-    if (!item.currentMonth) {
+    if (
+      !item.currentMonth
+    ) {
       return;
     }
 
-    setSelectedDate(item.date);
-  };
-
-  const openExpenseSheet = () => {
-    if (!isMyCalendar) {
-      return;
-    }
-
-    if (!coupleId) {
-      setMessage(
-        "커플 정보를 불러오는 중이에요.",
-      );
-      return;
-    }
-
-    setExpenseOpen(true);
-  };
-
-  const handleExpenseSave = () => {
-    setExpenseOpen(false);
-
-    setRefreshKey(
-      (current) =>
-        current + 1,
+    setSelectedDate(
+      item.date,
     );
   };
 
-  if (loading) {
+  const openExpenseSheet =
+    () => {
+      if (
+        !isMyCalendar
+      ) {
+        return;
+      }
+
+      if (
+        !coupleId
+      ) {
+        setMessage(
+          "커플 정보를 불러오는 중이에요.",
+        );
+
+        return;
+      }
+
+      setExpenseOpen(
+        true,
+      );
+    };
+
+  const handleExpenseSave =
+    () => {
+      setExpenseOpen(
+        false,
+      );
+
+      setRefreshKey(
+        (
+          current,
+        ) =>
+          current +
+          1,
+      );
+    };
+
+  if (
+    loading
+  ) {
     return (
       <main className="calendar-loading">
         캘린더를 불러오고 있어요...
@@ -1113,16 +2009,29 @@ export default function CalendarPage() {
     );
   }
 
-  if (detailOpen) {
+  /*
+   * 날짜 상세
+   */
+  if (
+    detailOpen
+  ) {
     return (
       <>
         <DayDetail
-          date={selectedDate}
+          date={
+            selectedDate
+          }
           expenses={
             selectedExpenses
           }
+          savings={
+            selectedSavings
+          }
           usedAmount={
             selectedUsedAmount
+          }
+          savingDifference={
+            selectedSavingDifference
           }
           recommendedAmount={
             selectedRecommendedAmount
@@ -1137,7 +2046,9 @@ export default function CalendarPage() {
             isMyCalendar
           }
           onBack={() =>
-            setDetailOpen(false)
+            setDetailOpen(
+              false,
+            )
           }
           onAddExpense={
             openExpenseSheet
@@ -1146,12 +2057,20 @@ export default function CalendarPage() {
 
         {isMyCalendar && (
           <ExpenseSheet
-            open={expenseOpen}
-            onClose={() =>
-              setExpenseOpen(false)
+            open={
+              expenseOpen
             }
-            coupleId={coupleId}
-            partnerId={partnerId}
+            onClose={() =>
+              setExpenseOpen(
+                false,
+              )
+            }
+            coupleId={
+              coupleId
+            }
+            partnerId={
+              partnerId
+            }
             initialDate={
               selectedDate
             }
@@ -1184,7 +2103,8 @@ export default function CalendarPage() {
           </strong>
 
           <span>
-            {year}년 {month + 1}월
+            {year}년{" "}
+            {month + 1}월
           </span>
         </div>
 
@@ -1192,7 +2112,9 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={() =>
-              changeMonth(-1)
+              changeMonth(
+                -1,
+              )
             }
             aria-label="이전 달"
           >
@@ -1202,7 +2124,9 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={() =>
-              changeMonth(1)
+              changeMonth(
+                1,
+              )
             }
             aria-label="다음 달"
           >
@@ -1211,17 +2135,21 @@ export default function CalendarPage() {
         </div>
       </header>
 
-      {/* 나 / 상대 탭 */}
+      {/* 나 / 상대 */}
+
       <div className="calendar-person-tabs">
         <button
           type="button"
           className={
-            view === "me"
+            view ===
+            "me"
               ? "active"
               : ""
           }
           onClick={() =>
-            changeView("me")
+            changeView(
+              "me",
+            )
           }
         >
           {myNickname}
@@ -1229,29 +2157,41 @@ export default function CalendarPage() {
 
         <button
           type="button"
+          disabled={
+            !partnerId
+          }
           className={
-            view === "partner"
+            view ===
+            "partner"
               ? "active"
               : ""
           }
-          disabled={!partnerId}
           onClick={() =>
             changeView(
               "partner",
             )
           }
         >
-          {partnerNickname}
+          {
+            partnerNickname
+          }
         </button>
       </div>
 
-      {view === "partner" && (
+      {view ===
+        "partner" && (
         <div className="partner-readonly-message">
-          <span>👀</span>
+          <span>
+            👀
+          </span>
 
           <p>
-            {partnerNickname}님의
-            소비 기록을 보고 있어요.
+            {
+              partnerNickname
+            }
+            님의 소비와 저금 기록을
+            보고 있어요.
+
             <strong>
               상대 기록은 조회만
               가능해요.
@@ -1266,15 +2206,21 @@ export default function CalendarPage() {
         </p>
       )}
 
+      {/* 초롱이 */}
+
       <section className="calendar-hero">
         <div>
           <h2>
-            {selectedNickname}님의{" "}
-            {month + 1}월 소비 계획
-            🐶
+            {
+              selectedNickname
+            }
+            님의{" "}
+            {month + 1}월
+            소비 계획 🐶
           </h2>
 
           <p>
+            소비와 저금을 반영한
             남은 금액을 기준으로
             <br />
             하루 권장 한도를
@@ -1291,17 +2237,22 @@ export default function CalendarPage() {
         />
       </section>
 
+      {/* 권장 한도 */}
+
       <section className="daily-recommendation-card">
         <div>
           <span>
-            현재 남은 금액
+            현재 사용 가능 금액
           </span>
 
           <strong>
             {remainingAmount.toLocaleString(
               "ko-KR",
             )}
-            <small>원</small>
+
+            <small>
+              원
+            </small>
           </strong>
         </div>
 
@@ -1314,16 +2265,21 @@ export default function CalendarPage() {
             {currentRecommendedAmount.toLocaleString(
               "ko-KR",
             )}
-            <small>원</small>
+
+            <small>
+              원
+            </small>
           </strong>
         </div>
 
         <p>
-          적게 쓰면 다음 날 한도가
-          늘고, 많이 쓰면 다음 날
-          한도가 줄어들어요.
+          저금한 금액은 소비로
+          계산하지 않고 사용 가능한
+          예산에서만 빠져요.
         </p>
       </section>
+
+      {/* 월 요약 */}
 
       <section className="monthly-summary">
         <SummaryItem
@@ -1343,10 +2299,11 @@ export default function CalendarPage() {
         />
 
         <SummaryItem
-          label="일평균 소비"
-          value={`${averageUsed.toLocaleString(
+          label="현재 저금액"
+          value={`${currentSavingBalance.toLocaleString(
             "ko-KR",
           )}원`}
+          saving
         />
 
         <SummaryItem
@@ -1373,6 +2330,8 @@ export default function CalendarPage() {
         />
       </section>
 
+      {/* 달력 */}
+
       <section className="calendar-area">
         <div className="weekday-row">
           {[
@@ -1384,13 +2343,20 @@ export default function CalendarPage() {
             "금",
             "토",
           ].map(
-            (day, index) => (
+            (
+              day,
+              index,
+            ) => (
               <span
-                key={day}
+                key={
+                  day
+                }
                 className={
-                  index === 0
+                  index ===
+                  0
                     ? "sunday"
-                    : index === 6
+                    : index ===
+                        6
                       ? "saturday"
                       : ""
                 }
@@ -1403,14 +2369,18 @@ export default function CalendarPage() {
 
         <div className="calendar-grid">
           {calendarDays.map(
-            (item, index) => {
+            (
+              item,
+              index,
+            ) => {
               const selected =
                 item.currentMonth &&
                 item.date ===
                   selectedDate;
 
               const weekday =
-                index % 7;
+                index %
+                7;
 
               return (
                 <button
@@ -1418,20 +2388,29 @@ export default function CalendarPage() {
                   key={`${item.day}-${index}`}
                   className={[
                     "calendar-cell",
+
                     !item.currentMonth
                       ? "muted"
                       : "",
+
                     selected
                       ? "selected"
                       : "",
-                    weekday === 0
+
+                    weekday ===
+                    0
                       ? "sunday"
                       : "",
-                    weekday === 6
+
+                    weekday ===
+                    6
                       ? "saturday"
                       : "",
+
                     item.status,
-                  ].join(" ")}
+                  ].join(
+                    " ",
+                  )}
                   disabled={
                     !item.currentMonth
                   }
@@ -1442,8 +2421,12 @@ export default function CalendarPage() {
                   }
                 >
                   <span className="day-number">
-                    {item.day}
+                    {
+                      item.day
+                    }
                   </span>
+
+                  {/* 소비 */}
 
                   {item.currentMonth &&
                     item.usedAmount >
@@ -1454,6 +2437,34 @@ export default function CalendarPage() {
                         )}
                       </small>
                     )}
+
+                  {/* 저금통 차액 */}
+
+                  {item.currentMonth &&
+                    item.savingDifference !==
+                      0 && (
+                      <small
+                        className={
+                          item.savingDifference >
+                          0
+                            ? "day-saving deposit"
+                            : "day-saving withdraw"
+                        }
+                      >
+                        {item.savingDifference >
+                        0
+                          ? "🐷 +"
+                          : "🔨 -"}
+
+                        {Math.abs(
+                          item.savingDifference,
+                        ).toLocaleString(
+                          "ko-KR",
+                        )}
+                      </small>
+                    )}
+
+                  {/* 권장 한도 */}
 
                   {item.currentMonth &&
                     item.recommendedAmount >
@@ -1483,6 +2494,8 @@ export default function CalendarPage() {
           )}
         </div>
       </section>
+
+      {/* 선택 날짜 */}
 
       <section className="selected-day-card">
         <div className="selected-day-heading">
@@ -1519,15 +2532,17 @@ export default function CalendarPage() {
 
         <div
           className={`selected-day-result ${
-            selectedDifference < 0
+            selectedDifference <
+            0
               ? "over"
               : "safe"
           }`}
         >
           <span>
-            {selectedDifference < 0
+            {selectedDifference <
+            0
               ? "권장 한도보다"
-              : "오늘 남은 금액"}
+              : "오늘 남은 소비 한도"}
           </span>
 
           <strong>
@@ -1537,15 +2552,58 @@ export default function CalendarPage() {
               "ko-KR",
             )}
             원
-            {selectedDifference < 0
+
+            {selectedDifference <
+            0
               ? " 초과"
               : ""}
           </strong>
         </div>
 
+        {/* 저금 차액 */}
+
+        {selectedSavingDifference !==
+          0 && (
+          <div
+            className={
+              selectedSavingDifference >
+              0
+                ? "selected-saving-change deposit"
+                : "selected-saving-change withdraw"
+            }
+          >
+            <span>
+              {selectedSavingDifference >
+              0
+                ? "🐷 오늘 저금통에 넣은 금액"
+                : "🔨 오늘 저금통에서 꺼낸 금액"}
+            </span>
+
+            <strong>
+              {selectedSavingDifference >
+              0
+                ? "+"
+                : "-"}
+
+              {Math.abs(
+                selectedSavingDifference,
+              ).toLocaleString(
+                "ko-KR",
+              )}
+              원
+            </strong>
+          </div>
+        )}
+
         <ExpenseList
           expenses={
             selectedExpenses
+          }
+        />
+
+        <SavingList
+          savings={
+            selectedSavings
           }
         />
 
@@ -1560,7 +2618,9 @@ export default function CalendarPage() {
             type="button"
             className="calendar-detail-button"
             onClick={() =>
-              setDetailOpen(true)
+              setDetailOpen(
+                true,
+              )
             }
           >
             날짜 상세 보기
@@ -1582,12 +2642,20 @@ export default function CalendarPage() {
 
       {isMyCalendar && (
         <ExpenseSheet
-          open={expenseOpen}
-          onClose={() =>
-            setExpenseOpen(false)
+          open={
+            expenseOpen
           }
-          coupleId={coupleId}
-          partnerId={partnerId}
+          onClose={() =>
+            setExpenseOpen(
+              false,
+            )
+          }
+          coupleId={
+            coupleId
+          }
+          partnerId={
+            partnerId
+          }
           initialDate={
             selectedDate
           }
@@ -1598,11 +2666,17 @@ export default function CalendarPage() {
       )}
 
       {!expenseOpen && (
-        <BottomNavigation active="calendar" />
+        <BottomNavigation
+          active="calendar"
+        />
       )}
     </main>
   );
 }
+
+/* =========================
+   월 요약
+========================= */
 
 function SummaryItem({
   label,
@@ -1610,13 +2684,33 @@ function SummaryItem({
   sub,
   active,
   coral,
+  saving,
 }: {
   label: string;
   value: string;
   sub?: string;
+
   active?: boolean;
   coral?: boolean;
+  saving?: boolean;
 }) {
+  let valueClass =
+    "";
+
+  if (
+    coral
+  ) {
+    valueClass =
+      "coral";
+  }
+
+  if (
+    saving
+  ) {
+    valueClass =
+      "saving";
+  }
+
   return (
     <div
       className={
@@ -1625,31 +2719,40 @@ function SummaryItem({
           : "summary-item"
       }
     >
-      <span>{label}</span>
+      <span>
+        {label}
+      </span>
 
       <strong
         className={
-          coral
-            ? "coral"
-            : ""
+          valueClass
         }
       >
         {value}
       </strong>
 
       {sub && (
-        <small>{sub}</small>
+        <small>
+          {sub}
+        </small>
       )}
     </div>
   );
 }
+
+/* =========================
+   소비 목록
+========================= */
 
 function ExpenseList({
   expenses,
 }: {
   expenses: ExpenseRecord[];
 }) {
-  if (expenses.length === 0) {
+  if (
+    expenses.length ===
+    0
+  ) {
     return (
       <p className="empty-expense">
         이 날짜에는 소비 기록이
@@ -1660,50 +2763,165 @@ function ExpenseList({
 
   return (
     <div className="calendar-expense-list">
-      {expenses.map((item) => {
-        const info =
-          categoryInfo[
-            item.category
-          ] ??
-          categoryInfo.기타;
+      {expenses.map(
+        (
+          item,
+        ) => {
+          const info =
+            categoryInfo[
+              item.category
+            ] ??
+            categoryInfo.기타;
 
-        return (
-          <article
-            className="calendar-expense-item"
-            key={item.id}
-          >
-            <div
-              className="expense-icon"
-              style={{
-                background: `${info.color}1e`,
-              }}
+          return (
+            <article
+              className="calendar-expense-item"
+              key={
+                item.id
+              }
             >
-              {info.icon}
-            </div>
+              <div
+                className="expense-icon"
+                style={{
+                  background: `${info.color}1e`,
+                }}
+              >
+                {
+                  info.icon
+                }
+              </div>
 
-            <div className="expense-info">
-              <small>
-                {item.category}
-              </small>
+              <div className="expense-info">
+                <small>
+                  {
+                    item.category
+                  }
+                </small>
 
-              <strong>
-                {item.title ||
-                  item.category}
-              </strong>
+                <strong>
+                  {item.title ||
+                    item.category}
+                </strong>
 
-              <span>
-                {item.use_type ===
-                "함께"
-                  ? `둘이 함께 · ${
-                      item.payment_type ??
-                      ""
-                    }`
-                  : "나 혼자"}
-              </span>
-            </div>
+                <span>
+                  {item.use_type ===
+                  "함께"
+                    ? `둘이 함께 · ${
+                        item.payment_type ??
+                        ""
+                      }`
+                    : "나 혼자"}
+                </span>
+              </div>
 
-            <div className="expense-price">
-              <strong>
+              <div className="expense-price">
+                <strong>
+                  {Number(
+                    item.amount,
+                  ).toLocaleString(
+                    "ko-KR",
+                  )}
+                  원
+                </strong>
+
+                {item.settlement_status ===
+                  "정산대기" && (
+                  <span>
+                    정산전
+                  </span>
+                )}
+
+                {item.settlement_status ===
+                  "정산완료" && (
+                  <span className="complete">
+                    정산완료
+                  </span>
+                )}
+              </div>
+            </article>
+          );
+        },
+      )}
+    </div>
+  );
+}
+
+/* =========================
+   저금 목록
+========================= */
+
+function SavingList({
+  savings,
+}: {
+  savings: SavingRecord[];
+}) {
+  if (
+    savings.length ===
+    0
+  ) {
+    return null;
+  }
+
+  return (
+    <div className="calendar-saving-list">
+      <div className="calendar-saving-title">
+        저금 기록
+      </div>
+
+      {savings.map(
+        (
+          item,
+        ) => {
+          const isDeposit =
+            item.type ===
+            "deposit";
+
+          return (
+            <article
+              className="calendar-saving-item"
+              key={
+                item.id
+              }
+            >
+              <div
+                className={
+                  isDeposit
+                    ? "saving-calendar-icon deposit"
+                    : "saving-calendar-icon withdraw"
+                }
+              >
+                {isDeposit
+                  ? "🐷"
+                  : "🔨"}
+              </div>
+
+              <div className="saving-calendar-info">
+                <strong>
+                  {isDeposit
+                    ? "저금하기"
+                    : "저금통 꺼내기"}
+                </strong>
+
+                {item.memo && (
+                  <span>
+                    {
+                      item.memo
+                    }
+                  </span>
+                )}
+              </div>
+
+              <strong
+                className={
+                  isDeposit
+                    ? "saving-calendar-price deposit"
+                    : "saving-calendar-price withdraw"
+                }
+              >
+                {isDeposit
+                  ? "+"
+                  : "-"}
+
                 {Number(
                   item.amount,
                 ).toLocaleString(
@@ -1711,32 +2929,24 @@ function ExpenseList({
                 )}
                 원
               </strong>
-
-              {item.settlement_status ===
-                "정산대기" && (
-                <span>
-                  정산전
-                </span>
-              )}
-
-              {item.settlement_status ===
-                "정산완료" && (
-                <span className="complete">
-                  정산완료
-                </span>
-              )}
-            </div>
-          </article>
-        );
-      })}
+            </article>
+          );
+        },
+      )}
     </div>
   );
 }
 
+/* =========================
+   날짜 상세
+========================= */
+
 function DayDetail({
   date,
   expenses,
+  savings,
   usedAmount,
+  savingDifference,
   recommendedAmount,
   difference,
   nickname,
@@ -1745,13 +2955,25 @@ function DayDetail({
   onAddExpense,
 }: {
   date: string;
+
   expenses: ExpenseRecord[];
+
+  savings: SavingRecord[];
+
   usedAmount: number;
+
+  savingDifference: number;
+
   recommendedAmount: number;
+
   difference: number;
+
   nickname: string;
+
   canAddExpense: boolean;
+
   onBack: () => void;
+
   onAddExpense: () => void;
 }) {
   const dateObject =
@@ -1760,10 +2982,13 @@ function DayDetail({
     );
 
   const usageRate =
-    recommendedAmount > 0
+    recommendedAmount >
+    0
       ? Math.round(
-          (usedAmount /
-            recommendedAmount) *
+          (
+            usedAmount /
+            recommendedAmount
+          ) *
             100,
         )
       : 0;
@@ -1782,7 +3007,9 @@ function DayDetail({
       <header className="day-detail-header">
         <button
           type="button"
-          onClick={onBack}
+          onClick={
+            onBack
+          }
           aria-label="뒤로 가기"
         >
           ←
@@ -1792,16 +3019,23 @@ function DayDetail({
           {dateObject.getMonth() +
             1}
           월{" "}
-          {dateObject.getDate()}일 (
-          {getWeekdayLabel(date)})
+          {dateObject.getDate()}
+          일 (
+          {getWeekdayLabel(
+            date,
+          )}
+          )
         </h1>
 
-        <span>🗓️</span>
+        <span>
+          🗓️
+        </span>
       </header>
 
       {!canAddExpense && (
         <div className="day-detail-owner">
-          {nickname}님의 소비 기록
+          {nickname}님의 소비 ·
+          저금 기록
         </div>
       )}
 
@@ -1820,7 +3054,9 @@ function DayDetail({
         </div>
 
         <div>
-          <span>사용 금액</span>
+          <span>
+            사용 금액
+          </span>
 
           <strong className="used">
             {usedAmount.toLocaleString(
@@ -1832,14 +3068,16 @@ function DayDetail({
 
         <div>
           <span>
-            {difference < 0
+            {difference <
+            0
               ? "초과 금액"
-              : "남은 금액"}
+              : "남은 소비 한도"}
           </span>
 
           <strong
             className={
-              difference < 0
+              difference <
+              0
                 ? "over"
                 : "remaining"
             }
@@ -1859,9 +3097,11 @@ function DayDetail({
               width: `${progressWidth}%`,
             }}
             className={
-              usageRate > 100
+              usageRate >
+              100
                 ? "over"
-                : usageRate >= 80
+                : usageRate >=
+                    80
                   ? "warning"
                   : ""
             }
@@ -1869,91 +3109,162 @@ function DayDetail({
         </div>
 
         <p>
-          권장 한도의 {usageRate}%를
+          권장 한도의{" "}
+          {usageRate}%를
           사용했어요.
         </p>
       </section>
 
+      {/* 해당 날짜 저금 차액 */}
+
+      {savingDifference !==
+        0 && (
+        <section
+          className={
+            savingDifference >
+            0
+              ? "day-saving-net deposit"
+              : "day-saving-net withdraw"
+          }
+        >
+          <span>
+            {savingDifference >
+            0
+              ? "🐷 오늘 저금"
+              : "🔨 오늘 꺼냄"}
+          </span>
+
+          <strong>
+            {savingDifference >
+            0
+              ? "+"
+              : "-"}
+
+            {Math.abs(
+              savingDifference,
+            ).toLocaleString(
+              "ko-KR",
+            )}
+            원
+          </strong>
+        </section>
+      )}
+
+      {/* 소비 상세 */}
+
       <section className="day-category-list">
-        {expenses.length === 0 ? (
+        {expenses.length ===
+        0 ? (
           <div className="day-detail-empty">
-            <span>💸</span>
+            <span>
+              💸
+            </span>
 
             <strong>
               소비 기록이 없어요
             </strong>
           </div>
         ) : (
-          expenses.map((item) => {
-            const info =
-              categoryInfo[
-                item.category
-              ] ??
-              categoryInfo.기타;
+          expenses.map(
+            (
+              item,
+            ) => {
+              const info =
+                categoryInfo[
+                  item.category
+                ] ??
+                categoryInfo.기타;
 
-            return (
-              <article
-                className="day-detail-item"
-                key={item.id}
-              >
-                <div
-                  className="expense-icon large"
-                  style={{
-                    background: `${info.color}1e`,
-                  }}
+              return (
+                <article
+                  className="day-detail-item"
+                  key={
+                    item.id
+                  }
                 >
-                  {info.icon}
-                </div>
+                  <div
+                    className="expense-icon large"
+                    style={{
+                      background: `${info.color}1e`,
+                    }}
+                  >
+                    {
+                      info.icon
+                    }
+                  </div>
 
-                <div className="day-detail-info">
-                  <strong>
-                    {item.title ||
-                      item.category}
-                  </strong>
+                  <div className="day-detail-info">
+                    <strong>
+                      {item.title ||
+                        item.category}
+                    </strong>
 
-                  <span>
-                    {item.category} ·{" "}
-                    {item.use_type ===
-                    "함께"
-                      ? "둘이 함께"
-                      : "나 혼자"}
-                  </span>
-
-                  <small>
-                    {formatTime(
-                      item.created_at,
-                    )}
-                  </small>
-
-                  {item.memo && (
-                    <p>
-                      {item.memo}
-                    </p>
-                  )}
-                </div>
-
-                <div className="day-detail-price">
-                  <strong>
-                    {Number(
-                      item.amount,
-                    ).toLocaleString(
-                      "ko-KR",
-                    )}
-                    원
-                  </strong>
-
-                  {item.settlement_status ===
-                    "정산대기" && (
                     <span>
-                      정산전
+                      {
+                        item.category
+                      }{" "}
+                      ·{" "}
+                      {item.use_type ===
+                      "함께"
+                        ? "둘이 함께"
+                        : "나 혼자"}
                     </span>
-                  )}
-                </div>
-              </article>
-            );
-          })
+
+                    <small>
+                      {formatTime(
+                        item.created_at,
+                      )}
+                    </small>
+
+                    {item.memo && (
+                      <p>
+                        {
+                          item.memo
+                        }
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="day-detail-price">
+                    <strong>
+                      {Number(
+                        item.amount,
+                      ).toLocaleString(
+                        "ko-KR",
+                      )}
+                      원
+                    </strong>
+
+                    {item.settlement_status ===
+                      "정산대기" && (
+                      <span>
+                        정산전
+                      </span>
+                    )}
+                  </div>
+                </article>
+              );
+            },
+          )
         )}
       </section>
+
+      {/* 저금 상세 */}
+
+      {savings.length >
+        0 && (
+        <section className="day-detail-saving-section">
+          <h2>
+            저금 기록
+          </h2>
+
+          <SavingList
+            savings={
+              savings
+            }
+          />
+        </section>
+      )}
 
       <div className="day-detail-actions">
         {canAddExpense && (
@@ -1971,7 +3282,9 @@ function DayDetail({
         <button
           type="button"
           className="secondary"
-          onClick={onBack}
+          onClick={
+            onBack
+          }
         >
           캘린더로 돌아가기
         </button>
