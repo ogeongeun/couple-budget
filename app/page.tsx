@@ -1213,16 +1213,7 @@ export default function HomePage() {
               {usageRate}%
             </strong>
           </div>
-<div>
-  <span>저금통</span>
 
-  <strong className="saving-budget-amount">
-    {savingBalance.toLocaleString(
-      "ko-KR",
-    )}
-    원
-  </strong>
-</div>
         </div>
       </section>
 

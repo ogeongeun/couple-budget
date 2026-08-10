@@ -134,12 +134,16 @@ button {
   font-size: 39px;
   font-weight: 400;
   letter-spacing: -2px;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .budget-amount span {
+  display: inline;
   margin-left: 8px;
   color: #8e8882;
   font-size: 15px;
+  white-space: nowrap;
 }
 
 .progress-area {
@@ -170,11 +174,15 @@ button {
 
 .budget-information {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  width: 100%;
   margin-top: 23px;
 }
+
 .budget-information > div {
-  padding: 0 7px;
+  min-width: 0;
+  padding: 0 6px;
   text-align: center;
   border-right: 1px solid var(--line);
 }
@@ -188,13 +196,18 @@ button {
   margin-bottom: 7px;
   color: #a29c96;
   font-size: 11px;
+  white-space: nowrap;
 }
 
 .budget-information strong {
+  display: block;
+  width: 100%;
   color: var(--green);
   font-size: 17px;
   font-weight: 500;
+  line-height: 1.25;
   white-space: nowrap;
+  word-break: keep-all;
 }
 
 .budget-information .remaining {
@@ -2028,6 +2041,53 @@ button {
   }
 }
 
-.saving-budget-amount {
-  color: #e3a05a !important;
+/* =========================
+   예산 요약 3칸 모바일 보정
+========================= */
+
+@media (max-width: 430px) {
+  .budget-information {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .budget-information > div {
+    min-width: 0;
+    padding: 0 4px;
+  }
+
+  .budget-information span {
+    font-size: 10px;
+  }
+
+  .budget-information strong {
+    font-size: clamp(11px, 3.2vw, 14px);
+    letter-spacing: -0.35px;
+    white-space: nowrap;
+  }
+
+  .budget-amount {
+    font-size: clamp(29px, 9vw, 39px);
+    white-space: nowrap;
+  }
+
+  .budget-amount span {
+    font-size: 14px;
+    white-space: nowrap;
+  }
 }
+
+@media (max-width: 360px) {
+  .budget-information > div {
+    padding: 0 2px;
+  }
+
+  .budget-information span {
+    font-size: 9px;
+  }
+
+  .budget-information strong {
+    font-size: 10px;
+    letter-spacing: -0.5px;
+  }
+}
+
