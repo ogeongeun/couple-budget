@@ -1191,7 +1191,7 @@ export default function HomePage() {
               {budget.toLocaleString(
                 "ko-KR",
               )}
-              원
+              
             </strong>
           </div>
 
@@ -1202,7 +1202,7 @@ export default function HomePage() {
               {used.toLocaleString(
                 "ko-KR",
               )}
-              원
+              
             </strong>
           </div>
 
