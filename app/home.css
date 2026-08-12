@@ -2624,8 +2624,9 @@ body {
 }
 
 .piggy-bank-image {
-  width: 120px;
-  height: 120px;
+  width: 105px;
+  height: 105px;
+  max-width: none;
   object-fit: contain;
   transform: translateY(-6px);
   filter: drop-shadow(0 4px 4px rgba(100,58,52,.13));
@@ -2640,8 +2641,9 @@ body {
   top:42%;
   left:50%;
   z-index:3;
-  width:210px;
-  height:210px;
+  width:180px;
+  height:180px;
+  max-width:none;
   object-fit:contain;
   transform:translate(-50%,-50%);
   filter:drop-shadow(0 5px 4px rgba(43,80,59,.13));
