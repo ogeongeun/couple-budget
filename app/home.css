@@ -2624,8 +2624,8 @@ body {
 }
 
 .piggy-bank-image {
-  width: 92px;
-  height: 92px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
   transform: translateY(-6px);
   filter: drop-shadow(0 4px 4px rgba(100,58,52,.13));
@@ -2640,8 +2640,8 @@ body {
   top:42%;
   left:50%;
   z-index:3;
-  width:168px;
-  height:168px;
+  width:210px;
+  height:210px;
   object-fit:contain;
   transform:translate(-50%,-50%);
   filter:drop-shadow(0 5px 4px rgba(43,80,59,.13));
@@ -2649,15 +2649,15 @@ body {
 
 .bowl-button small { z-index:5; }
 
-@media (max-width: 899px) {
+@media (min-width: 900px) {
   .piggy-bank-image {
-    width: 120px;
-    height: 120px;
+    width: 92px;
+    height: 92px;
   }
 
   .food-bowl-image {
-    width: 210px;
-    height: 210px;
+    width: 168px;
+    height: 168px;
   }
 }
 
