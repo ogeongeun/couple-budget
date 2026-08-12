@@ -2114,3 +2114,212 @@ button {
     font-size: 15px !important;
   }
 }
+
+/* 2026 visual refresh: keep the existing layout and interactions intact. */
+:root {
+  --green: #86a99a;
+  --green-light: #e9f1ed;
+  --pink: #dc7469;
+  --pink-light: #f9e7e2;
+  --cream: #fbf1e7;
+  --text: #332a27;
+  --gray: #91847e;
+  --line: #eadfd8;
+  --surface: #fffdf9;
+  --coral: #d96558;
+  --brown: #5d433c;
+}
+
+html,
+body {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(217, 101, 88, 0.09), transparent 32rem),
+    #f4eee9;
+  color: var(--text);
+}
+
+.home {
+  position: relative;
+  background:
+    radial-gradient(circle at 105% 2%, rgba(222, 151, 133, 0.14), transparent 15rem),
+    var(--surface);
+  box-shadow: 0 0 0 1px rgba(93, 67, 60, 0.04), 0 30px 80px rgba(91, 65, 54, 0.08);
+}
+
+.header {
+  align-items: center;
+  padding-bottom: 22px;
+}
+
+.header h1 {
+  color: var(--brown);
+  font-weight: 750;
+  letter-spacing: -1.35px;
+}
+
+.header p {
+  color: var(--gray);
+}
+
+.notification-button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 8px 20px rgba(82, 59, 50, 0.07);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.notification-button:active {
+  transform: scale(0.94);
+}
+
+.notification-count {
+  background: var(--coral);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.budget-card,
+.chart-card {
+  border: 1px solid rgba(234, 223, 216, 0.92);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 14px 36px rgba(82, 59, 50, 0.075);
+}
+
+.budget-card {
+  padding: 25px 21px 23px;
+  border-radius: 26px;
+}
+
+.budget-icon,
+.budget-setting-button {
+  background: var(--green-light);
+  color: #668d7c;
+}
+
+.budget-icon {
+  border-radius: 11px;
+}
+
+.budget-setting-button {
+  border: 1px solid rgba(134, 169, 154, 0.16);
+  font-weight: 650;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.budget-setting-button:active {
+  transform: scale(0.96);
+  background: #dceae4;
+}
+
+.budget-amount {
+  color: var(--brown);
+  font-weight: 700;
+  letter-spacing: -2.3px;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #eee6e1;
+}
+
+.progress-value {
+  background: linear-gradient(90deg, #96b5a7, #6f9d89);
+  box-shadow: 0 3px 10px rgba(111, 157, 137, 0.24);
+}
+
+.progress-area strong,
+.budget-information strong {
+  color: #719b89;
+  font-weight: 650;
+}
+
+.budget-information .remaining {
+  color: var(--coral);
+}
+
+.dog-card {
+  margin-top: 14px;
+  border: 1px solid #f0e1d3;
+  background:
+    radial-gradient(circle at 73% 22%, rgba(255, 255, 255, 0.84), transparent 8rem),
+    linear-gradient(145deg, #fff8ed, #f8eadc);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.speech-bubble {
+  background: rgba(255, 253, 248, 0.9);
+  color: #7d6a61;
+  box-shadow: 0 10px 24px rgba(93, 67, 60, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.speech-bubble::after {
+  border-left-color: rgba(255, 253, 248, 0.9);
+}
+
+.expense-button {
+  border-color: #86a99a;
+  background: rgba(255, 253, 249, 0.83);
+  color: #719b89;
+  box-shadow: 0 10px 28px rgba(93, 67, 60, 0.07);
+  backdrop-filter: blur(8px);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.expense-button:active {
+  transform: scale(0.97);
+  background: white;
+}
+
+.settlement-card {
+  margin-top: 14px;
+  border: 1px solid #f1d9d3;
+  background: linear-gradient(140deg, #fceeea, #f8e1dc);
+  box-shadow: 0 12px 30px rgba(160, 87, 75, 0.07);
+}
+
+.settlement-icon,
+.settlement-card > button {
+  background: var(--coral);
+}
+
+.settlement-content strong {
+  color: var(--coral);
+  font-weight: 700;
+}
+
+.settlement-content em {
+  background: rgba(217, 101, 88, 0.12);
+  color: #bd594f;
+}
+
+.settlement-card > button {
+  box-shadow: 0 8px 18px rgba(217, 101, 88, 0.2);
+  font-weight: 650;
+}
+
+.chart-section {
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.chart-card {
+  padding: 16px 12px 13px;
+  border-radius: 22px;
+}
+
+.chart-card h2 {
+  color: var(--brown);
+  font-weight: 700;
+}
+
+.chart-card > button {
+  border-color: var(--line);
+  background: #fbf8f5;
+  color: #8d8079;
+  font-weight: 600;
+}
