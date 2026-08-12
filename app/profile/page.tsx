@@ -294,13 +294,7 @@ const { error: uploadError } =
   return (
     <main className="profile-page">
       <header className="profile-header">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          aria-label="뒤로가기"
-        >
-          ←
-        </button>
+        <span className="profile-header-spacer" aria-hidden="true" />
 
         <h1>마이프로필</h1>
 

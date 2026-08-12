@@ -12,10 +12,10 @@
     calc(7px + env(safe-area-inset-bottom)) !important;
   transform: none !important;
   border: 0 !important;
-  border-top: 1px solid #eadfd8 !important;
+  border-top: 1px solid #e4eae6 !important;
   border-radius: 0 !important;
-  background: rgba(255, 253, 249, 0.96) !important;
-  box-shadow: 0 -4px 18px rgba(82, 59, 50, 0.045) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 -4px 18px rgba(43, 67, 54, 0.04) !important;
   backdrop-filter: blur(14px);
 }
 
@@ -31,7 +31,7 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #9a918c;
+  color: #929a96;
   font-size: 9px;
   font-weight: 600;
   line-height: 1;
@@ -51,8 +51,8 @@
 }
 
 .bottom-navigation.bottom-navigation button.active {
-  background: #f9e7e2;
-  color: #c85d52;
+  background: #eaf8ef;
+  color: #2fa864;
   font-weight: 750;
 }
 
@@ -60,15 +60,62 @@
   transform: scale(0.94);
 }
 
-@media (min-width: 700px) {
+@media (min-width: 900px) {
   .bottom-navigation.bottom-navigation {
+    top: 0 !important;
     right: auto !important;
-    left: 50% !important;
-    width: 430px !important;
-    padding-right: 10px !important;
-    padding-left: 10px !important;
-    transform: translateX(-50%) !important;
-    border-right: 1px solid #eadfd8 !important;
-    border-left: 1px solid #eadfd8 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 220px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 32px 20px !important;
+    transform: none !important;
+    border-top: 0 !important;
+    border-right: 1px solid #e4eae6 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: 8px 0 32px rgba(43, 67, 54, 0.03) !important;
+  }
+
+  .bottom-navigation.bottom-navigation::before {
+    content: "둘의 하루";
+    position: absolute;
+    top: 38px;
+    left: 28px;
+    color: #303632;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+
+  .bottom-navigation.bottom-navigation::after {
+    content: "함께 쓰고, 함께 모으기";
+    position: absolute;
+    top: 70px;
+    left: 28px;
+    color: #98a09c;
+    font-size: 10px;
+  }
+
+  .bottom-navigation.bottom-navigation button {
+    min-height: 52px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 13px;
+    padding: 10px 14px;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .bottom-navigation.bottom-navigation button .bottom-navigation-icon {
+    width: 24px;
+    font-size: 19px;
+    text-align: center;
+  }
+
+  .bottom-navigation.bottom-navigation button.active {
+    background: #eaf8ef;
   }
 }

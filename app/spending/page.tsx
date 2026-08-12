@@ -1113,7 +1113,7 @@ function SpendingPageContent() {
                     <div className="budget-progress">
                       <span
                         style={{
-                          width: `${category.percentage}%`,
+                          width: `${Math.min(100, Math.max(0, category.percentage))}%`,
                           background:
                             category.color,
                         }}

@@ -112,7 +112,7 @@ export default function OnboardingPage() {
     <main className="onboarding-page">
       <section className="onboarding-card">
         <Image
-          src="/chorong-v2.png"
+          src="/chorong-mint-collar-no-charm-v2.png"
           alt="초롱이"
           width={185}
           height={185}

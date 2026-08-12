@@ -9,10 +9,8 @@ body {
 }
 
 body {
-  background:
-    radial-gradient(circle at 50% -12%, rgba(217, 101, 88, 0.12), transparent 34rem),
-    #f3ede8;
-  color: #332a27;
+  background: #f4f7f5;
+  color: #2f3431;
   font-family:
     var(--font-geist-sans),
     Pretendard,
@@ -22,25 +20,25 @@ body {
 }
 
 :root {
-  --app-bg: #f3ede8;
-  --app-surface: #fffdf9;
-  --app-surface-soft: #faf3ee;
-  --app-coral: #d96558;
-  --app-coral-dark: #bd594f;
-  --app-coral-soft: #f9e7e2;
-  --app-sage: #789f8e;
-  --app-sage-soft: #e9f1ed;
-  --app-brown: #5d433c;
-  --app-text: #332a27;
-  --app-muted: #91847e;
-  --app-line: #eadfd8;
-  --app-shadow: 0 14px 38px rgba(82, 59, 50, 0.08);
-  --app-shadow-strong: 0 22px 55px rgba(82, 59, 50, 0.13);
+  --app-bg: #f4f7f5;
+  --app-surface: #ffffff;
+  --app-surface-soft: #f6f9f7;
+  --app-coral: #42bf79;
+  --app-coral-dark: #2f9f61;
+  --app-coral-soft: #eaf8ef;
+  --app-sage: #42bf79;
+  --app-sage-soft: #eaf8ef;
+  --app-brown: #303632;
+  --app-text: #2f3431;
+  --app-muted: #89918d;
+  --app-line: #e4eae6;
+  --app-shadow: 0 12px 34px rgba(43, 67, 54, 0.065);
+  --app-shadow-strong: 0 20px 50px rgba(43, 67, 54, 0.1);
 }
 
 ::selection {
-  background: var(--app-coral-soft);
-  color: var(--app-brown);
+  background: #dff3e7;
+  color: #28563f;
 }
 
 button,
@@ -70,15 +68,15 @@ input,
 textarea,
 select {
   color: var(--app-text);
-  caret-color: var(--app-coral);
+  caret-color: #42bf79;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: rgba(217, 101, 88, 0.62) !important;
-  box-shadow: 0 0 0 4px rgba(217, 101, 88, 0.1) !important;
+  border-color: rgba(66, 191, 121, 0.62) !important;
+  box-shadow: 0 0 0 4px rgba(66, 191, 121, 0.11) !important;
 }
 
 /* Shared page canvas — existing page structure remains unchanged. */
@@ -102,8 +100,8 @@ select:focus {
 ) {
   color: var(--app-text);
   background:
-    radial-gradient(circle at 100% 0%, rgba(217, 101, 88, 0.09), transparent 16rem),
-    linear-gradient(180deg, #fffdf9 0%, #fbf7f3 100%) !important;
+    radial-gradient(circle at 100% 0%, rgba(66, 191, 121, 0.055), transparent 17rem),
+    linear-gradient(180deg, #ffffff 0%, #fafcfb 100%) !important;
 }
 
 /* Shared headers */
@@ -163,7 +161,6 @@ select:focus {
   .analysis-dog-card,
   .analysis-card,
   .profile-user-card,
-  .profile-section,
   .couple-connected-card,
   .couple-empty-card,
   .notification-card,
@@ -205,10 +202,10 @@ select:focus {
   .expense-edit-buttons .save
 ) {
   border-color: transparent !important;
-  background: linear-gradient(135deg, #dd7569, var(--app-coral)) !important;
+  background: linear-gradient(135deg, #55c987, #35ad6b) !important;
   color: #fff !important;
   font-weight: 700 !important;
-  box-shadow: 0 12px 26px rgba(217, 101, 88, 0.24) !important;
+  box-shadow: 0 12px 26px rgba(53, 173, 107, 0.2) !important;
 }
 
 :is(
@@ -219,7 +216,7 @@ select:focus {
   .share-button,
   .home-button
 ):hover {
-  box-shadow: 0 15px 32px rgba(217, 101, 88, 0.3) !important;
+  box-shadow: 0 15px 32px rgba(53, 173, 107, 0.26) !important;
   transform: translateY(-1px);
 }
 
@@ -234,7 +231,7 @@ select:focus {
   .new-use-type button.active,
   .income-type-grid-new button.active
 ) {
-  border-color: rgba(217, 101, 88, 0.25) !important;
+  border-color: rgba(66, 191, 121, 0.24) !important;
   background: var(--app-coral-soft) !important;
   color: var(--app-coral-dark) !important;
   box-shadow: none !important;
@@ -283,7 +280,7 @@ select:focus {
 
 :is(.expense-intro, .income-intro, .saving-balance-overview) {
   background:
-    radial-gradient(circle at 86% 16%, rgba(217, 101, 88, 0.13), transparent 9rem),
+    radial-gradient(circle at 86% 16%, rgba(66, 191, 121, 0.09), transparent 9rem),
     var(--app-surface-soft) !important;
 }
 
@@ -439,6 +436,82 @@ select:focus {
     padding-right: 7px !important;
     padding-left: 7px !important;
     font-size: 11px !important;
+  }
+}
+
+/* Desktop application shell. Mobile retains the original one-column flow. */
+@media (min-width: 900px) {
+  body {
+    background:
+      radial-gradient(circle at 72% -10%, rgba(66, 191, 121, 0.07), transparent 38rem),
+      #f4f7f5;
+  }
+
+  :is(
+    .home,
+    .calendar-page,
+    .day-detail-page,
+    .spending-page,
+    .category-detail-page,
+    .income-page,
+    .settlement-page,
+    .analysis-page,
+    .profile-page,
+    .notifications-page
+  ) {
+    width: min(1120px, calc(100% - 276px)) !important;
+    max-width: 1120px !important;
+    min-height: 100vh;
+    margin-right: auto !important;
+    margin-left: max(248px, calc((100vw - 1120px + 220px) / 2)) !important;
+    padding-bottom: 54px !important;
+    border-right: 1px solid rgba(234, 223, 216, 0.5);
+    border-left: 1px solid rgba(234, 223, 216, 0.5);
+    box-shadow: 0 24px 70px rgba(82, 59, 50, 0.07);
+  }
+
+  :is(
+    .calendar-header,
+    .spending-header,
+    .category-detail-header,
+    .income-header,
+    .settlement-header,
+    .analysis-header,
+    .profile-header,
+    .notifications-header
+  ) {
+    min-height: 94px !important;
+    padding: 30px 36px 18px !important;
+  }
+
+  :is(
+    .calendar-header,
+    .spending-header,
+    .category-detail-header,
+    .income-header,
+    .settlement-header,
+    .analysis-header,
+    .profile-header,
+    .notifications-header
+  ) h1 {
+    font-size: 26px !important;
+  }
+
+  :is(.expense-sheet-new, .income-sheet-new, .saving-sheet, .expense-edit-sheet) {
+    width: min(620px, calc(100% - 48px)) !important;
+    height: min(86vh, 850px) !important;
+    margin: auto;
+    border-radius: 28px !important;
+  }
+
+  :is(.expense-sheet-backdrop, .income-sheet-backdrop, .saving-sheet-backdrop, .expense-edit-backdrop) {
+    align-items: center !important;
+    padding: 24px;
+  }
+
+  :is(.spending-summary-card, .category-budget-card, .analysis-card) {
+    margin-right: 32px !important;
+    margin-left: 32px !important;
   }
 }
 

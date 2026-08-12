@@ -71,6 +71,30 @@ type SavingRecord = {
   created_at: string;
 };
 
+type EquippedReward = {
+  category: "hat" | "collar" | "bowl" | "piggy_bank";
+  reward_items: { sprite_index: number } | { sprite_index: number }[] | null;
+};
+
+function RewardSprite({ index, className }: { index: number; className: string }) {
+  return (
+    <span
+      className={`home-reward-sprite ${className}`}
+      style={{
+        backgroundPosition: `${(index % 4) * (100 / 3)}% ${Math.floor(index / 4) * 50}%`,
+      }}
+      aria-hidden="true"
+    />
+  );
+}
+
+const collarAccessoryImages: Record<number, string> = {
+  4: "/reward-accessories/mint-tag-v1.png",
+  5: "/reward-accessories/red-bow-charm-v2.png",
+  6: "/reward-accessories/blue-heart-v1.png",
+  7: "/reward-accessories/star-pendant-v1.png",
+};
+
 const chartCategoryInfo = [
   {
     name: "식비",
@@ -274,6 +298,9 @@ export default function HomePage() {
 
   const [coupleId, setCoupleId] =
     useState<string | null>(null);
+
+  const [equippedRewards, setEquippedRewards] =
+    useState<Record<string, number>>({});
 
   const [coupleName, setCoupleName] =
     useState("우리의 가계부");
@@ -516,6 +543,34 @@ export default function HomePage() {
     };
   }, [router]);
 
+  useEffect(() => {
+    if (!coupleId) {
+      setEquippedRewards({});
+      return;
+    }
+
+    let mounted = true;
+    const loadEquippedRewards = async () => {
+      const { data, error } = await supabase
+        .from("equipped_reward_items")
+        .select("category, reward_items(sprite_index)")
+        .eq("couple_id", coupleId);
+
+      if (!mounted || error) return;
+      const next: Record<string, number> = {};
+      ((data as EquippedReward[] | null) ?? []).forEach((row) => {
+        const item = Array.isArray(row.reward_items)
+          ? row.reward_items[0]
+          : row.reward_items;
+        if (item) next[row.category] = item.sprite_index;
+      });
+      setEquippedRewards(next);
+    };
+
+    void loadEquippedRewards();
+    return () => { mounted = false; };
+  }, [coupleId]);
+
   /*
    * 실제 안 읽은 알림 개수 조회
    * 새 알림이 생기면 브라우저 알림 표시
@@ -599,7 +654,7 @@ export default function HomePage() {
                     "새로운 소비 기록이 등록됐어요.",
 
                   icon:
-                    "/chorong-v2.png",
+                    "/chorong-mint-collar-no-charm-v2.png",
                 },
               );
             } catch (error) {
@@ -1218,6 +1273,9 @@ export default function HomePage() {
       </section>
 
       <section className="dog-card">
+        <button type="button" className="reward-box-button" onClick={() => router.push("/rewards")}>
+          <span>🎁</span><strong>초롱이 보물상자</strong><small>중복 없는 뽑기</small>
+        </button>
         <button
           type="button"
           className="piggy-bank-button"
@@ -1229,9 +1287,7 @@ export default function HomePage() {
             )
           }
         >
-          <span aria-hidden="true">
-            🐷
-          </span>
+          <Image className="piggy-bank-image" src="/chorong-piggy-bank-v2.png" alt="" width={1254} height={1254} aria-hidden="true" unoptimized />
 
           {savingBalance > 0 && (
             <i aria-hidden="true" />
@@ -1298,12 +1354,26 @@ export default function HomePage() {
           aria-label="소비 기록하기"
         >
           <Image
-            src="/chorong-v2.png"
+            className="chorong-original"
+            src="/chorong-mint-collar-no-charm-v2.png"
             alt="초롱이"
-            width={210}
-            height={210}
+            width={1254}
+            height={1254}
             priority
+            unoptimized
           />
+          {equippedRewards.hat !== undefined && <span className={`wearable-overlay wearable-hairpin hairpin-${equippedRewards.hat}`} aria-hidden="true" />}
+          {equippedRewards.collar !== undefined && collarAccessoryImages[equippedRewards.collar] && (
+            <>
+              <span className="collar-gold-hook" aria-hidden="true" />
+              <img
+                className={`collar-accessory collar-accessory-${equippedRewards.collar}`}
+                src={collarAccessoryImages[equippedRewards.collar]}
+                alt=""
+                aria-hidden="true"
+              />
+            </>
+          )}
         </button>
 
         <button
@@ -1337,9 +1407,7 @@ export default function HomePage() {
             setIncomeOpen(true);
           }}
         >
-          <div className="bowl">
-            <span>🐾</span>
-          </div>
+          <Image className="food-bowl-image" src="/chorong-food-bowl-v2.png" alt="" width={1254} height={1254} aria-hidden="true" unoptimized />
 
           <small>소득 추가</small>
         </button>
@@ -1536,8 +1604,12 @@ function SpendingChart({
 
   let currentPercentage = 0;
 
+  const visibleCategories = categories.filter(
+    (category) => category.amount > 0,
+  );
+
   const gradientParts =
-    categories.map((category) => {
+    visibleCategories.map((category, index) => {
       const exactPercentage =
         categoryTotal > 0
           ? (category.amount /
@@ -1549,8 +1621,9 @@ function SpendingChart({
         currentPercentage;
 
       const end =
-        currentPercentage +
-        exactPercentage;
+        index === visibleCategories.length - 1
+          ? 100
+          : Math.min(100, currentPercentage + exactPercentage);
 
       currentPercentage = end;
 
@@ -1558,7 +1631,7 @@ function SpendingChart({
     });
 
   const donutBackground =
-    categories.length > 0
+    visibleCategories.length > 0
       ? `conic-gradient(${gradientParts.join(
           ", ",
         )})`

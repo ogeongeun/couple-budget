@@ -464,7 +464,7 @@ export default function ExpenseSheet({
 
             <div className="expense-dog-image">
               <Image
-                src="/chorong-v2.png"
+                src="/chorong-mint-collar-no-charm-v2.png"
                 alt="소비를 기록하는 초롱이"
                 width={190}
                 height={150}

@@ -746,6 +746,11 @@ export default function StatisticsPage() {
     (topCategory?.percentage ?? 0) +
     (secondCategory?.percentage ?? 0);
 
+  const safeTopTwoPercentage = Math.min(
+    100,
+    Math.max(0, topTwoPercentage),
+  );
+
   const categoryDonut =
     useMemo(() => {
       if (
@@ -1073,25 +1078,25 @@ export default function StatisticsPage() {
 
   const monthlyPoints =
     useMemo(() => {
-      const width = 500;
-      const height = 180;
+      const plotLeft = 58;
+      const plotRight = 586;
+      const plotTop = 22;
+      const plotBottom = 196;
 
       return monthlySpending.map(
         (item, index) => {
           const x =
             monthlySpending.length <= 1
-              ? width / 2
-              : (index /
-                  (monthlySpending.length -
-                    1)) *
-                width;
+              ? (plotLeft + plotRight) / 2
+              : plotLeft +
+                (index /
+                  (monthlySpending.length - 1)) *
+                  (plotRight - plotLeft);
 
           const y =
-            height -
-            (item.amount /
-              monthlyMaximum) *
-              150 -
-            10;
+            plotBottom -
+            (item.amount / monthlyMaximum) *
+              (plotBottom - plotTop);
 
           return {
             x,
@@ -1298,16 +1303,7 @@ export default function StatisticsPage() {
   return (
     <main className="analysis-page">
       <header className="analysis-header">
-        <button
-          type="button"
-          className="analysis-back-button"
-          onClick={() =>
-            router.back()
-          }
-          aria-label="뒤로가기"
-        >
-          ←
-        </button>
+        <span className="analysis-header-spacer" aria-hidden="true" />
 
         <h1>통계</h1>
 
@@ -1408,7 +1404,7 @@ export default function StatisticsPage() {
         </div>
 
         <Image
-          src="/chorong-v2.png"
+          src="/chorong-mint-collar-no-charm-v2.png"
           alt="소비를 분석하는 초롱이"
           width={180}
           height={180}
@@ -1489,56 +1485,31 @@ export default function StatisticsPage() {
         </div>
 
         <div className="monthly-line-chart">
-          <div className="chart-y-labels">
-            <span>
-              {Math.round(
-                monthlyMaximum /
-                  10000,
-              )}
-              만
-            </span>
+          <svg
+            className="monthly-chart-svg"
+            viewBox="0 0 600 240"
+            role="img"
+            aria-label="최근 6개월 소비 변화 그래프"
+          >
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+              const y = 196 - ratio * 174;
+              const value = Math.round((monthlyMaximum * ratio) / 10000);
+              return (
+                <g key={ratio}>
+                  <line
+                    x1="58"
+                    x2="586"
+                    y1={y}
+                    y2={y}
+                    className={ratio === 0 ? "monthly-axis-line" : "monthly-grid-line"}
+                  />
+                  <text x="48" y={y + 3} textAnchor="end" className="monthly-y-text">
+                    {ratio === 0 ? "0" : `${value}만`}
+                  </text>
+                </g>
+              );
+            })}
 
-            <span>
-              {Math.round(
-                (monthlyMaximum *
-                  0.75) /
-                  10000,
-              )}
-              만
-            </span>
-
-            <span>
-              {Math.round(
-                (monthlyMaximum *
-                  0.5) /
-                  10000,
-              )}
-              만
-            </span>
-
-            <span>
-              {Math.round(
-                (monthlyMaximum *
-                  0.25) /
-                  10000,
-              )}
-              만
-            </span>
-
-            <span>0</span>
-          </div>
-
-          <div className="line-chart-area">
-            <div className="line-grid line-grid-one" />
-            <div className="line-grid line-grid-two" />
-            <div className="line-grid line-grid-three" />
-            <div className="line-grid line-grid-four" />
-
-            <svg
-              className="monthly-svg"
-              viewBox="0 0 500 210"
-              preserveAspectRatio="xMidYMid meet"
-            >
               <polyline
                 points={
                   monthlyPointString
@@ -1551,11 +1522,12 @@ export default function StatisticsPage() {
                 vectorEffect="non-scaling-stroke"
               />
 
-              {monthlyPoints.map(
-                (point, index) => (
+              {monthlyPoints.map((point, index) => {
+                const item = monthlySpending[index];
+                return (
+                  <g key={`${item.year}-${item.month}`}>
                   <circle
                     className="monthly-chart-point"
-                    key={index}
                     cx={point.x}
                     cy={point.y}
                     r="7"
@@ -1564,38 +1536,21 @@ export default function StatisticsPage() {
                     strokeWidth="4"
                     vectorEffect="non-scaling-stroke"
                   />
-                ),
-              )}
-            </svg>
-
-            <div className="monthly-values">
-              {monthlySpending.map(
-                (item) => (
-                  <span
-                    key={`${item.year}-${item.month}`}
+                  <text
+                    x={point.x}
+                    y={Math.max(14, point.y - 14)}
+                    textAnchor="middle"
+                    className="monthly-value-text"
                   >
-                    {Math.round(
-                      item.amount /
-                        10000,
-                    )}
-                    만
-                  </span>
-                ),
-              )}
-            </div>
-
-            <div className="monthly-labels">
-              {monthlySpending.map(
-                (item) => (
-                  <span
-                    key={`${item.year}-${item.month}`}
-                  >
+                    {Math.round(item.amount / 10000)}만
+                  </text>
+                  <text x={point.x} y="224" textAnchor="middle" className="monthly-x-text">
                     {item.label}
-                  </span>
-                ),
-              )}
-            </div>
-          </div>
+                  </text>
+                </g>
+                );
+              })}
+          </svg>
         </div>
       </section>
 
@@ -1676,8 +1631,8 @@ export default function StatisticsPage() {
             className="concentration-chart"
             style={{
               background: `conic-gradient(
-                #35ae6d 0% ${topTwoPercentage}%,
-                #e3e5e3 ${topTwoPercentage}% 100%
+                #35ae6d 0% ${safeTopTwoPercentage}%,
+                #e3e5e3 ${safeTopTwoPercentage}% 100%
               )`,
             }}
           >
@@ -1768,17 +1723,9 @@ export default function StatisticsPage() {
         <div className="weekday-chart">
           {weekdaySpending.map(
             (item) => {
-              const height =
-                item.amount > 0
-                  ? Math.max(
-                      15,
-                      Math.round(
-                        (item.amount /
-                          weeklyMaximum) *
-                          155,
-                      ),
-                    )
-                  : 0;
+              const height = Math.round(
+                (item.amount / weeklyMaximum) * 155,
+              );
 
               return (
                 <div

@@ -2086,16 +2086,7 @@ export default function CalendarPage() {
   return (
     <main className="calendar-page">
       <header className="calendar-header">
-        <button
-          type="button"
-          className="calendar-back-button"
-          onClick={() =>
-            router.back()
-          }
-          aria-label="뒤로 가기"
-        >
-          ←
-        </button>
+        <span className="calendar-header-spacer" aria-hidden="true" />
 
         <div className="calendar-title">
           <strong>
@@ -2229,7 +2220,7 @@ export default function CalendarPage() {
         </div>
 
         <Image
-          src="/chorong-v2.png"
+          src="/chorong-mint-collar-no-charm-v2.png"
           alt="초롱이"
           width={145}
           height={145}

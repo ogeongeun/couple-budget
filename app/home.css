@@ -2115,35 +2115,36 @@ button {
   }
 }
 
+.reward-box-button{position:absolute;top:14px;left:14px;z-index:7;display:grid;grid-template-columns:28px auto;grid-template-rows:auto auto;align-items:center;column-gap:7px;padding:8px 11px;border:1px solid #dceae1;border-radius:14px;background:rgba(255,255,255,.92);color:#39453e;box-shadow:0 6px 16px rgba(45,82,59,.08);backdrop-filter:blur(8px)}
+.reward-box-button>span{grid-row:1/3;font-size:22px}.reward-box-button>strong{font-size:10px;text-align:left}.reward-box-button>small{color:#829087;font-size:8px;text-align:left}
+
 /* 2026 visual refresh: keep the existing layout and interactions intact. */
 :root {
-  --green: #86a99a;
-  --green-light: #e9f1ed;
-  --pink: #dc7469;
-  --pink-light: #f9e7e2;
-  --cream: #fbf1e7;
-  --text: #332a27;
-  --gray: #91847e;
-  --line: #eadfd8;
-  --surface: #fffdf9;
-  --coral: #d96558;
-  --brown: #5d433c;
+  --green: #42bf79;
+  --green-light: #eaf8ef;
+  --pink: #ff8589;
+  --pink-light: #ffe9eb;
+  --cream: #fff8e8;
+  --text: #2f3431;
+  --gray: #929a96;
+  --line: #e5eae7;
+  --surface: #ffffff;
+  --coral: #ff7d75;
+  --brown: #303632;
 }
 
 html,
 body {
-  background:
-    radial-gradient(circle at 50% -10%, rgba(217, 101, 88, 0.09), transparent 32rem),
-    #f4eee9;
+  background: #f4f7f5;
   color: var(--text);
 }
 
 .home {
   position: relative;
   background:
-    radial-gradient(circle at 105% 2%, rgba(222, 151, 133, 0.14), transparent 15rem),
+    radial-gradient(circle at 105% 2%, rgba(66, 191, 121, 0.055), transparent 16rem),
     var(--surface);
-  box-shadow: 0 0 0 1px rgba(93, 67, 60, 0.04), 0 30px 80px rgba(91, 65, 54, 0.08);
+  box-shadow: 0 0 0 1px rgba(43, 67, 54, 0.035), 0 28px 70px rgba(43, 67, 54, 0.065);
 }
 
 .header {
@@ -2243,10 +2244,10 @@ body {
 
 .dog-card {
   margin-top: 14px;
-  border: 1px solid #f0e1d3;
+  border: 1px solid #e8ecdf;
   background:
-    radial-gradient(circle at 73% 22%, rgba(255, 255, 255, 0.84), transparent 8rem),
-    linear-gradient(145deg, #fff8ed, #f8eadc);
+    radial-gradient(circle at 73% 22%, rgba(255, 255, 255, 0.88), transparent 8rem),
+    linear-gradient(145deg, #fffbed, #f5f6e9);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
@@ -2433,4 +2434,271 @@ body {
     grid-column: 1 / -1;
     width: 100%;
   }
+}
+
+@media (max-width: 330px) {
+  .home {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .dog-card {
+    min-height: 250px;
+  }
+
+  .dog-button {
+    bottom: 2px;
+    left: 17%;
+    width: 46%;
+  }
+
+  .expense-button {
+    top: 20%;
+    right: 2%;
+    width: 29%;
+  }
+
+  .expense-button small {
+    display: none;
+  }
+
+  .speech-bubble {
+    top: 18%;
+    left: 2%;
+    max-width: 31%;
+    padding: 8px;
+  }
+
+  .bowl-button {
+    right: 10%;
+    transform: scale(0.86);
+    transform-origin: right bottom;
+  }
+}
+
+@media (min-width: 900px) {
+  .home {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+    align-content: start;
+    gap: 18px;
+    padding: 0 32px 54px;
+  }
+
+  .home > .header,
+  .home > .home-message,
+  .home > .settlement-card,
+  .home > .chart-section {
+    grid-column: 1 / -1;
+  }
+
+  .home > .header {
+    min-height: 112px;
+    padding: 34px 8px 20px;
+  }
+
+  .home > .header h1 {
+    font-size: 31px;
+  }
+
+  .home > .budget-card,
+  .home > .dog-card {
+    min-width: 0;
+    min-height: 308px;
+    margin-top: 0;
+  }
+
+  .home > .budget-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 32px 28px;
+  }
+
+  .home > .dog-card {
+    height: 308px;
+  }
+
+  .home > .settlement-card {
+    min-height: 126px;
+    margin-top: 0;
+    padding-right: 26px;
+    padding-left: 26px;
+  }
+
+  .home > .chart-section {
+    gap: 18px;
+    margin-top: 0;
+  }
+
+  .home .chart-card {
+    min-height: 250px;
+    padding: 22px 20px 18px;
+  }
+
+  .home .dog-button {
+    left: 24%;
+  }
+
+  .home .expense-button {
+    right: 5%;
+  }
+}
+
+/* Recognizable food bowl and piggy bank artwork. */
+.bowl-button::after { content:""; position:absolute; right:8px; bottom:11px; left:8px; height:10px; border-radius:50%; background:rgba(48,91,67,.15); filter:blur(3px); }
+.bowl-food { position:absolute; top:15px; left:23px; z-index:3; width:61px; height:24px; border-radius:50%; background:#774c2d; box-shadow:inset 0 4px 7px rgba(50,28,14,.28); }
+.bowl-food i { position:absolute; width:10px; height:7px; border-radius:50%; background:#a86d3d; box-shadow:inset -2px -1px 0 rgba(70,37,16,.2); }
+.bowl-food i:nth-child(1){left:7px;top:7px;transform:rotate(14deg)}
+.bowl-food i:nth-child(2){left:20px;top:3px;transform:rotate(-18deg)}
+.bowl-food i:nth-child(3){right:9px;top:8px;transform:rotate(20deg)}
+.bowl-food i:nth-child(4){left:28px;top:12px}
+.bowl-food i:nth-child(5){left:13px;top:14px;transform:rotate(-10deg)}
+.bowl-button .bowl { z-index:4; overflow:hidden; border-color:#337653; border-radius:8px 8px 25px 25px; background:linear-gradient(180deg,#83d3a9 0%,#55b985 62%,#43a873 100%); box-shadow:inset 0 7px 0 rgba(202,241,219,.72),0 7px 10px rgba(43,94,65,.18); }
+.bowl-button .bowl::before { content:""; position:absolute; top:-4px; right:3px; left:3px; height:11px; border:3px solid #337653; border-radius:50%; background:#b7ead0; }
+.bowl-button .bowl span { position:relative; z-index:2; color:rgba(255,255,255,.78); font-size:9px; text-shadow:7px 0 0 rgba(255,255,255,.78),-7px 0 0 rgba(255,255,255,.78); }
+
+.piggy-bank-button { width:62px; height:50px; border-color:#f2d8dd; border-radius:17px; background:rgba(255,255,255,.94); }
+.piggy-art { position:relative; display:block; width:39px; height:28px; border:2px solid #d86d82; border-radius:48% 50% 44% 46%; background:linear-gradient(145deg,#ffb8c5,#f58fa4); box-shadow:inset 4px 4px 0 rgba(255,255,255,.22),0 4px 8px rgba(178,75,97,.15); }
+.piggy-ear { position:absolute; top:-7px; width:10px; height:11px; border:2px solid #d86d82; background:#f9a2b3; transform:rotate(45deg); }
+.piggy-ear-left { left:5px; border-radius:7px 2px 4px 2px; }
+.piggy-ear-right { right:6px; border-radius:2px 7px 2px 4px; }
+.piggy-slot { position:absolute; top:2px; left:14px; width:13px; height:3px; border-radius:4px; background:#b95b6e; }
+.piggy-eye { position:absolute; top:9px; right:7px; width:3px; height:3px; border-radius:50%; background:#6f3d47; }
+.piggy-snout { position:absolute; top:13px; right:-7px; width:13px; height:10px; border:2px solid #d86d82; border-radius:50%; background:#ffafbe; }
+.piggy-leg { position:absolute; bottom:-5px; width:7px; height:7px; border-radius:0 0 3px 3px; background:#d86d82; }
+.piggy-leg-left { left:8px; }
+.piggy-leg-right { right:8px; }
+
+@media (max-width:380px){.piggy-bank-button{left:13px;width:58px}}
+
+/* Generated default bowl and piggy bank assets. */
+.piggy-bank-button {
+  width: 62px;
+  height: 54px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.piggy-bank-image {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  transform: translateY(-6px);
+  filter: drop-shadow(0 4px 4px rgba(100,58,52,.13));
+}
+
+.bowl-button::after,
+.bowl-button .bowl,
+.bowl-button .bowl-food { display:none; }
+
+.food-bowl-image {
+  position:absolute;
+  top:42%;
+  left:50%;
+  z-index:3;
+  width:168px;
+  height:168px;
+  object-fit:contain;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 5px 4px rgba(43,80,59,.13));
+}
+
+.bowl-button small { z-index:5; }
+
+/* 보물상자는 저금통 반대쪽에 두어 두 버튼이 겹치지 않게 한다. */
+.reward-box-button {
+  top: auto;
+  right: auto;
+  bottom: 12px;
+  left: 14px;
+  transform: scale(.88);
+  transform-origin: left bottom;
+}
+
+.home-reward-sprite {
+  position: absolute;
+  display: block;
+  aspect-ratio: 1;
+  background-image: url('/reward-items-hairpins-v2.png');
+  background-repeat: no-repeat;
+  background-size: 400% 300%;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 3px rgba(74, 53, 35, .12));
+}
+
+.equipped-hat {
+  top: -19px;
+  left: 40px;
+  z-index: 4;
+  width: 110px;
+}
+
+.equipped-collar {
+  top: 73px;
+  left: 42px;
+  z-index: 3;
+  width: 106px;
+}
+
+.dog-button .collar-gold-hook {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  z-index: 4;
+  width: 3.6%;
+  aspect-ratio: 1;
+  border: 1px solid #8f591c;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff1a5 0 17%, #e8ad38 38%, #a96619 78%);
+  box-shadow: 0 1px 2px rgba(73, 42, 15, .28);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.dog-button .collar-accessory { position:absolute; z-index:5; object-fit:contain; pointer-events:none; transform:translate(-50%,-50%); }
+.dog-button .collar-accessory-4 { left:50%; top:56%; width:23%; }
+.dog-button .collar-accessory-5 { left:50%; top:56.2%; width:31%; }
+.dog-button .collar-accessory-6 { left:50%; top:56%; width:23%; }
+.dog-button .collar-accessory-7 { left:50%; top:56%; width:20%; }
+
+.wearable-overlay {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 2px rgba(74, 53, 35, .1));
+}
+
+.wearable-hairpin { top:35px; left:54px; width:39px; height:29px; background-image:url('/wearable-red-bow.png'); transform:rotate(-13deg); }
+.wearable-hairpin.hairpin-1 { filter:hue-rotate(42deg) saturate(.9) drop-shadow(0 3px 2px rgba(74,53,35,.1)); }
+.wearable-hairpin.hairpin-2 { filter:hue-rotate(295deg) saturate(.65) brightness(1.25) drop-shadow(0 3px 2px rgba(74,53,35,.1)); }
+.wearable-hairpin.hairpin-3 { filter:hue-rotate(175deg) saturate(.75) brightness(1.2) drop-shadow(0 3px 2px rgba(74,53,35,.1)); }
+
+.wearable-red-bow {
+  top: 89px;
+  left: 61px;
+  width: 68px;
+  height: 48px;
+  background-image: url('/wearable-red-bow.png');
+}
+
+.dog-button .chorong-original {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@media (max-width: 380px) {
+  .reward-box-button { right: auto; bottom: 9px; left: 9px; transform: scale(.78); }
 }

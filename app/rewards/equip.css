@@ -1,0 +1,16 @@
+.collection-item.equipped {
+  border-color: #43b777 !important;
+  background: #effaf3 !important;
+  box-shadow: 0 0 0 2px rgba(67, 183, 119, 0.12);
+}
+
+.collection-item.equipped .common-dot {
+  background: #42b777;
+  color: #fff;
+}
+
+.equip-guide {
+  margin: -5px 3px 12px;
+  color: #839087;
+  font-size: 10px;
+}

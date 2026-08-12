@@ -243,23 +243,59 @@ button {
 }
 
 .monthly-line-chart {
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  height: 240px;
+  width: 100%;
   margin-top: 18px;
+}
+
+.monthly-chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.monthly-grid-line {
+  stroke: #e9ece9;
+  stroke-width: 1;
+  stroke-dasharray: 5 5;
+}
+
+.monthly-axis-line {
+  stroke: #cfd6d1;
+  stroke-width: 1.5;
+}
+
+.monthly-y-text,
+.monthly-x-text,
+.monthly-value-text {
+  font-family: Arial, "Noto Sans KR", sans-serif;
+}
+
+.monthly-y-text,
+.monthly-x-text {
+  fill: #999f9b;
+  font-size: 10px;
+}
+
+.monthly-value-text {
+  fill: #505852;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .chart-y-labels {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-bottom: 30px;
+  height: 202px;
+  padding-bottom: 0;
   color: #aaa49e;
   font-size: 9px;
 }
 
 .line-chart-area {
   position: relative;
+  height: 240px;
   margin-top: 10px;
 }
 
@@ -286,30 +322,34 @@ button {
   top: 144px;
 }
 
-.budget-guide-line {
-  position: absolute;
-  top: 69px;
-  right: 0;
-  left: 0;
-  border-top: 2px dashed #b9b9b9;
+.line-grid-five {
+  top: 192px;
 }
 
 .monthly-svg {
   position: absolute;
   top: 0;
   width: 100%;
-  height: 180px;
+  height: 192px;
 }
 
 .monthly-values {
   position: absolute;
-  top: 25px;
+  top: 0;
   right: 0;
   left: 0;
-  display: flex;
-  justify-content: space-between;
+  height: 192px;
   color: #50504d;
   font-size: 9px;
+  pointer-events: none;
+}
+
+.monthly-values span {
+  position: absolute;
+  width: max-content;
+  padding: 2px 4px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .monthly-labels {
@@ -339,10 +379,7 @@ button {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: conic-gradient(
-    #35ae6d 0% 72%,
-    #e3e5e3 72% 100%
-  );
+  background: #e3e5e3;
 }
 
 .concentration-chart > div {
@@ -1206,18 +1243,15 @@ button {
   min-width: 0;
 }
 
-.monthly-values span,
 .monthly-labels span {
   flex: 1;
   text-align: center;
 }
 
-.monthly-values span:first-child,
 .monthly-labels span:first-child {
   text-align: left;
 }
 
-.monthly-values span:last-child,
 .monthly-labels span:last-child {
   text-align: right;
 }

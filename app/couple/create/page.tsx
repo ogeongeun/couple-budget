@@ -116,7 +116,7 @@ export default function CreateCouplePage() {
 
       <section className="create-couple-card">
         <Image
-          src="/chorong-v2.png"
+          src="/chorong-mint-collar-no-charm-v2.png"
           alt="초롱이"
           width={180}
           height={180}

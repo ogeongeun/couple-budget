@@ -254,7 +254,7 @@ export default function IncomeSheet({
 
             <div className="income-dog-area">
               <Image
-                src="/chorong-v2.png"
+                src="/chorong-mint-collar-no-charm-v2.png"
                 alt="초롱이와 밥그릇"
                 width={185}
                 height={170}

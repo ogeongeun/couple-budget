@@ -31,7 +31,7 @@ function JoinCompleteContent() {
         </div>
 
         <Image
-          src="/chorong-v2.png"
+          src="/chorong-mint-collar-no-charm-v2.png"
           alt="초롱이"
           width={190}
           height={190}
