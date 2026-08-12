@@ -2357,7 +2357,14 @@ body {
   }
 
   .budget-information strong {
-    font-size: clamp(11px, 3.7vw, 17px);
+    font-size: clamp(14px, 4.1vw, 17px);
+    font-weight: 650;
+  }
+
+  .budget-information span {
+    margin-bottom: 8px;
+    font-size: clamp(11px, 3.15vw, 13px);
+    font-weight: 600;
   }
 
   .dog-card {
@@ -2402,8 +2409,41 @@ body {
     font-size: clamp(18px, 5.7vw, 22px);
   }
 
+  .chart-section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-card {
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .chart-card h2 {
+    overflow: hidden;
+    font-size: clamp(11px, 3.2vw, 13px);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .chart-content {
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 9px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chart-percentages {
+    width: 100%;
+    min-width: 0;
+    padding: 0 4px;
+  }
+
+  .chart-percentages > span {
+    min-width: 0;
+    font-size: clamp(8px, 2.5vw, 10px);
   }
 
   .donut-chart {
@@ -2608,6 +2648,18 @@ body {
 }
 
 .bowl-button small { z-index:5; }
+
+@media (max-width: 899px) {
+  .piggy-bank-image {
+    width: 120px;
+    height: 120px;
+  }
+
+  .food-bowl-image {
+    width: 210px;
+    height: 210px;
+  }
+}
 
 /* 보물상자는 저금통 반대쪽에 두어 두 버튼이 겹치지 않게 한다. */
 .reward-box-button {
