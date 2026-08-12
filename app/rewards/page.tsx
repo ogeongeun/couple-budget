@@ -10,6 +10,7 @@ import "./equip.css";
 const supabase = createClient();
 type Item = { id:string; name:string; category:"hat"|"collar"|"bowl"|"piggy_bank"; rarity:"common"|"rare"|"legendary"; sprite_index:number };
 type EquippedRow = { category:string; item_id:string };
+type WeeklyBudgetStatus = { budget:number; spent:number };
 
 function Sprite({ index, locked=false }:{ index:number; locked?:boolean }) {
   const collarImages:Record<number,string>={4:"/reward-accessories/mint-tag-v1.png",5:"/reward-accessories/red-bow-charm-v2.png",6:"/reward-accessories/blue-heart-v1.png",7:"/reward-accessories/star-pendant-v1.png"};
@@ -28,19 +29,34 @@ export default function RewardsPage() {
   const [equipping,setEquipping]=useState<string|null>(null);
   const [message,setMessage]=useState("");
   const [result,setResult]=useState<Item|null>(null);
+  const [weeklyBudget,setWeeklyBudget]=useState<WeeklyBudgetStatus>({budget:0,spent:0});
 
   const load=useCallback(async()=>{
     const {data:{user}}=await supabase.auth.getUser();
     if(!user){router.replace("/login");return;}
+    const now=new Date();
+    const weekStart=new Date(now);
+    weekStart.setHours(0,0,0,0);
+    weekStart.setDate(now.getDate()-((now.getDay()+6)%7));
+    const nextWeek=new Date(weekStart);
+    nextWeek.setDate(weekStart.getDate()+7);
+    const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+    const nextMonth=new Date(now.getFullYear(),now.getMonth()+1,1);
+    const date=(value:Date)=>value.toLocaleDateString("sv-SE");
     await Promise.all([
       supabase.rpc("claim_weekly_reward"),
     ]);
-    const [a,b,c,d]=await Promise.all([
+    const [a,b,c,d,incomeResult,expenseResult]=await Promise.all([
       supabase.from("reward_items").select("id,name,category,rarity,sprite_index").eq("is_active",true).in("category",["hat","collar"]).order("sprite_index"),
       supabase.from("user_inventory").select("item_id"),
       supabase.from("reward_tickets").select("balance").eq("user_id",user.id).maybeSingle(),
       supabase.from("equipped_reward_items").select("category,item_id"),
+      supabase.from("incomes").select("amount").eq("user_id",user.id).gte("income_date",date(monthStart)).lt("income_date",date(nextMonth)),
+      supabase.from("expenses").select("amount").eq("user_id",user.id).gte("expense_date",date(weekStart)).lt("expense_date",date(nextWeek)),
     ]);
+    const monthlyBudget=(incomeResult.data??[]).reduce((sum,row)=>sum+Number(row.amount??0),0);
+    const weeklySpent=(expenseResult.data??[]).reduce((sum,row)=>sum+Number(row.amount??0),0);
+    setWeeklyBudget({budget:Math.round(monthlyBudget/4),spent:Math.round(weeklySpent)});
     if(a.error) setMessage("보상 데이터베이스 설정이 아직 필요해요.");
     else {
       const visibleItems=(a.data as Item[])??[];
@@ -75,10 +91,20 @@ export default function RewardsPage() {
   };
 
   const complete=items.length>0&&owned.size>=items.length;
+  const rewardLimit=Math.round(weeklyBudget.budget*.8);
+  const remaining=Math.max(rewardLimit-weeklyBudget.spent,0);
+  const usageRate=weeklyBudget.budget>0?Math.round(weeklyBudget.spent/weeklyBudget.budget*100):0;
+  const progress=Math.min(usageRate,100);
   const display=items.length?items:Array.from({length:12},(_,i)=>({id:`empty-${i}`,name:"준비 중",category:"hat",rarity:"common",sprite_index:i} as Item));
   return <main className="rewards-page">
     <header className="rewards-header"><button onClick={()=>router.push("/")} aria-label="홈으로">‹</button><div><span>초롱이 보물상자</span><h1>중복 없는 뽑기</h1></div><div className="ticket-count"><span>🎟️</span><strong>{tickets}</strong></div></header>
     <section className="draw-card"><div className="draw-glow"><img src="/chorong-mint-collar-no-charm-v2.png" alt="초롱이"/></div><div className="draw-copy"><span className="rarity-pill">일반 컬렉션</span><h2>{owned.size} / {items.length||12}개 수집</h2><p>지난주 개인 주간 예산의 80% 이하로 썼다면<br/>각자 뽑기권을 1장 받아요.</p></div><button className="draw-button" onClick={draw} disabled={loading||drawing||tickets<1||complete}>{drawing?"두근두근 뽑는 중…":complete?"일반 아이템 수집 완료":tickets<1?"뽑기권이 없어요":"뽑기권 1장 사용하기"}</button><small>주간 예산은 개인 월 예산을 4주로 나눠 계산해요</small></section>
+    <section className="weekly-budget-card" aria-live="polite">
+      <div className="weekly-budget-heading"><div><span>이번 주 예산</span><h2>{loading?"불러오는 중…":`${usageRate}% 사용했어요`}</h2></div><strong>{weeklyBudget.budget.toLocaleString("ko-KR")}원</strong></div>
+      <div className="weekly-budget-progress"><i style={{width:`${progress}%`}} /></div>
+      <div className="weekly-budget-numbers"><div><span>이번 주 사용</span><strong>{weeklyBudget.spent.toLocaleString("ko-KR")}원</strong></div><div><span>80%까지 더 쓸 수 있어요</span><strong>{remaining.toLocaleString("ko-KR")}원</strong></div></div>
+      {weeklyBudget.spent>rewardLimit&&<p className="weekly-budget-over">뽑기권 기준인 80%를 {(weeklyBudget.spent-rewardLimit).toLocaleString("ko-KR")}원 넘었어요.</p>}
+    </section>
     {message&&<p className="reward-message">{message}</p>}
     <section className="collection-section"><div className="collection-title"><div><span>COLLECTION</span><h2>일반 아이템</h2></div><strong>{owned.size}/{items.length||12}</strong></div><p className="equip-guide">보유한 아이템을 누르면 홈의 초롱이에게 바로 적용돼요.</p><div className="collection-grid">{display.map(item=>{const has=owned.has(item.id),wearing=equipped[item.category]===item.id;return <button type="button" disabled={!has||!!equipping} onClick={()=>equip(item)} className={`collection-item${has?" owned":""}${wearing?" equipped":""}`} key={item.id}><Sprite index={item.sprite_index} locked={!has}/><span className="common-dot">{wearing?"착용 중":"일반"}</span><strong>{has?item.name:"???"}</strong></button>;})}</div><div className="future-rarity"><span>🔒 희귀</span><span>🔒 전설</span><small>더 특별한 아이템은 다음 업데이트에서 열려요</small></div></section>
     {result&&<div className="result-backdrop" onClick={()=>setResult(null)}><section className="result-modal" onClick={e=>e.stopPropagation()}><span className="result-label">NEW!</span><Sprite index={result.sprite_index}/><p>일반 아이템</p><h2>{result.name}</h2><small>아이템을 눌러 초롱이에게 적용할 수 있어요</small><button onClick={()=>setResult(null)}>확인</button></section></div>}

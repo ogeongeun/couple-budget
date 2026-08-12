@@ -3,3 +3,16 @@
 .reward-sprite { background-image: url('/reward-items-hairpins-v2.png') !important; }
 .reward-sprite.accessory-sprite{display:grid;place-items:center;background:none!important}
 .reward-sprite.accessory-sprite img{display:block;width:72%;height:72%;object-fit:contain}
+.weekly-budget-card{margin-top:14px;padding:18px;border:1px solid #e2ebe5;border-radius:22px;background:#fff;box-shadow:0 10px 24px rgba(51,98,69,.06)}
+.weekly-budget-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.weekly-budget-heading span,.weekly-budget-numbers span{color:#7b8880;font-size:11px;font-weight:700}
+.weekly-budget-heading h2{margin:4px 0 0;font-size:20px}
+.weekly-budget-heading>strong{color:#4c5a52;font-size:13px}
+.weekly-budget-progress{height:9px;margin:16px 0;overflow:hidden;border-radius:999px;background:#eaf0ec}
+.weekly-budget-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#65c58e,#35ac6d);transition:width .35s ease}
+.weekly-budget-numbers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.weekly-budget-numbers div{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:14px;background:#f5f8f6}
+.weekly-budget-numbers div:last-child{background:#eaf8ef}
+.weekly-budget-numbers strong{font-size:15px}
+.weekly-budget-numbers div:last-child strong{color:#258856}
+.weekly-budget-over{margin:12px 0 0;color:#c45348;font-size:11px;font-weight:700}
