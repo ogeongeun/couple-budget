@@ -9,12 +9,437 @@ body {
 }
 
 body {
-  background: #f7f7f7;
-  color: #171717;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(217, 101, 88, 0.12), transparent 34rem),
+    #f3ede8;
+  color: #332a27;
   font-family:
-    Arial,
+    var(--font-geist-sans),
+    Pretendard,
+    "Noto Sans KR",
     "Apple SD Gothic Neo",
     sans-serif;
+}
+
+:root {
+  --app-bg: #f3ede8;
+  --app-surface: #fffdf9;
+  --app-surface-soft: #faf3ee;
+  --app-coral: #d96558;
+  --app-coral-dark: #bd594f;
+  --app-coral-soft: #f9e7e2;
+  --app-sage: #789f8e;
+  --app-sage-soft: #e9f1ed;
+  --app-brown: #5d433c;
+  --app-text: #332a27;
+  --app-muted: #91847e;
+  --app-line: #eadfd8;
+  --app-shadow: 0 14px 38px rgba(82, 59, 50, 0.08);
+  --app-shadow-strong: 0 22px 55px rgba(82, 59, 50, 0.13);
+}
+
+::selection {
+  background: var(--app-coral-soft);
+  color: var(--app-brown);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+button:not(:disabled):active,
+a:active {
+  transform: scale(0.975);
+}
+
+input,
+textarea,
+select {
+  color: var(--app-text);
+  caret-color: var(--app-coral);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: rgba(217, 101, 88, 0.62) !important;
+  box-shadow: 0 0 0 4px rgba(217, 101, 88, 0.1) !important;
+}
+
+/* Shared page canvas — existing page structure remains unchanged. */
+:is(
+  .login-page,
+  .onboarding-page,
+  .confirmed-page,
+  .couple-connect-page,
+  .create-couple-page,
+  .join-couple-page,
+  .couple-complete-page,
+  .join-complete-page,
+  .calendar-page,
+  .spending-page,
+  .category-detail-page,
+  .income-page,
+  .settlement-page,
+  .analysis-page,
+  .profile-page,
+  .notifications-page
+) {
+  color: var(--app-text);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(217, 101, 88, 0.09), transparent 16rem),
+    linear-gradient(180deg, #fffdf9 0%, #fbf7f3 100%) !important;
+}
+
+/* Shared headers */
+:is(
+  .couple-connect-header,
+  .create-couple-header,
+  .join-couple-header,
+  .calendar-header,
+  .spending-header,
+  .category-detail-header,
+  .income-header,
+  .settlement-header,
+  .analysis-header,
+  .profile-header,
+  .notifications-header
+) {
+  color: var(--app-brown);
+}
+
+:is(
+  .couple-connect-header,
+  .create-couple-header,
+  .join-couple-header,
+  .calendar-header,
+  .spending-header,
+  .income-header,
+  .settlement-header,
+  .analysis-header,
+  .profile-header,
+  .notifications-header
+) button {
+  border-color: var(--app-line) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: var(--app-brown) !important;
+  box-shadow: 0 8px 22px rgba(82, 59, 50, 0.07);
+}
+
+/* Main cards and list surfaces across every flow. */
+:is(
+  .login-card,
+  .confirmed-card,
+  .connect-option,
+  .create-couple-card,
+  .join-couple-card,
+  .couple-complete-card,
+  .join-complete-card,
+  .calendar-summary-card,
+  .calendar-card,
+  .spending-summary-card,
+  .category-budget-card,
+  .category-detail-summary,
+  .category-history,
+  .income-summary-card,
+  .income-list-card,
+  .settlement-summary-card,
+  .settlement-list-card,
+  .analysis-dog-card,
+  .analysis-card,
+  .profile-user-card,
+  .profile-section,
+  .couple-connected-card,
+  .couple-empty-card,
+  .notification-card,
+  .notifications-empty
+) {
+  border-color: var(--app-line) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: var(--app-shadow) !important;
+}
+
+:is(
+  .login-card,
+  .confirmed-card,
+  .create-couple-card,
+  .join-couple-card,
+  .couple-complete-card,
+  .join-complete-card,
+  .spending-summary-card,
+  .category-detail-summary,
+  .analysis-dog-card,
+  .profile-user-card
+) {
+  border-radius: 26px !important;
+}
+
+/* Primary actions */
+:is(
+  .login-submit,
+  .onboarding-button,
+  .create-couple-submit,
+  .join-couple-submit,
+  .share-button,
+  .home-button,
+  .income-add-button,
+  .settlement-action-button,
+  .expense-save-button,
+  .income-save-button,
+  .saving-submit,
+  .expense-edit-buttons .save
+) {
+  border-color: transparent !important;
+  background: linear-gradient(135deg, #dd7569, var(--app-coral)) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 12px 26px rgba(217, 101, 88, 0.24) !important;
+}
+
+:is(
+  .login-submit,
+  .onboarding-button,
+  .create-couple-submit,
+  .join-couple-submit,
+  .share-button,
+  .home-button
+):hover {
+  box-shadow: 0 15px 32px rgba(217, 101, 88, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* Tabs, chips and selected controls */
+:is(
+  .login-tabs button.active,
+  .spending-person-tabs button.active,
+  .statistics-person-tabs button.active,
+  .income-person-tabs button.active,
+  .calendar-filter button.active,
+  .expense-edit-choice button.active,
+  .new-use-type button.active,
+  .income-type-grid-new button.active
+) {
+  border-color: rgba(217, 101, 88, 0.25) !important;
+  background: var(--app-coral-soft) !important;
+  color: var(--app-coral-dark) !important;
+  box-shadow: none !important;
+}
+
+:is(
+  .login-tabs,
+  .spending-person-tabs,
+  .statistics-person-tabs,
+  .income-person-tabs,
+  .calendar-filter
+) {
+  border-color: var(--app-line) !important;
+  background: var(--app-surface-soft) !important;
+}
+
+/* Form controls and bottom sheets */
+:is(
+  .login-form input,
+  .invite-code-field input,
+  .create-couple-card input,
+  .expense-sheet-new input,
+  .expense-sheet-new textarea,
+  .income-sheet-new input,
+  .income-sheet-new textarea,
+  .saving-sheet input,
+  .saving-sheet textarea,
+  .expense-edit-sheet input,
+  .expense-edit-sheet textarea,
+  .profile-page input
+) {
+  border-color: var(--app-line) !important;
+  background: #fffdfa !important;
+}
+
+:is(.expense-sheet-new, .income-sheet-new, .saving-sheet, .expense-edit-sheet) {
+  border: 1px solid var(--app-line);
+  background: var(--app-surface) !important;
+  box-shadow: 0 -20px 60px rgba(82, 59, 50, 0.2) !important;
+}
+
+:is(.expense-sheet-backdrop, .income-sheet-backdrop, .saving-sheet-backdrop, .expense-edit-backdrop) {
+  background: rgba(52, 39, 34, 0.52) !important;
+  backdrop-filter: blur(5px);
+}
+
+:is(.expense-intro, .income-intro, .saving-balance-overview) {
+  background:
+    radial-gradient(circle at 86% 16%, rgba(217, 101, 88, 0.13), transparent 9rem),
+    var(--app-surface-soft) !important;
+}
+
+/* Success and connection accents */
+:is(.confirmed-icon, .complete-check, .join-complete-check, .connection-badge) {
+  background: var(--app-sage-soft) !important;
+  color: var(--app-sage) !important;
+  box-shadow: 0 10px 24px rgba(120, 159, 142, 0.14);
+}
+
+:is(.invite-code-box, .profile-invite-code, .confirmed-guide) {
+  border-color: var(--app-line) !important;
+  background: var(--app-surface-soft) !important;
+}
+
+/* Softer destructive actions stay distinct without dominating the UI. */
+:is(.logout, .delete, button[class*="delete"]) {
+  border-color: #f0d5d0 !important;
+  background: #fff7f5 !important;
+  color: #c45f54 !important;
+}
+
+@media (min-width: 700px) {
+  :is(
+    .login-container,
+    .confirmed-card,
+    .couple-connect-page,
+    .create-couple-page,
+    .join-couple-page,
+    .couple-complete-card,
+    .join-complete-card
+  ) {
+    box-shadow: var(--app-shadow-strong);
+  }
+}
+
+/* Responsive shell: one component tree, phone-specific proportions. */
+@media (max-width: 430px) {
+  :is(
+    .home,
+    .calendar-page,
+    .day-detail-page,
+    .spending-page,
+    .category-detail-page,
+    .income-page,
+    .settlement-page,
+    .analysis-page,
+    .profile-page,
+    .notifications-page
+  ) {
+    width: 100% !important;
+    max-width: none !important;
+    overflow-x: clip;
+  }
+
+  :is(
+    .calendar-header,
+    .spending-header,
+    .category-detail-header,
+    .income-header,
+    .settlement-header,
+    .analysis-header,
+    .profile-header,
+    .notifications-header
+  ) {
+    grid-template-columns: 44px minmax(0, 1fr) 76px !important;
+    padding-right: clamp(12px, 4vw, 18px) !important;
+    padding-left: clamp(12px, 4vw, 18px) !important;
+  }
+
+  :is(
+    .calendar-header,
+    .spending-header,
+    .category-detail-header,
+    .income-header,
+    .settlement-header,
+    .analysis-header,
+    .profile-header,
+    .notifications-header
+  ) h1 {
+    min-width: 0;
+    font-size: clamp(18px, 5.2vw, 22px) !important;
+    white-space: nowrap;
+  }
+
+  :is(
+    .calendar-page,
+    .spending-page,
+    .category-detail-page,
+    .income-page,
+    .settlement-page,
+    .analysis-page,
+    .profile-page,
+    .notifications-page
+  ) section,
+  :is(
+    .calendar-page,
+    .spending-page,
+    .category-detail-page,
+    .income-page,
+    .settlement-page,
+    .analysis-page,
+    .profile-page,
+    .notifications-page
+  ) article {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  :is(.login-page, .onboarding-page) {
+    padding-right: clamp(12px, 4vw, 18px) !important;
+    padding-left: clamp(12px, 4vw, 18px) !important;
+  }
+
+  :is(.login-container, .onboarding-card) {
+    width: 100% !important;
+    max-width: 400px !important;
+  }
+
+  :is(.login-card, .onboarding-card, .connect-option) {
+    min-width: 0;
+  }
+
+  :is(.spending-summary-card, .analysis-card, .category-detail-summary) {
+    overflow: hidden;
+  }
+
+  img,
+  svg,
+  canvas {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  :is(
+    .calendar-header,
+    .spending-header,
+    .category-detail-header,
+    .income-header,
+    .settlement-header,
+    .analysis-header,
+    .profile-header,
+    .notifications-header
+  ) {
+    grid-template-columns: 40px minmax(0, 1fr) 66px !important;
+    padding-right: 10px !important;
+    padding-left: 10px !important;
+  }
+
+  :is(.spending-person-tabs, .statistics-person-tabs, .income-person-tabs) button {
+    min-width: 0 !important;
+    padding-right: 7px !important;
+    padding-left: 7px !important;
+    font-size: 11px !important;
+  }
 }
 
 button {

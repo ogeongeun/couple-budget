@@ -3,74 +3,42 @@
 import { useRouter } from "next/navigation";
 import "./BottomNavigation.css";
 
+type NavigationId = "home" | "calendar" | "statistics" | "profile";
+
 type BottomNavigationProps = {
-  active:
-    | "home"
-    | "calendar"
-    | "statistics"
-    | "profile";
+  active: NavigationId;
 };
 
-export default function BottomNavigation({
-  active,
-}: BottomNavigationProps) {
+export default function BottomNavigation({ active }: BottomNavigationProps) {
   const router = useRouter();
+  const items: Array<{
+    id: NavigationId;
+    label: string;
+    path: string;
+    icon: string;
+  }> = [
+    { id: "home", label: "홈", path: "/", icon: "🏠" },
+    { id: "calendar", label: "캘린더", path: "/calendar", icon: "🗓️" },
+    { id: "statistics", label: "통계", path: "/statistics", icon: "📊" },
+    { id: "profile", label: "마이", path: "/profile", icon: "👤" },
+  ];
 
   return (
-    <nav className="bottom-navigation">
-      <button
-        type="button"
-        className={
-          active === "home" ? "active" : ""
-        }
-        onClick={() => router.push("/")}
-      >
-        <span>🏠</span>
-        홈
-      </button>
-
-      <button
-        type="button"
-        className={
-          active === "calendar" ? "active" : ""
-        }
-        onClick={() =>
-          router.push("/calendar")
-        }
-      >
-        <span>🗓️</span>
-        캘린더
-      </button>
-
-      <button
-        type="button"
-        className={
-          active === "statistics"
-            ? "active"
-            : ""
-        }
-        onClick={() =>
-          router.push("/statistics")
-        }
-      >
-        <span>📊</span>
-        통계
-      </button>
-
-      <button
-        type="button"
-        className={
-          active === "profile"
-            ? "active"
-            : ""
-        }
-        onClick={() =>
-          router.push("/profile")
-        }
-      >
-        <span>👤</span>
-        마이
-      </button>
+    <nav className="bottom-navigation" aria-label="주요 메뉴">
+      {items.map((item) => (
+        <button
+          type="button"
+          className={active === item.id ? "active" : ""}
+          aria-current={active === item.id ? "page" : undefined}
+          onClick={() => router.push(item.path)}
+          key={item.id}
+        >
+          <span className="bottom-navigation-icon" aria-hidden="true">
+            {item.icon}
+          </span>
+          <span>{item.label}</span>
+        </button>
+      ))}
     </nav>
   );
 }
