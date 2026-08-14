@@ -102,6 +102,11 @@ export default function ExpenseSheet({
   ] = useState("");
 
   const [
+    myShareInput,
+    setMyShareInput,
+  ] = useState("");
+
+  const [
     category,
     setCategory,
   ] = useState("식비");
@@ -187,12 +192,19 @@ export default function ExpenseSheet({
     );
 
   const myShare =
-    Math.floor(
-      numericAmount / 2,
-    );
+    myShareInput === ""
+      ? Math.floor(
+          numericAmount / 2,
+        )
+      : Number(myShareInput);
 
   const partnerShare =
     numericAmount - myShare;
+
+  const invalidShare =
+    useType === "together" &&
+    paymentType === "split" &&
+    (myShare < 0 || myShare > numericAmount);
 
   const addAmount = (
     value: number,
@@ -215,6 +227,7 @@ export default function ExpenseSheet({
 
   const resetForm = () => {
     setAmount("");
+    setMyShareInput("");
     setCategory("식비");
     setUseType("alone");
     setPaymentType("split");
@@ -256,6 +269,15 @@ export default function ExpenseSheet({
 
   if (numericAmount <= 0) {
     setMessage("금액을 입력해 주세요.");
+    return;
+  }
+
+  if (
+    useType === "together" &&
+    paymentType === "split" &&
+    (myShare < 0 || myShare > numericAmount)
+  ) {
+    setMessage("내 부담금은 전체 금액 안에서 입력해 주세요.");
     return;
   }
 
@@ -894,11 +916,27 @@ export default function ExpenseSheet({
                       </span>
 
                       <div className="share-amount">
-                        ₩{" "}
-                        {myShare.toLocaleString(
-                          "ko-KR",
-                        )}
+                        <span>₩</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={
+                            numericAmount > 0
+                              ? myShare.toLocaleString("ko-KR")
+                              : ""
+                          }
+                          disabled={saving}
+                          aria-label="내 소비 부담금"
+                          onChange={(event) =>
+                            setMyShareInput(
+                              event.target.value.replace(/[^0-9]/g, ""),
+                            )
+                          }
+                        />
                       </div>
+                      <small className="partner-share-guide">
+                        상대 부담금 {Math.max(partnerShare, 0).toLocaleString("ko-KR")}원
+                      </small>
                     </div>
                   )}
 
@@ -1008,6 +1046,7 @@ export default function ExpenseSheet({
               saving ||
               numericAmount <=
                 0 ||
+              invalidShare ||
               !coupleId
             }
             onClick={

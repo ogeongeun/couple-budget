@@ -959,3 +959,12 @@ button {
   pointer-events: auto;
   touch-action: manipulation;
 }
+
+.expense-edit-share-guide {
+  display: block;
+  margin-top: 6px;
+  color: #8f8882;
+  font-size: 9px;
+  font-weight: 500;
+  text-align: right;
+}

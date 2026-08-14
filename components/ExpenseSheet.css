@@ -645,3 +645,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+.share-amount span {
+  color: #9b948f;
+}
+
+.share-amount input {
+  min-width: 0;
+  width: 100%;
+  padding: 0 0 0 5px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #52504e;
+  font: inherit;
+  text-align: right;
+}
+
+.partner-share-guide {
+  display: block;
+  margin-top: 5px;
+  color: #8d8782;
+  font-size: 8px;
+  text-align: right;
+}

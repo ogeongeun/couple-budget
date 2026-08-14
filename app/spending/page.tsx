@@ -61,6 +61,7 @@ type CategorySummary = {
 
 type EditForm = {
   amount: string;
+  myShare: string;
   category: string;
   title: string;
   memo: string;
@@ -273,6 +274,7 @@ function SpendingPageContent() {
   const [editForm, setEditForm] =
     useState<EditForm>({
       amount: "",
+      myShare: "",
       category: "식비",
       title: "",
       memo: "",
@@ -629,6 +631,7 @@ function SpendingPageContent() {
 
     setEditForm({
       amount: String(expense.amount),
+      myShare: String(expense.my_share),
       category: expense.category,
       title: expense.title ?? "",
       memo: expense.memo ?? "",
@@ -700,10 +703,22 @@ function SpendingPageContent() {
           "나눠내기";
 
       const myShare = isSplit
-        ? Math.floor(
-            numericAmount / 2,
-          )
+        ? editForm.myShare === ""
+          ? Math.floor(
+              numericAmount / 2,
+            )
+          : Number(editForm.myShare)
         : numericAmount;
+
+      if (
+        isSplit &&
+        (myShare < 0 || myShare > numericAmount)
+      ) {
+        setMessage(
+          "내 부담금은 전체 금액 안에서 입력해 주세요.",
+        );
+        return;
+      }
 
       const partnerShare = isSplit
         ? numericAmount - myShare
@@ -1429,6 +1444,18 @@ function ExpenseEditSheet({
     form.amount || 0,
   );
 
+  const numericMyShare =
+    form.myShare === ""
+      ? Math.floor(numericAmount / 2)
+      : Number(form.myShare);
+
+  const partnerShare =
+    numericAmount - numericMyShare;
+
+  const invalidShare =
+    numericMyShare < 0 ||
+    numericMyShare > numericAmount;
+
   return (
     <div
       className="expense-edit-backdrop"
@@ -1728,57 +1755,88 @@ function ExpenseEditSheet({
 
               {form.paymentType ===
                 "나눠내기" && (
-                <div>
-                  <span className="expense-edit-label">
-                    정산 상태
-                  </span>
+                <>
+                  <label>
+                    <span>내 소비 부담금</span>
 
-                  <div className="expense-edit-choice">
-                    <button
-                      type="button"
-                      disabled={saving}
-                      className={
-                        form.settlementStatus ===
-                        "정산대기"
-                          ? "selected"
-                          : ""
-                      }
-                      onClick={() =>
-                        setForm(
-                          (current) => ({
-                            ...current,
-                            settlementStatus:
-                              "정산대기",
-                          }),
-                        )
-                      }
-                    >
-                      정산전
-                    </button>
+                    <div className="expense-edit-amount expense-edit-share">
+                      <span>₩</span>
 
-                    <button
-                      type="button"
-                      disabled={saving}
-                      className={
-                        form.settlementStatus ===
-                        "정산완료"
-                          ? "selected"
-                          : ""
-                      }
-                      onClick={() =>
-                        setForm(
-                          (current) => ({
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={
+                          numericAmount > 0
+                            ? numericMyShare.toLocaleString("ko-KR")
+                            : ""
+                        }
+                        disabled={saving}
+                        onChange={(event) =>
+                          setForm((current) => ({
                             ...current,
-                            settlementStatus:
-                              "정산완료",
-                          }),
-                        )
-                      }
-                    >
-                      정산 완료
-                    </button>
+                            myShare: event.target.value.replace(/[^0-9]/g, ""),
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <small className="expense-edit-share-guide">
+                      상대 부담금 {Math.max(partnerShare, 0).toLocaleString("ko-KR")}원
+                    </small>
+                  </label>
+
+                  <div>
+                    <span className="expense-edit-label">
+                      정산 상태
+                    </span>
+
+                    <div className="expense-edit-choice">
+                      <button
+                        type="button"
+                        disabled={saving}
+                        className={
+                          form.settlementStatus ===
+                          "정산대기"
+                            ? "selected"
+                            : ""
+                        }
+                        onClick={() =>
+                          setForm(
+                            (current) => ({
+                              ...current,
+                              settlementStatus:
+                                "정산대기",
+                            }),
+                          )
+                        }
+                      >
+                        정산전
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={saving}
+                        className={
+                          form.settlementStatus ===
+                          "정산완료"
+                            ? "selected"
+                            : ""
+                        }
+                        onClick={() =>
+                          setForm(
+                            (current) => ({
+                              ...current,
+                              settlementStatus:
+                                "정산완료",
+                            }),
+                          )
+                        }
+                      >
+                        정산 완료
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </>
           )}
@@ -1833,7 +1891,10 @@ function ExpenseEditSheet({
             className="save"
             disabled={
               saving ||
-              numericAmount <= 0
+              numericAmount <= 0 ||
+              (form.useType === "함께" &&
+                form.paymentType === "나눠내기" &&
+                invalidShare)
             }
             onClick={onSave}
           >
