@@ -540,7 +540,7 @@ export default function SettlementPage() {
   }
 
   const confirmed = window.confirm(
-    "정산금을 받은 것을 확인했나요? 완료하면 받은 금액이 내 소득에 추가됩니다.",
+    "정산금을 받은 것을 확인했나요? 완료하면 상대방에게는 정산액만큼 소비가, 나에게는 같은 금액의 소득이 기록됩니다.",
   );
 
   if (!confirmed) {
@@ -582,7 +582,7 @@ export default function SettlementPage() {
 }
 
   setMessage(
-    "정산이 완료되고 받은 금액이 소득에 추가됐어요.",
+    "정산 완료됐어요. 상대방 소비와 내 정산 소득에 각각 반영됐습니다.",
   );
 
   setProcessingId(null);
