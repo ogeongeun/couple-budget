@@ -759,13 +759,13 @@ function SpendingPageContent() {
               partnerShare,
             settlement_status:
               isSplit
-                ? editForm.settlementStatus
+                ? selectedExpense.settlement_status
                 : "해당없음",
             settled_at:
               isSplit &&
-              editForm.settlementStatus ===
+              selectedExpense.settlement_status ===
                 "정산완료"
-                ? new Date().toISOString()
+                ? selectedExpense.settled_at
                 : null,
           })
           .eq(
@@ -1790,51 +1790,11 @@ function ExpenseEditSheet({
                       정산 상태
                     </span>
 
-                    <div className="expense-edit-choice">
-                      <button
-                        type="button"
-                        disabled={saving}
-                        className={
-                          form.settlementStatus ===
-                          "정산대기"
-                            ? "selected"
-                            : ""
-                        }
-                        onClick={() =>
-                          setForm(
-                            (current) => ({
-                              ...current,
-                              settlementStatus:
-                                "정산대기",
-                            }),
-                          )
-                        }
-                      >
-                        정산전
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={saving}
-                        className={
-                          form.settlementStatus ===
-                          "정산완료"
-                            ? "selected"
-                            : ""
-                        }
-                        onClick={() =>
-                          setForm(
-                            (current) => ({
-                              ...current,
-                              settlementStatus:
-                                "정산완료",
-                            }),
-                          )
-                        }
-                      >
-                        정산 완료
-                      </button>
-                    </div>
+                    <p className="expense-edit-share-guide">
+                      {form.settlementStatus === "정산완료"
+                        ? "정산 완료"
+                        : "정산 화면에서 결제자가 완료할 수 있어요."}
+                    </p>
                   </div>
                 </>
               )}
