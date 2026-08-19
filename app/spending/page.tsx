@@ -1092,6 +1092,10 @@ function SpendingPageContent() {
             <section className="category-budget-card">
               <h2>카테고리별 소비</h2>
 
+              <p className="category-detail-guide">
+                카테고리를 누르면 내용별 상세 내역을 볼 수 있어요.
+              </p>
+
               {categories.map(
                 (category) => (
                   <button

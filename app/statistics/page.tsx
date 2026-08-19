@@ -1637,6 +1637,10 @@ export default function StatisticsPage() {
           {selectedNickname}님의 카테고리별 소비
         </h2>
 
+        <p className="category-analysis-guide">
+          카테고리를 누르면 내용별 상세 내역을 볼 수 있어요.
+        </p>
+
         {categoryData.length === 0 ? (
           <div className="analysis-empty">
             소비 기록이 없어요.

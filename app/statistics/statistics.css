@@ -129,6 +129,12 @@ button {
   font-weight: 400;
 }
 
+.category-analysis-guide {
+  margin: 6px 0 0;
+  color: #938c86;
+  font-size: 10px;
+}
+
 .analysis-section-heading {
   display: flex;
   justify-content: space-between;
