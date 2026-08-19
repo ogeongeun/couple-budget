@@ -89,6 +89,11 @@ type TimeData = {
     | "lunch"
     | "evening"
     | "night";
+  topContent: {
+    title: string;
+    amount: number;
+    count: number;
+  } | null;
 };
 
 const categoryInfo: Record<
@@ -255,6 +260,13 @@ export default function StatisticsPage() {
     selectedTreatPayer,
     setSelectedTreatPayer,
   ] = useState<ViewType | null>(null);
+
+  const [
+    selectedTimePeriod,
+    setSelectedTimePeriod,
+  ] = useState<TimeData["className"] | null>(
+    null,
+  );
 
   const [userId, setUserId] =
     useState<string | null>(null);
@@ -829,6 +841,7 @@ export default function StatisticsPage() {
     setSelectedCategoryName(null);
     setSelectedWeekday(null);
     setSelectedTreatPayer(null);
+    setSelectedTimePeriod(null);
   }, [month, view, year]);
 
   const topCategory =
@@ -1029,6 +1042,28 @@ export default function StatisticsPage() {
         evening: 0,
         night: 0,
       };
+      const contentTotals = {
+        morning: new Map<string, {
+          title: string;
+          amount: number;
+          count: number;
+        }>(),
+        lunch: new Map<string, {
+          title: string;
+          amount: number;
+          count: number;
+        }>(),
+        evening: new Map<string, {
+          title: string;
+          amount: number;
+          count: number;
+        }>(),
+        night: new Map<string, {
+          title: string;
+          amount: number;
+          count: number;
+        }>(),
+      };
 
       selectedCurrentExpenses.forEach(
         (expense) => {
@@ -1043,27 +1078,63 @@ export default function StatisticsPage() {
           const amount = Number(
             expense.amount || 0,
           );
+          let period: TimeData["className"];
 
           if (
             hour >= 6 &&
             hour < 11
           ) {
             values.morning += amount;
+            period = "morning";
           } else if (
             hour >= 11 &&
             hour < 14
           ) {
             values.lunch += amount;
+            period = "lunch";
           } else if (
             hour >= 14 &&
             hour < 21
           ) {
             values.evening += amount;
+            period = "evening";
           } else {
             values.night += amount;
+            period = "night";
+          }
+
+          const title =
+            expense.title?.trim() ||
+            expense.category;
+          const key =
+            title.toLocaleLowerCase(
+              "ko-KR",
+            );
+          const current =
+            contentTotals[period].get(key);
+
+          if (current) {
+            current.amount += amount;
+            current.count += 1;
+          } else {
+            contentTotals[period].set(key, {
+              title,
+              amount,
+              count: 1,
+            });
           }
         },
       );
+
+      const getTopContent = (
+        period: TimeData["className"],
+      ) =>
+        Array.from(
+          contentTotals[period].values(),
+        ).sort(
+          (first, second) =>
+            second.amount - first.amount,
+        )[0] ?? null;
 
       return [
         {
@@ -1076,6 +1147,8 @@ export default function StatisticsPage() {
               totalExpense,
             ),
           className: "morning",
+          topContent:
+            getTopContent("morning"),
         },
         {
           label: "점심",
@@ -1087,6 +1160,8 @@ export default function StatisticsPage() {
               totalExpense,
             ),
           className: "lunch",
+          topContent:
+            getTopContent("lunch"),
         },
         {
           label: "저녁",
@@ -1098,6 +1173,8 @@ export default function StatisticsPage() {
               totalExpense,
             ),
           className: "evening",
+          topContent:
+            getTopContent("evening"),
         },
         {
           label: "야간",
@@ -1109,6 +1186,8 @@ export default function StatisticsPage() {
               totalExpense,
             ),
           className: "night",
+          topContent:
+            getTopContent("night"),
         },
       ];
     }, [
@@ -1501,6 +1580,13 @@ export default function StatisticsPage() {
       treatExpenses,
       userId,
     ]);
+
+  const selectedTimeData =
+    timeSpending.find(
+      (item) =>
+        item.className ===
+        selectedTimePeriod,
+    ) ?? null;
 
   const eveningAfterPercentage =
     (timeSpending.find(
@@ -2130,8 +2216,28 @@ export default function StatisticsPage() {
           <div className="time-legend">
             {timeSpending.map(
               (item) => (
-                <div
+                <button
+                  type="button"
                   key={item.label}
+                  className={
+                    selectedTimePeriod ===
+                    item.className
+                      ? "selected"
+                      : ""
+                  }
+                  onClick={() =>
+                    setSelectedTimePeriod(
+                      (current) =>
+                        current ===
+                        item.className
+                          ? null
+                          : item.className,
+                    )
+                  }
+                  aria-pressed={
+                    selectedTimePeriod ===
+                    item.className
+                  }
                 >
                   <i
                     className={
@@ -2152,11 +2258,43 @@ export default function StatisticsPage() {
                     }
                     %
                   </strong>
-                </div>
+                </button>
               ),
             )}
           </div>
         </div>
+
+        {selectedTimeData && (
+          <div className="time-detail">
+            <span>
+              {selectedTimeData.label}에 가장
+              많이 쓴 내용
+            </span>
+
+            {selectedTimeData.topContent ? (
+              <div>
+                <strong>
+                  {
+                    selectedTimeData
+                      .topContent.title
+                  }
+                </strong>
+                <span>
+                  {selectedTimeData.topContent.amount.toLocaleString(
+                    "ko-KR",
+                  )}
+                  원
+                  {selectedTimeData.topContent
+                    .count > 1
+                    ? ` · ${selectedTimeData.topContent.count}건`
+                    : ""}
+                </span>
+              </div>
+            ) : (
+              <strong>소비 기록이 없어요.</strong>
+            )}
+          </div>
+        )}
 
         <div className="analysis-purple-tip">
           <span>🌙</span>

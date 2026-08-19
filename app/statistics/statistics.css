@@ -596,11 +596,24 @@ button {
   gap: 16px;
 }
 
-.time-legend > div {
+.time-legend > button {
   display: grid;
   grid-template-columns: 13px 1fr 35px;
   align-items: center;
   gap: 7px;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.time-legend > button.selected {
+  background: #f7f2ff;
 }
 
 .time-legend i {
@@ -796,6 +809,41 @@ button {
   .month-bar-layout {
     grid-template-columns: 1fr 86px;
   }
+}
+
+.time-detail {
+  margin-top: 14px;
+  padding: 14px 15px;
+  border: 1px solid #e7dcf4;
+  border-radius: 12px;
+  background: #faf7ff;
+}
+
+.time-detail > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #777078;
+  font-size: 11px;
+}
+
+.time-detail > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time-detail strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.time-detail > div > span {
+  flex-shrink: 0;
+  color: #8b5aca;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 /* ===== 통계 요약 아이콘 및 선 그래프 정렬 보정 ===== */
