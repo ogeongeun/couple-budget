@@ -645,3 +645,18 @@ h1 {
   margin-top: 14px;
   color: #b45309;
 }
+
+/* iOS Safari는 16px 미만 입력 요소에 포커스할 때 화면을 자동 확대한다. */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  input[inputmode="numeric"],
+  input[inputmode="decimal"],
+  input[type="number"] {
+    font-size: 20px !important;
+  }
+}
