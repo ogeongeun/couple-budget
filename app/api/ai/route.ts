@@ -5,6 +5,29 @@ import { NextResponse } from "next/server";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
+type AiResult = {
+  answer: string;
+  action: {
+    kind: "none" | "add_expense";
+    amount: number;
+    category: string;
+    title: string;
+    expenseDate: string;
+  };
+};
+
+const expenseCategories = [
+  "식비",
+  "카페",
+  "교통",
+  "쇼핑",
+  "문화",
+  "생활비",
+  "의료",
+  "미용",
+  "기타",
+] as const;
+
 function getMonthRange() {
   const now = new Date();
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -137,6 +160,9 @@ export async function POST(request: Request) {
     내용: income.memo || income.category,
     날짜: income.income_date,
   }));
+  const today = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "Asia/Seoul",
+  });
 
   try {
     const response = await new GoogleGenAI({ apiKey }).models.generateContent({
@@ -146,9 +172,31 @@ export async function POST(request: Request) {
         parts: [{ text: message.content }],
       })),
       config: {
-        systemInstruction: `너는 커플 가계부 앱 '둘의 하루'의 AI 소비 도우미야. 제공된 데이터만 근거로 한국어로 쉽고 다정하게 답해. 금액은 원 단위로 정확히 계산하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n이번 달 커플 데이터:\n${JSON.stringify({ incomes, expenses })}`,
+        systemInstruction: `너는 커플 가계부 앱 '둘의 하루'의 AI 소비 도우미야. 현재 로그인한 사용자는 '${profile.nickname ?? "사용자"}'이고 오늘은 ${today}이야.
+제공된 데이터만 근거로 한국어로 쉽고 다정하게 답해. '내', '나', '내가'라고 물으면 반드시 로그인한 사용자 개인 기록만 분석해. 상대방 이름이나 둘/우리/커플을 명시한 경우에만 상대방 또는 합산 기록을 분석해.
+사용자가 개인 소비 추가를 명확하게 요청하면 action.kind를 add_expense로 설정하고 금액, 카테고리, 내용, 날짜를 정리해. '오늘'은 ${today}로 변환해. 음료수/커피/카페 음료는 카페, 식사/음식은 식비로 분류해. 저장은 하지 말고 확인할 초안이라고 안내해. 소비 추가 요청이 아니면 action.kind는 none이고 나머지 action 값은 빈 값이나 0으로 둬.
+금액은 원 단위로 정확히 계산하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n이번 달 커플 데이터:\n${JSON.stringify({ incomes, expenses })}`,
         maxOutputTokens: 600,
         temperature: 0.3,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "object",
+          properties: {
+            answer: { type: "string" },
+            action: {
+              type: "object",
+              properties: {
+                kind: { type: "string", enum: ["none", "add_expense"] },
+                amount: { type: "integer", minimum: 0 },
+                category: { type: "string", enum: [...expenseCategories] },
+                title: { type: "string" },
+                expenseDate: { type: "string" },
+              },
+              required: ["kind", "amount", "category", "title", "expenseDate"],
+            },
+          },
+          required: ["answer", "action"],
+        },
       },
     });
 
@@ -156,7 +204,17 @@ export async function POST(request: Request) {
       throw new Error("Gemini가 빈 응답을 반환했습니다.");
     }
 
-    return NextResponse.json({ answer: response.text });
+    const result = JSON.parse(response.text) as AiResult;
+    const action =
+      result.action.kind === "add_expense" &&
+      result.action.amount > 0 &&
+      expenseCategories.includes(
+        result.action.category as (typeof expenseCategories)[number],
+      )
+        ? result.action
+        : null;
+
+    return NextResponse.json({ answer: result.answer, action });
   } catch (error) {
     console.error("Gemini 응답 오류:", error);
     return NextResponse.json(

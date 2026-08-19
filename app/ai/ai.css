@@ -74,6 +74,46 @@
   color: #88817b;
 }
 
+.ai-expense-confirm {
+  margin-top: 14px;
+  padding: 15px;
+  border: 1px solid #cfe9d8;
+  border-radius: 16px;
+  background: #f5fbf7;
+}
+
+.ai-expense-confirm header,
+.ai-expense-confirm dl > div,
+.ai-expense-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-expense-confirm header strong { font-size: 13px; }
+.ai-expense-confirm header span { color: #8b958e; font-size: 9px; }
+.ai-expense-confirm dl { display: grid; gap: 7px; margin: 13px 0; }
+.ai-expense-confirm dt { color: #858d87; font-size: 10px; }
+.ai-expense-confirm dd { margin: 0; font-size: 11px; font-weight: 700; }
+.ai-expense-actions { justify-content: flex-end; }
+
+.ai-expense-actions button {
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #e7ece8;
+  color: #657069;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ai-expense-actions button:last-child {
+  background: #36a968;
+  color: white;
+}
+
 .ai-avatar {
   display: grid;
   width: 36px;

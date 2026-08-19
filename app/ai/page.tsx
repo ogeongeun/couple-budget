@@ -7,11 +7,19 @@ import "./ai.css";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
+type ExpenseDraft = {
+  kind: "add_expense";
+  amount: number;
+  category: string;
+  title: string;
+  expenseDate: string;
+};
+
 const suggestions = [
-  "이번 달 소비를 요약해줘",
-  "이번 주에 얼마 더 써도 돼?",
-  "가장 많이 쓴 내용이 뭐야?",
-  "우리 둘의 소비를 비교해줘",
+  "내 이번 달 소비를 요약해줘",
+  "내가 이번 주에 얼마 더 써도 돼?",
+  "내가 가장 많이 쓴 내용이 뭐야?",
+  "내 소비에서 줄이기 좋은 항목을 알려줘",
 ];
 
 export default function AiPage() {
@@ -19,6 +27,8 @@ export default function AiPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [pendingExpense, setPendingExpense] = useState<ExpenseDraft | null>(null);
+  const [savingExpense, setSavingExpense] = useState(false);
 
   const sendQuestion = async (question: string) => {
     const trimmed = question.trim();
@@ -31,6 +41,7 @@ export default function AiPage() {
     setMessages(nextMessages);
     setInput("");
     setError("");
+    setPendingExpense(null);
     setLoading(true);
 
     try {
@@ -39,7 +50,11 @@ export default function AiPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: nextMessages }),
       });
-      const result = (await response.json()) as { answer?: string; error?: string };
+      const result = (await response.json()) as {
+        answer?: string;
+        action?: ExpenseDraft | null;
+        error?: string;
+      };
 
       if (!response.ok || !result.answer) {
         throw new Error(result.error || "AI 답변을 받지 못했어요.");
@@ -49,6 +64,7 @@ export default function AiPage() {
         ...current,
         { role: "assistant", content: result.answer as string },
       ]);
+      setPendingExpense(result.action ?? null);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -57,6 +73,40 @@ export default function AiPage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const savePendingExpense = async () => {
+    if (!pendingExpense || savingExpense) return;
+
+    setSavingExpense(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/ai/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingExpense),
+      });
+      const result = (await response.json()) as { message?: string; error?: string };
+
+      if (!response.ok || !result.message) {
+        throw new Error(result.error || "소비 기록을 저장하지 못했어요.");
+      }
+
+      setMessages((current) => [
+        ...current,
+        { role: "assistant", content: result.message as string },
+      ]);
+      setPendingExpense(null);
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "소비 기록을 저장하지 못했어요.",
+      );
+    } finally {
+      setSavingExpense(false);
     }
   };
 
@@ -95,6 +145,29 @@ export default function AiPage() {
           </div>
         )}
       </section>
+
+      {pendingExpense && (
+        <section className="ai-expense-confirm" aria-label="소비 추가 확인">
+          <header>
+            <strong>이 소비를 추가할까요?</strong>
+            <span>확인 후에만 저장돼요</span>
+          </header>
+          <dl>
+            <div><dt>내용</dt><dd>{pendingExpense.title || pendingExpense.category}</dd></div>
+            <div><dt>금액</dt><dd>{pendingExpense.amount.toLocaleString("ko-KR")}원</dd></div>
+            <div><dt>카테고리</dt><dd>{pendingExpense.category}</dd></div>
+            <div><dt>날짜</dt><dd>{pendingExpense.expenseDate}</dd></div>
+          </dl>
+          <div className="ai-expense-actions">
+            <button type="button" onClick={() => setPendingExpense(null)} disabled={savingExpense}>
+              취소
+            </button>
+            <button type="button" onClick={() => void savePendingExpense()} disabled={savingExpense}>
+              {savingExpense ? "추가 중…" : "추가하기"}
+            </button>
+          </div>
+        </section>
+      )}
 
       {messages.length === 0 && (
         <section className="ai-suggestions" aria-label="추천 질문">
