@@ -2665,7 +2665,7 @@ export default function CalendarPage() {
           }
           onManage={(expense) =>
             router.push(
-              `/spending?view=me&expense=${expense.id}`,
+              `/spending?view=me&expense=${expense.id}&from=calendar`,
             )
           }
         />

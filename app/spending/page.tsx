@@ -228,6 +228,12 @@ function SpendingPageContent() {
   const [view, setView] =
     useState<ViewType>(initialView);
 
+  const [returnToCalendar] =
+    useState(
+      searchParams.get("from") ===
+        "calendar",
+    );
+
   const [year, setYear] = useState(
     now.getFullYear(),
   );
@@ -702,6 +708,10 @@ function SpendingPageContent() {
 
     setSelectedExpense(null);
     setMessage("");
+
+    if (returnToCalendar) {
+      router.push("/calendar");
+    }
   };
 
   const handleUpdate =
@@ -828,6 +838,11 @@ function SpendingPageContent() {
       setSelectedExpense(null);
       setSaving(false);
 
+      if (returnToCalendar) {
+        router.push("/calendar");
+        return;
+      }
+
       await loadData();
     };
 
@@ -881,6 +896,11 @@ function SpendingPageContent() {
 
     setSelectedExpense(null);
     setSaving(false);
+
+    if (returnToCalendar) {
+      router.push("/calendar");
+      return;
+    }
 
     await loadData();
   };
