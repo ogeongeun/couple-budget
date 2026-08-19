@@ -381,6 +381,10 @@
   border-color: #50bf81;
 }
 
+.expense-sheet-new .content-date-row input::placeholder {
+  font-size: 11px;
+}
+
 .text-input-wrap {
   position: relative;
 }
