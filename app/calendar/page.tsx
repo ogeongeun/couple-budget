@@ -142,7 +142,7 @@ const categoryInfo: Record<
     color: "#f0aa42",
   },
 
-  생활: {
+  생활비: {
     icon: "🏠",
     color: "#e98a8a",
   },

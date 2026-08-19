@@ -103,7 +103,7 @@ const categoryInfo: Record<
     icon: "🎬",
     color: "#ffb23f",
   },
-  생활: {
+  생활비: {
     icon: "🏠",
     color: "#ef8a8a",
   },
@@ -127,7 +127,7 @@ const categoryNames = [
   "교통",
   "쇼핑",
   "문화",
-  "생활",
+  "생활비",
   "의료",
   "미용",
   "기타",

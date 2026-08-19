@@ -57,7 +57,7 @@ const categories = [
     icon: "🎬",
   },
   {
-    name: "생활",
+    name: "생활비",
     icon: "🏠",
   },
   {

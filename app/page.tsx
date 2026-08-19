@@ -117,7 +117,7 @@ const chartCategoryInfo = [
     color: "#ffb23f",
   },
   {
-    name: "생활",
+    name: "생활비",
     color: "#ef8a8a",
   },
   {
