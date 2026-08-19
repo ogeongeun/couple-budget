@@ -154,6 +154,21 @@ export default function ExpenseSheet({
   ] = useState(false);
 
   const [
+    hiddenContentSuggestions,
+    setHiddenContentSuggestions,
+  ] = useState<string[]>([]);
+
+  const [
+    suggestionToManage,
+    setSuggestionToManage,
+  ] = useState<string | null>(null);
+
+  const [
+    managingSuggestion,
+    setManagingSuggestion,
+  ] = useState(false);
+
+  const [
     memo,
     setMemo,
   ] = useState("");
@@ -200,10 +215,21 @@ export default function ExpenseSheet({
     const loadContentSuggestions = async () => {
       setSuggestionsLoading(true);
 
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setContentSuggestions([]);
+        setSuggestionsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("expenses")
         .select("title, created_at")
         .eq("couple_id", coupleId)
+        .eq("user_id", user.id)
         .eq("category", category)
         .not("title", "is", null)
         .order("created_at", {
@@ -253,6 +279,24 @@ export default function ExpenseSheet({
     };
   }, [category, coupleId, open]);
 
+  useEffect(() => {
+    if (!open || !coupleId) {
+      setHiddenContentSuggestions([]);
+      return;
+    }
+
+    const storageKey = `hidden-expense-content:${coupleId}:${category}`;
+
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      setHiddenContentSuggestions(
+        stored ? JSON.parse(stored) : [],
+      );
+    } catch {
+      setHiddenContentSuggestions([]);
+    }
+  }, [category, coupleId, open]);
+
   if (!open) {
     return null;
   }
@@ -276,7 +320,10 @@ export default function ExpenseSheet({
                 normalizedContent,
               ) &&
               normalizedSuggestion !==
-                normalizedContent
+                normalizedContent &&
+              !hiddenContentSuggestions.includes(
+                normalizedSuggestion,
+              )
             );
           })
           .slice(0, 5)
@@ -304,6 +351,89 @@ export default function ExpenseSheet({
     useType === "together" &&
     paymentType === "split" &&
     (myShare < 0 || myShare > numericAmount);
+
+  const hideContentSuggestion = () => {
+    if (!suggestionToManage || !coupleId) {
+      return;
+    }
+
+    const normalized = suggestionToManage.toLocaleLowerCase(
+      "ko-KR",
+    );
+    const nextHidden = Array.from(
+      new Set([
+        ...hiddenContentSuggestions,
+        normalized,
+      ]),
+    );
+
+    setHiddenContentSuggestions(nextHidden);
+    window.localStorage.setItem(
+      `hidden-expense-content:${coupleId}:${category}`,
+      JSON.stringify(nextHidden),
+    );
+    setSuggestionToManage(null);
+  };
+
+  const mergeContentSuggestion = async () => {
+    const targetTitle = content.trim();
+
+    if (
+      !suggestionToManage ||
+      !targetTitle ||
+      !coupleId
+    ) {
+      return;
+    }
+
+    setManagingSuggestion(true);
+    setMessage("");
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setMessage("로그인 정보를 확인하지 못했어요.");
+      setManagingSuggestion(false);
+      return;
+    }
+
+    const oldTitle = suggestionToManage;
+    const { data, error } = await supabase
+      .from("expenses")
+      .update({ title: targetTitle })
+      .eq("couple_id", coupleId)
+      .eq("user_id", user.id)
+      .eq("category", category)
+      .eq("title", oldTitle)
+      .select("id");
+
+    if (error) {
+      console.error("소비 내용 통합 오류:", error);
+      setMessage("소비 내용을 통합하지 못했어요.");
+      setManagingSuggestion(false);
+      return;
+    }
+
+    setContentSuggestions((current) =>
+      Array.from(
+        new Set(
+          current.map((suggestion) =>
+            suggestion === oldTitle
+              ? targetTitle
+              : suggestion,
+          ),
+        ),
+      ),
+    );
+    setSuggestionToManage(null);
+    setManagingSuggestion(false);
+    setMessage(
+      `${data?.length ?? 0}건을 '${targetTitle}'로 통합했어요.`,
+    );
+  };
 
   const addAmount = (
     value: number,
@@ -892,16 +1022,35 @@ export default function ExpenseSheet({
                       <div>
                         {matchingContentSuggestions.map(
                           (suggestion) => (
-                            <button
-                              type="button"
+                            <div
+                              className="content-suggestion-row"
                               key={suggestion}
-                              disabled={saving}
-                              onClick={() =>
-                                setContent(suggestion)
-                              }
                             >
-                              {suggestion}
-                            </button>
+                              <button
+                                type="button"
+                                className="content-suggestion-select"
+                                disabled={saving}
+                                onClick={() =>
+                                  setContent(suggestion)
+                                }
+                              >
+                                {suggestion}
+                              </button>
+
+                              <button
+                                type="button"
+                                className="content-suggestion-remove"
+                                disabled={saving}
+                                aria-label={`${suggestion} 정리하기`}
+                                onClick={() =>
+                                  setSuggestionToManage(
+                                    suggestion,
+                                  )
+                                }
+                              >
+                                ×
+                              </button>
+                            </div>
                           ),
                         )}
                       </div>
@@ -1192,6 +1341,59 @@ export default function ExpenseSheet({
           </button>
         </div>
       </section>
+
+      {suggestionToManage && (
+        <div
+          className="content-manage-backdrop"
+          onClick={() => {
+            if (!managingSuggestion) {
+              setSuggestionToManage(null);
+            }
+          }}
+        >
+          <section
+            className="content-manage-dialog"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3>연관 검색어 정리</h3>
+            <p>
+              <strong>{suggestionToManage}</strong>을(를) 어떻게 정리할까요?
+            </p>
+
+            <button
+              type="button"
+              disabled={managingSuggestion}
+              onClick={hideContentSuggestion}
+            >
+              추천에서만 숨기기
+              <small>기존 소비 기록은 유지돼요.</small>
+            </button>
+
+            {content.trim() &&
+              content.trim().toLocaleLowerCase("ko-KR") !==
+                suggestionToManage.toLocaleLowerCase("ko-KR") && (
+                <button
+                  type="button"
+                  className="merge"
+                  disabled={managingSuggestion}
+                  onClick={mergeContentSuggestion}
+                >
+                  &apos;{content.trim()}&apos;로 통합하기
+                  <small>기존 기록의 내용도 함께 바뀌어요.</small>
+                </button>
+              )}
+
+            <button
+              type="button"
+              className="cancel"
+              disabled={managingSuggestion}
+              onClick={() => setSuggestionToManage(null)}
+            >
+              취소
+            </button>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

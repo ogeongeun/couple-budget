@@ -432,7 +432,20 @@
   min-width: 0;
 }
 
-.content-suggestions > div button {
+.content-suggestion-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: center;
+  min-width: 0;
+  border-radius: 6px;
+}
+
+.content-suggestion-row:hover,
+.content-suggestion-row:focus-within {
+  background: #eff9f3;
+}
+
+.content-suggestion-select {
   width: 100%;
   min-width: 0;
   overflow: hidden;
@@ -446,10 +459,86 @@
   white-space: nowrap;
 }
 
-.content-suggestions > div button:hover,
-.content-suggestions > div button:focus-visible {
-  background: #eff9f3;
+.content-suggestion-select:hover,
+.content-suggestion-select:focus-visible {
   color: #35ad6d;
+}
+
+.content-suggestion-remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: auto;
+  border-radius: 50%;
+  background: transparent;
+  color: #aaa39d;
+  font-size: 15px;
+}
+
+.content-suggestion-remove:hover,
+.content-suggestion-remove:focus-visible {
+  background: #fdecea;
+  color: #e8675c;
+}
+
+.content-manage-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(30, 27, 24, 0.5);
+}
+
+.content-manage-dialog {
+  width: min(100%, 340px);
+  padding: 21px 17px 15px;
+  border-radius: 17px;
+  background: white;
+  box-shadow: 0 15px 45px rgba(48, 38, 31, 0.22);
+}
+
+.content-manage-dialog h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.content-manage-dialog p {
+  margin: 8px 0 15px;
+  color: #817a74;
+  font-size: 11px;
+}
+
+.content-manage-dialog > button {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: #f4f1ee;
+  color: #655e58;
+  font-size: 11px;
+  text-align: left;
+}
+
+.content-manage-dialog > button.merge {
+  background: #eaf7ef;
+  color: #2e9f62;
+}
+
+.content-manage-dialog > button.cancel {
+  background: transparent;
+  color: #99928c;
+  text-align: center;
+}
+
+.content-manage-dialog button small {
+  display: block;
+  margin-top: 4px;
+  color: #aaa39d;
+  font-size: 9px;
 }
 
 /* 함께 사용 상세 */
