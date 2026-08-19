@@ -140,7 +140,7 @@ export async function POST(request: Request) {
 
   try {
     const response = await new GoogleGenAI({ apiKey }).models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-3.5-flash-lite",
       contents: messages.map((message) => ({
         role: message.role === "assistant" ? "model" : "user",
         parts: [{ text: message.content }],
