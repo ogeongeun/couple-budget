@@ -326,6 +326,17 @@ button {
   white-space: nowrap;
 }
 
+.day-income {
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: 5px;
+  color: #37ad70;
+  font-size: 8px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .day-limit {
   max-width: 100%;
   overflow: hidden;
@@ -389,9 +400,25 @@ button {
 }
 
 .selected-day-heading > strong {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
   color: #ef7d7e;
   font-size: 13px;
   white-space: nowrap;
+}
+
+.selected-day-heading > strong span {
+  margin: 0;
+  font-size: 10px;
+}
+
+.selected-income-amount {
+  color: #36ad70;
+}
+
+.selected-used-amount {
+  color: #ef7d7e;
 }
 
 .selected-day-result {
@@ -426,6 +453,65 @@ button {
   color: #aaa39e;
   font-size: 11px;
   text-align: center;
+}
+
+.calendar-income-list {
+  margin-top: 13px;
+  border-top: 1px solid #f0ece9;
+}
+
+.calendar-record-title {
+  padding-top: 13px;
+  color: #807973;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.calendar-income-item {
+  display: grid;
+  grid-template-columns: 43px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 68px;
+  border-bottom: 1px solid #f0ece9;
+}
+
+.income-icon {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+  background: #eaf8f0;
+  font-size: 17px;
+}
+
+.income-info {
+  min-width: 0;
+}
+
+.income-info strong,
+.income-info span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.income-info strong {
+  font-size: 12px;
+}
+
+.income-info span {
+  margin-top: 5px;
+  color: #aaa39e;
+  font-size: 8px;
+}
+
+.income-price {
+  color: #36ad70;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 /* 소비 목록 */
@@ -633,6 +719,22 @@ button {
   margin: 9px 0 0;
   color: #aaa39e;
   font-size: 9px;
+}
+
+.day-income-net {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 13px 16px 0;
+  padding: 14px 17px;
+  border-radius: 14px;
+  background: #eaf8f0;
+  color: #36ad70;
+}
+
+.day-income-net span,
+.day-income-net strong {
+  font-size: 11px;
 }
 
 .day-category-list {

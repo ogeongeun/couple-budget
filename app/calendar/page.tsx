@@ -26,7 +26,10 @@ type ProfileData = {
 };
 
 type IncomeRecord = {
+  id: string;
   amount: number;
+  category: string;
+  memo: string | null;
   income_date: string;
 };
 
@@ -90,6 +93,8 @@ type CalendarDayData = {
   currentMonth: boolean;
 
   usedAmount: number;
+
+  incomeAmount: number;
 
   savingDifference: number;
 
@@ -660,7 +665,7 @@ export default function CalendarPage() {
                 "incomes",
               )
               .select(
-                "amount, income_date",
+                "id, amount, category, memo, income_date",
               )
               .eq(
                 "user_id",
@@ -1420,6 +1425,30 @@ export default function CalendarPage() {
     );
 
   /*
+   * 날짜별 수익
+   */
+  const incomeByDate =
+    useMemo(
+      () => {
+        const result =
+          new Map<string, number>();
+
+        incomes.forEach((income) => {
+          const current =
+            result.get(income.income_date) ?? 0;
+
+          result.set(
+            income.income_date,
+            current + Number(income.amount || 0),
+          );
+        });
+
+        return result;
+      },
+      [incomes],
+    );
+
+  /*
    * 날짜별 저금 차액
    *
    * deposit  +금액
@@ -1637,6 +1666,9 @@ export default function CalendarPage() {
               usedAmount:
                 0,
 
+              incomeAmount:
+                0,
+
               savingDifference:
                 0,
 
@@ -1675,6 +1707,9 @@ export default function CalendarPage() {
               date,
             ) ??
             0;
+
+          const incomeAmount =
+            incomeByDate.get(date) ?? 0;
 
           const savingDifference =
             savingDifferenceByDate.get(
@@ -1749,6 +1784,8 @@ export default function CalendarPage() {
 
               usedAmount,
 
+              incomeAmount,
+
               savingDifference,
 
               recommendedAmount,
@@ -1784,6 +1821,9 @@ export default function CalendarPage() {
               usedAmount:
                 0,
 
+              incomeAmount:
+                0,
+
               savingDifference:
                 0,
 
@@ -1806,6 +1846,7 @@ export default function CalendarPage() {
       },
       [
         currentRecommendedAmount,
+        incomeByDate,
         month,
         savingDifferenceByDate,
         snapshotMap,
@@ -1834,6 +1875,16 @@ export default function CalendarPage() {
       ],
     );
 
+  const selectedIncomes =
+    useMemo(
+      () =>
+        incomes.filter(
+          (income) =>
+            income.income_date === selectedDate,
+        ),
+      [incomes, selectedDate],
+    );
+
   /*
    * 선택 날짜 저금 기록
    */
@@ -1858,6 +1909,9 @@ export default function CalendarPage() {
       selectedDate,
     ) ??
     0;
+
+  const selectedIncomeAmount =
+    incomeByDate.get(selectedDate) ?? 0;
 
   const selectedSavingDifference =
     savingDifferenceByDate.get(
@@ -2024,11 +2078,17 @@ export default function CalendarPage() {
           expenses={
             selectedExpenses
           }
+          incomes={
+            selectedIncomes
+          }
           savings={
             selectedSavings
           }
           usedAmount={
             selectedUsedAmount
+          }
+          incomeAmount={
+            selectedIncomeAmount
           }
           savingDifference={
             selectedSavingDifference
@@ -2180,7 +2240,7 @@ export default function CalendarPage() {
             {
               partnerNickname
             }
-            님의 소비와 저금 기록을
+            님의 수익·소비와 저금 기록을
             보고 있어요.
 
             <strong>
@@ -2274,7 +2334,7 @@ export default function CalendarPage() {
 
       <section className="monthly-summary">
         <SummaryItem
-          label="이번 달 예산"
+          label="이번 달 수익"
           value={`${monthlyBudget.toLocaleString(
             "ko-KR",
           )}원`}
@@ -2417,13 +2477,22 @@ export default function CalendarPage() {
                     }
                   </span>
 
+                  {/* 수익 */}
+
+                  {item.currentMonth &&
+                    item.incomeAmount > 0 && (
+                      <small className="day-income">
+                        +{item.incomeAmount.toLocaleString("ko-KR")}
+                      </small>
+                    )}
+
                   {/* 소비 */}
 
                   {item.currentMonth &&
                     item.usedAmount >
                       0 && (
                       <small className="day-used">
-                        {item.usedAmount.toLocaleString(
+                        -{item.usedAmount.toLocaleString(
                           "ko-KR",
                         )}
                       </small>
@@ -2513,11 +2582,12 @@ export default function CalendarPage() {
           </div>
 
           <strong>
-            사용{" "}
-            {selectedUsedAmount.toLocaleString(
-              "ko-KR",
-            )}
-            원
+            <span className="selected-income-amount">
+              수익 +{selectedIncomeAmount.toLocaleString("ko-KR")}원
+            </span>
+            <span className="selected-used-amount">
+              소비 -{selectedUsedAmount.toLocaleString("ko-KR")}원
+            </span>
           </strong>
         </div>
 
@@ -2590,6 +2660,10 @@ export default function CalendarPage() {
           expenses={
             selectedExpenses
           }
+        />
+
+        <IncomeList
+          incomes={selectedIncomes}
         />
 
         <SavingList
@@ -2727,6 +2801,41 @@ function SummaryItem({
           {sub}
         </small>
       )}
+    </div>
+  );
+}
+
+/* =========================
+   수익 목록
+========================= */
+
+function IncomeList({
+  incomes,
+}: {
+  incomes: IncomeRecord[];
+}) {
+  if (incomes.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="calendar-income-list">
+      <div className="calendar-record-title">수익</div>
+
+      {incomes.map((income) => (
+        <article className="calendar-income-item" key={income.id}>
+          <div className="income-icon">💰</div>
+
+          <div className="income-info">
+            <strong>{income.category}</strong>
+            {income.memo && <span>{income.memo}</span>}
+          </div>
+
+          <strong className="income-price">
+            +{Number(income.amount).toLocaleString("ko-KR")}원
+          </strong>
+        </article>
+      ))}
     </div>
   );
 }
@@ -2935,8 +3044,10 @@ function SavingList({
 function DayDetail({
   date,
   expenses,
+  incomes,
   savings,
   usedAmount,
+  incomeAmount,
   savingDifference,
   recommendedAmount,
   difference,
@@ -2949,9 +3060,13 @@ function DayDetail({
 
   expenses: ExpenseRecord[];
 
+  incomes: IncomeRecord[];
+
   savings: SavingRecord[];
 
   usedAmount: number;
+
+  incomeAmount: number;
 
   savingDifference: number;
 
@@ -3025,7 +3140,7 @@ function DayDetail({
 
       {!canAddExpense && (
         <div className="day-detail-owner">
-          {nickname}님의 소비 ·
+          {nickname}님의 수익 · 소비 ·
           저금 기록
         </div>
       )}
@@ -3106,6 +3221,15 @@ function DayDetail({
         </p>
       </section>
 
+      {incomeAmount > 0 && (
+        <section className="day-income-net">
+          <span>💰 오늘 수익</span>
+          <strong>
+            +{incomeAmount.toLocaleString("ko-KR")}원
+          </strong>
+        </section>
+      )}
+
       {/* 해당 날짜 저금 차액 */}
 
       {savingDifference !==
@@ -3142,6 +3266,8 @@ function DayDetail({
       )}
 
       {/* 소비 상세 */}
+
+      <IncomeList incomes={incomes} />
 
       <section className="day-category-list">
         {expenses.length ===
