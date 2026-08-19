@@ -160,6 +160,45 @@ export async function POST(request: Request) {
     내용: income.memo || income.category,
     날짜: income.income_date,
   }));
+  const myExpenses = (expensesResult.data ?? [])
+    .filter((expense) => expense.user_id === user.id)
+    .map((expense) => ({
+      금액: Number(expense.amount || 0),
+      카테고리: expense.category,
+      내용: expense.title || expense.category,
+      날짜: expense.expense_date,
+      사용방식: expense.use_type,
+      결제방식: expense.payment_type,
+    }));
+  const myIncomes = (incomesResult.data ?? [])
+    .filter((income) => income.user_id === user.id)
+    .map((income) => ({
+      금액: Number(income.amount || 0),
+      카테고리: income.category,
+      내용: income.memo || income.category,
+      날짜: income.income_date,
+    }));
+  const summarizeExpenses = (items: typeof myExpenses) => {
+    const categoryTotals: Record<string, number> = {};
+    let total = 0;
+
+    for (const item of items) {
+      total += item.금액;
+      categoryTotals[item.카테고리] =
+        (categoryTotals[item.카테고리] ?? 0) + item.금액;
+    }
+
+    return {
+      총소비: total,
+      카테고리별소비: Object.entries(categoryTotals)
+        .sort(([, a], [, b]) => b - a)
+        .map(([category, amount]) => ({ category, amount })),
+    };
+  };
+  const mySummary = {
+    ...summarizeExpenses(myExpenses),
+    총소득: myIncomes.reduce((sum, income) => sum + income.금액, 0),
+  };
   const today = new Date().toLocaleDateString("sv-SE", {
     timeZone: "Asia/Seoul",
   });
@@ -173,9 +212,9 @@ export async function POST(request: Request) {
       })),
       config: {
         systemInstruction: `너는 커플 가계부 앱 '둘의 하루'의 AI 소비 도우미야. 현재 로그인한 사용자는 '${profile.nickname ?? "사용자"}'이고 오늘은 ${today}이야.
-제공된 데이터만 근거로 한국어로 쉽고 다정하게 답해. '내', '나', '내가'라고 물으면 반드시 로그인한 사용자 개인 기록만 분석해. 이때 로그인한 사용자의 닉네임을 제3자처럼 부르지 말고 '이번 달에는', '가장 많이 쓴 항목은'처럼 사용자에게 직접 말해. 'OO님이', '내가 물어보신', '본인이' 같은 표현은 사용하지 마. 상대방 이름이나 둘/우리/커플을 명시한 경우에만 상대방 또는 합산 기록을 분석해.
+제공된 데이터만 근거로 한국어로 쉽고 다정하게 답해. '내', '나', '내가'라고 물으면 반드시 아래의 '로그인 사용자 개인 요약'과 '로그인 사용자 개인 기록'만 사용해. 개인 소비 합계와 카테고리 합계는 직접 다시 계산하지 말고 개인 요약의 숫자를 그대로 답해. 이때 로그인한 사용자의 닉네임을 제3자처럼 부르지 말고 '이번 달에는', '가장 많이 쓴 항목은'처럼 사용자에게 직접 말해. 'OO님이', '내가 물어보신', '본인이' 같은 표현은 사용하지 마. 상대방 이름이나 둘/우리/커플을 명시한 경우에만 아래의 커플 전체 기록을 분석해.
 사용자가 개인 소비 추가를 명확하게 요청하면 action.kind를 add_expense로 설정하고 금액, 카테고리, 내용, 날짜를 정리해. '오늘'은 ${today}로 변환해. 음료수/커피/카페 음료는 카페, 식사/음식은 식비로 분류해. 저장은 하지 말고 확인할 초안이라고 안내해. 소비 추가 요청이 아니면 action.kind는 none이고 나머지 action 값은 빈 값이나 0으로 둬.
-금액은 원 단위로 정확히 계산하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n이번 달 커플 데이터:\n${JSON.stringify({ incomes, expenses })}`,
+금액은 원 단위로 정확히 답하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n로그인 사용자 개인 요약(서버에서 계산한 확정값):\n${JSON.stringify(mySummary)}\n\n로그인 사용자 개인 기록:\n${JSON.stringify({ incomes: myIncomes, expenses: myExpenses })}\n\n이번 달 커플 전체 기록(상대방 또는 둘을 명시했을 때만 사용):\n${JSON.stringify({ incomes, expenses })}`,
         maxOutputTokens: 600,
         temperature: 0.3,
         responseMimeType: "application/json",
