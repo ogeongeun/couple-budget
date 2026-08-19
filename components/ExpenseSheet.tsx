@@ -144,6 +144,16 @@ export default function ExpenseSheet({
   ] = useState("");
 
   const [
+    contentSuggestions,
+    setContentSuggestions,
+  ] = useState<string[]>([]);
+
+  const [
+    suggestionsLoading,
+    setSuggestionsLoading,
+  ] = useState(false);
+
+  const [
     memo,
     setMemo,
   ] = useState("");
@@ -178,6 +188,74 @@ export default function ExpenseSheet({
 
     setMessage("");
   }, [open, initialDate]);
+
+  useEffect(() => {
+    if (!open || !coupleId) {
+      setContentSuggestions([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadContentSuggestions = async () => {
+      setSuggestionsLoading(true);
+
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("title, created_at")
+        .eq("couple_id", coupleId)
+        .eq("category", category)
+        .not("title", "is", null)
+        .order("created_at", {
+          ascending: false,
+        })
+        .limit(100);
+
+      if (cancelled) {
+        return;
+      }
+
+      if (error) {
+        console.error(
+          "소비 내용 추천 불러오기 오류:",
+          error,
+        );
+        setContentSuggestions([]);
+        setSuggestionsLoading(false);
+        return;
+      }
+
+      const seen = new Set<string>();
+      const suggestions: string[] = [];
+
+      for (const row of data ?? []) {
+        const title = row.title?.trim();
+        const normalized = title?.toLocaleLowerCase(
+          "ko-KR",
+        );
+
+        if (!title || !normalized || seen.has(normalized)) {
+          continue;
+        }
+
+        seen.add(normalized);
+        suggestions.push(title);
+
+        if (suggestions.length === 8) {
+          break;
+        }
+      }
+
+      setContentSuggestions(suggestions);
+      setSuggestionsLoading(false);
+    };
+
+    void loadContentSuggestions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [category, coupleId, open]);
 
   if (!open) {
     return null;
@@ -778,6 +856,45 @@ export default function ExpenseSheet({
                     </button>
                   )}
                 </div>
+
+                {(suggestionsLoading ||
+                  contentSuggestions.length > 0) && (
+                  <div className="content-suggestions">
+                    <span>
+                      {suggestionsLoading
+                        ? "이전에 쓴 내용을 불러오는 중..."
+                        : "이전에 쓴 내용"}
+                    </span>
+
+                    {!suggestionsLoading && (
+                      <div>
+                        {contentSuggestions.map(
+                          (suggestion) => (
+                            <button
+                              type="button"
+                              key={suggestion}
+                              disabled={saving}
+                              className={
+                                content.trim() === suggestion
+                                  ? "selected"
+                                  : ""
+                              }
+                              onClick={() =>
+                                setContent(suggestion)
+                              }
+                            >
+                              {suggestion}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    )}
+
+                    <small>
+                      목록에 없으면 위 입력칸에 새 내용을 적어주세요.
+                    </small>
+                  </div>
+                )}
               </label>
 
               <label>

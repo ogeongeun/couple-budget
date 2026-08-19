@@ -1190,6 +1190,47 @@ function CategoryDetail({
       return result;
     }, {});
 
+  const contentSummaries = Array.from(
+    expenses.reduce<
+      Map<
+        string,
+        {
+          title: string;
+          amount: number;
+          count: number;
+        }
+      >
+    >((result, expense) => {
+      const title =
+        expense.title?.trim() ||
+        "내용 없음";
+      const key = title.toLocaleLowerCase(
+        "ko-KR",
+      );
+      const current = result.get(key);
+
+      if (current) {
+        current.amount += Number(
+          expense.amount || 0,
+        );
+        current.count += 1;
+      } else {
+        result.set(key, {
+          title,
+          amount: Number(
+            expense.amount || 0,
+          ),
+          count: 1,
+        });
+      }
+
+      return result;
+    }, new Map()).values(),
+  ).sort(
+    (first, second) =>
+      second.amount - first.amount,
+  );
+
   return (
     <main className="category-detail-page">
       <header className="category-detail-header">
@@ -1232,6 +1273,31 @@ function CategoryDetail({
           <strong>
             {category.percentage}%
           </strong>
+        </div>
+      </section>
+
+      <section className="content-summary-section">
+        <header>
+          <h2>내용별 소비</h2>
+          <span>{contentSummaries.length}개 내용</span>
+        </header>
+
+        <div className="content-summary-list">
+          {contentSummaries.map((summary) => (
+            <div
+              className="content-summary-item"
+              key={summary.title.toLocaleLowerCase("ko-KR")}
+            >
+              <div>
+                <strong>{summary.title}</strong>
+                <span>{summary.count}건</span>
+              </div>
+
+              <strong>
+                {summary.amount.toLocaleString("ko-KR")}원
+              </strong>
+            </div>
+          ))}
         </div>
       </section>
 

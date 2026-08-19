@@ -983,11 +983,20 @@ button {
   gap: 11px;
 }
 
-.category-analysis-list > div {
+.category-analysis-list > button {
   display: grid;
   grid-template-columns: 9px minmax(0, 1fr) auto 28px;
   align-items: center;
   gap: 7px;
+  width: 100%;
+  padding: 7px 6px;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+}
+
+.category-analysis-list > button.selected {
+  background: #eff8f2;
 }
 
 .category-analysis-list i {
@@ -1012,6 +1021,60 @@ button {
 .category-analysis-list small {
   text-align: right;
   color: #9d9690;
+  font-size: 9px;
+}
+
+.statistics-content-breakdown {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #eeeae6;
+}
+
+.statistics-content-breakdown > header,
+.statistics-content-breakdown > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.statistics-content-breakdown > header {
+  margin-bottom: 2px;
+}
+
+.statistics-content-breakdown > header strong {
+  font-size: 12px;
+}
+
+.statistics-content-breakdown > header span {
+  color: #aaa39c;
+  font-size: 9px;
+}
+
+.statistics-content-breakdown > div {
+  padding: 10px 11px;
+  border-radius: 10px;
+  background: #faf8f6;
+}
+
+.statistics-content-breakdown > div > span:last-child {
+  text-align: right;
+}
+
+.statistics-content-breakdown strong,
+.statistics-content-breakdown small {
+  display: block;
+}
+
+.statistics-content-breakdown > div strong {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.statistics-content-breakdown > div small {
+  margin-top: 4px;
+  color: #a29b95;
   font-size: 9px;
 }
 

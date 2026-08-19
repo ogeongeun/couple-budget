@@ -54,6 +54,13 @@ type CategoryData = {
   color: string;
 };
 
+type ContentData = {
+  title: string;
+  amount: number;
+  count: number;
+  percentage: number;
+};
+
 type MonthlyData = {
   year: number;
   month: number;
@@ -228,6 +235,11 @@ export default function StatisticsPage() {
 
   const [message, setMessage] =
     useState("");
+
+  const [
+    selectedCategoryName,
+    setSelectedCategoryName,
+  ] = useState<string | null>(null);
 
   const [userId, setUserId] =
     useState<string | null>(null);
@@ -735,6 +747,72 @@ export default function StatisticsPage() {
       selectedCurrentExpenses,
       totalExpense,
     ]);
+
+  const selectedContentData =
+    useMemo<ContentData[]>(() => {
+      if (!selectedCategoryName) {
+        return [];
+      }
+
+      const categoryExpenses =
+        selectedCurrentExpenses.filter(
+          (expense) =>
+            expense.category ===
+            selectedCategoryName,
+        );
+      const categoryTotal = sumAmount(
+        categoryExpenses,
+      );
+      const grouped = new Map<
+        string,
+        Omit<ContentData, "percentage">
+      >();
+
+      for (const expense of categoryExpenses) {
+        const title =
+          expense.title?.trim() ||
+          "내용 없음";
+        const key = title.toLocaleLowerCase(
+          "ko-KR",
+        );
+        const current = grouped.get(key);
+
+        if (current) {
+          current.amount += Number(
+            expense.amount || 0,
+          );
+          current.count += 1;
+        } else {
+          grouped.set(key, {
+            title,
+            amount: Number(
+              expense.amount || 0,
+            ),
+            count: 1,
+          });
+        }
+      }
+
+      return Array.from(grouped.values())
+        .map((item) => ({
+          ...item,
+          percentage: getPercentage(
+            item.amount,
+            categoryTotal,
+          ),
+        }))
+        .sort(
+          (first, second) =>
+            second.amount - first.amount,
+        );
+    }, [
+      selectedCategoryName,
+      selectedCurrentExpenses,
+    ]);
+
+  useEffect(() => {
+    setSelectedCategoryName(null);
+  }, [month, view, year]);
 
   const topCategory =
     categoryData[0] ?? null;
@@ -1585,9 +1663,29 @@ export default function StatisticsPage() {
             <div className="category-analysis-list">
               {categoryData.map(
                 (category) => (
-                  <div
+                  <button
+                    type="button"
                     key={
                       category.name
+                    }
+                    className={
+                      selectedCategoryName ===
+                      category.name
+                        ? "selected"
+                        : ""
+                    }
+                    aria-expanded={
+                      selectedCategoryName ===
+                      category.name
+                    }
+                    onClick={() =>
+                      setSelectedCategoryName(
+                        (current) =>
+                          current ===
+                          category.name
+                            ? null
+                            : category.name,
+                      )
                     }
                   >
                     <i
@@ -1615,12 +1713,42 @@ export default function StatisticsPage() {
                       }
                       %
                     </small>
-                  </div>
+                  </button>
                 ),
               )}
             </div>
           </div>
         )}
+
+        {selectedCategoryName &&
+          selectedContentData.length > 0 && (
+            <div className="statistics-content-breakdown">
+              <header>
+                <strong>
+                  {selectedCategoryName} 내용별 소비
+                </strong>
+                <span>다시 누르면 닫혀요</span>
+              </header>
+
+              {selectedContentData.map((item) => (
+                <div
+                  key={item.title.toLocaleLowerCase("ko-KR")}
+                >
+                  <span>
+                    <strong>{item.title}</strong>
+                    <small>{item.count}건</small>
+                  </span>
+
+                  <span>
+                    <strong>
+                      {item.amount.toLocaleString("ko-KR")}원
+                    </strong>
+                    <small>{item.percentage}%</small>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
       </section>
 
       <section className="analysis-card concentration-card">

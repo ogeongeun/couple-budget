@@ -384,6 +384,75 @@ button {
   padding: 0 17px 145px;
 }
 
+.content-summary-section {
+  margin: 0 17px 15px;
+  padding: 17px 15px;
+  border: 1px solid #eeeae7;
+  border-radius: 14px;
+  background: white;
+}
+
+.content-summary-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 11px;
+}
+
+.content-summary-section h2 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.content-summary-section > header span {
+  color: #aaa49e;
+  font-size: 10px;
+}
+
+.content-summary-list {
+  display: grid;
+  gap: 8px;
+}
+
+.content-summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 11px;
+  border-radius: 10px;
+  background: #faf7f4;
+}
+
+.content-summary-item > div {
+  min-width: 0;
+}
+
+.content-summary-item strong,
+.content-summary-item span {
+  display: block;
+}
+
+.content-summary-item > div strong {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content-summary-item span {
+  margin-top: 4px;
+  color: #aaa49e;
+  font-size: 9px;
+}
+
+.content-summary-item > strong {
+  flex: 0 0 auto;
+  margin-left: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
 .date-group {
   margin-bottom: 9px;
   background: white;
