@@ -449,6 +449,12 @@ button {
 }
 
 .weekday-column {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -460,6 +466,12 @@ button {
 .weekday-column strong {
   font-size: 9px;
   white-space: nowrap;
+}
+
+.weekday-column.selected strong,
+.weekday-column.selected > span {
+  color: #168447;
+  font-weight: 800;
 }
 
 .weekday-bar {
@@ -475,6 +487,41 @@ button {
 .weekday-column > span {
   padding-bottom: 8px;
   font-size: 10px;
+}
+
+.weekday-detail {
+  margin-top: 14px;
+  padding: 14px 15px;
+  border: 1px solid #d9eee1;
+  border-radius: 12px;
+  background: #f5fbf7;
+}
+
+.weekday-detail > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #6f746f;
+  font-size: 11px;
+}
+
+.weekday-detail > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weekday-detail strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.weekday-detail > div > span {
+  flex-shrink: 0;
+  color: #168447;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .weekend-active {

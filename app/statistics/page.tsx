@@ -72,6 +72,11 @@ type MonthlyData = {
 type WeekdayData = {
   day: string;
   amount: number;
+  topContent: {
+    title: string;
+    amount: number;
+    count: number;
+  } | null;
 };
 
 type TimeData = {
@@ -239,6 +244,11 @@ export default function StatisticsPage() {
   const [
     selectedCategoryName,
     setSelectedCategoryName,
+  ] = useState<string | null>(null);
+
+  const [
+    selectedWeekday,
+    setSelectedWeekday,
   ] = useState<string | null>(null);
 
   const [userId, setUserId] =
@@ -812,6 +822,7 @@ export default function StatisticsPage() {
 
   useEffect(() => {
     setSelectedCategoryName(null);
+    setSelectedWeekday(null);
   }, [month, view, year]);
 
   const topCategory =
@@ -869,6 +880,18 @@ export default function StatisticsPage() {
       const totals = Array(7).fill(
         0,
       ) as number[];
+      const contentTotals = Array.from(
+        { length: 7 },
+        () =>
+          new Map<
+            string,
+            {
+              title: string;
+              amount: number;
+              count: number;
+            }
+          >(),
+      );
 
       selectedCurrentExpenses.forEach(
         (expense) => {
@@ -880,37 +903,87 @@ export default function StatisticsPage() {
             Number(
               expense.amount || 0,
             );
+
+          const title =
+            expense.title?.trim() ||
+            expense.category;
+          const key =
+            title.toLocaleLowerCase(
+              "ko-KR",
+            );
+          const weekdayIndex =
+            date.getDay();
+          const current =
+            contentTotals[
+              weekdayIndex
+            ].get(key);
+
+          if (current) {
+            current.amount += Number(
+              expense.amount || 0,
+            );
+            current.count += 1;
+          } else {
+            contentTotals[
+              weekdayIndex
+            ].set(key, {
+              title,
+              amount: Number(
+                expense.amount || 0,
+              ),
+              count: 1,
+            });
+          }
         },
       );
+
+      const getTopContent = (
+        weekdayIndex: number,
+      ) =>
+        Array.from(
+          contentTotals[
+            weekdayIndex
+          ].values(),
+        ).sort(
+          (first, second) =>
+            second.amount - first.amount,
+        )[0] ?? null;
 
       return [
         {
           day: "월",
           amount: totals[1],
+          topContent: getTopContent(1),
         },
         {
           day: "화",
           amount: totals[2],
+          topContent: getTopContent(2),
         },
         {
           day: "수",
           amount: totals[3],
+          topContent: getTopContent(3),
         },
         {
           day: "목",
           amount: totals[4],
+          topContent: getTopContent(4),
         },
         {
           day: "금",
           amount: totals[5],
+          topContent: getTopContent(5),
         },
         {
           day: "토",
           amount: totals[6],
+          topContent: getTopContent(6),
         },
         {
           day: "일",
           amount: totals[0],
+          topContent: getTopContent(0),
         },
       ];
     }, [selectedCurrentExpenses]);
@@ -932,8 +1005,15 @@ export default function StatisticsPage() {
       weekdaySpending[0] ?? {
         day: "-",
         amount: 0,
+        topContent: null,
       },
     );
+
+  const selectedWeekdayData =
+    weekdaySpending.find(
+      (item) =>
+        item.day === selectedWeekday,
+    ) ?? null;
 
   const timeSpending =
     useMemo<TimeData[]>(() => {
@@ -1860,9 +1940,28 @@ export default function StatisticsPage() {
               );
 
               return (
-                <div
-                  className="weekday-column"
+                <button
+                  type="button"
+                  className={[
+                    "weekday-column",
+                    selectedWeekday ===
+                    item.day
+                      ? "selected"
+                      : "",
+                  ].join(" ")}
                   key={item.day}
+                  onClick={() =>
+                    setSelectedWeekday(
+                      (current) =>
+                        current === item.day
+                          ? null
+                          : item.day,
+                    )
+                  }
+                  aria-pressed={
+                    selectedWeekday ===
+                    item.day
+                  }
                 >
                   <strong>
                     {item.amount.toLocaleString(
@@ -1886,18 +1985,50 @@ export default function StatisticsPage() {
                   <span>
                     {item.day}
                   </span>
-                </div>
+                </button>
               );
             },
           )}
         </div>
+
+        {selectedWeekdayData && (
+          <div className="weekday-detail">
+            <span>
+              {selectedWeekdayData.day}요일에
+              가장 많이 쓴 내용
+            </span>
+
+            {selectedWeekdayData.topContent ? (
+              <div>
+                <strong>
+                  {
+                    selectedWeekdayData
+                      .topContent.title
+                  }
+                </strong>
+                <span>
+                  {selectedWeekdayData.topContent.amount.toLocaleString(
+                    "ko-KR",
+                  )}
+                  원
+                  {selectedWeekdayData.topContent
+                    .count > 1
+                    ? ` · ${selectedWeekdayData.topContent.count}건`
+                    : ""}
+                </span>
+              </div>
+            ) : (
+              <strong>소비 기록이 없어요.</strong>
+            )}
+          </div>
+        )}
 
         <div className="analysis-tip">
           <span>💡</span>
 
           <p>
             {highestWeekday.amount > 0
-              ? `${highestWeekday.day}요일에 가장 많이 사용했어요.`
+              ? `${highestWeekday.day}요일에 가장 많이 사용했어요. 요일을 누르면 가장 많이 쓴 내용을 볼 수 있어요.`
               : "분석할 기록이 없어요."}
           </p>
         </div>
