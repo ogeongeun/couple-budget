@@ -792,6 +792,15 @@
 
 /* 모바일 */
 
+@media (max-width: 768px) {
+  .expense-sheet-new .content-date-row input,
+  .expense-sheet-new .content-merge-area input,
+  .expense-sheet-new .memo-textarea-wrap textarea,
+  .expense-sheet-new .share-amount input {
+    font-size: 16px;
+  }
+}
+
 @media (max-width: 380px) {
   .expense-sheet-new {
     height: 96dvh;
