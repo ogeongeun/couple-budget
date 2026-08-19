@@ -2113,11 +2113,6 @@ export default function CalendarPage() {
           onAddExpense={
             openExpenseSheet
           }
-          onManageExpense={(expense) =>
-            router.push(
-              `/spending?view=me&expense=${expense.id}`,
-            )
-          }
         />
 
         {isMyCalendar && (
@@ -2665,6 +2660,14 @@ export default function CalendarPage() {
           expenses={
             selectedExpenses
           }
+          canManage={
+            isMyCalendar
+          }
+          onManage={(expense) =>
+            router.push(
+              `/spending?view=me&expense=${expense.id}`,
+            )
+          }
         />
 
         <IncomeList
@@ -2851,8 +2854,14 @@ function IncomeList({
 
 function ExpenseList({
   expenses,
+  canManage = false,
+  onManage,
 }: {
   expenses: ExpenseRecord[];
+  canManage?: boolean;
+  onManage?: (
+    expense: ExpenseRecord,
+  ) => void;
 }) {
   if (
     expenses.length ===
@@ -2941,6 +2950,16 @@ function ExpenseList({
                   <span className="complete">
                     정산완료
                   </span>
+                )}
+
+                {canManage && onManage && (
+                  <button
+                    type="button"
+                    className="calendar-expense-manage"
+                    onClick={() => onManage(item)}
+                  >
+                    수정/삭제
+                  </button>
                 )}
               </div>
             </article>
@@ -3060,7 +3079,6 @@ function DayDetail({
   canAddExpense,
   onBack,
   onAddExpense,
-  onManageExpense,
 }: {
   date: string;
 
@@ -3088,9 +3106,6 @@ function DayDetail({
 
   onAddExpense: () => void;
 
-  onManageExpense: (
-    expense: ExpenseRecord,
-  ) => void;
 }) {
   const dateObject =
     new Date(
@@ -3369,17 +3384,6 @@ function DayDetail({
                       </span>
                     )}
 
-                    {canAddExpense && (
-                      <button
-                        type="button"
-                        className="day-expense-manage"
-                        onClick={() =>
-                          onManageExpense(item)
-                        }
-                      >
-                        수정/삭제
-                      </button>
-                    )}
                   </div>
                 </article>
               );
