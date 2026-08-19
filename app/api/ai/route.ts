@@ -1,9 +1,7 @@
-import { createHash } from "node:crypto";
-
+import { GoogleGenAI } from "@google/genai";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -21,13 +19,13 @@ function getMonthRange() {
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "OpenAI API 키가 아직 설정되지 않았어요." },
+      { error: "Gemini API 키가 아직 설정되지 않았어요." },
       { status: 503 },
     );
   }
@@ -141,22 +139,26 @@ export async function POST(request: Request) {
   }));
 
   try {
-    const response = await new OpenAI({ apiKey }).responses.create({
-      model: "gpt-5.6-luna",
-      store: false,
-      reasoning: { effort: "low" },
-      text: { verbosity: "low" },
-      safety_identifier: createHash("sha256").update(user.id).digest("hex"),
-      instructions: `너는 커플 가계부 앱 '둘의 하루'의 AI 소비 도우미야. 제공된 데이터만 근거로 한국어로 쉽고 다정하게 답해. 금액은 원 단위로 정확히 계산하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.`,
-      input: [
-        { role: "developer", content: `이번 달 커플 데이터:\n${JSON.stringify({ incomes, expenses })}` },
-        ...messages,
-      ],
+    const response = await new GoogleGenAI({ apiKey }).models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: messages.map((message) => ({
+        role: message.role === "assistant" ? "model" : "user",
+        parts: [{ text: message.content }],
+      })),
+      config: {
+        systemInstruction: `너는 커플 가계부 앱 '둘의 하루'의 AI 소비 도우미야. 제공된 데이터만 근거로 한국어로 쉽고 다정하게 답해. 금액은 원 단위로 정확히 계산하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n이번 달 커플 데이터:\n${JSON.stringify({ incomes, expenses })}`,
+        maxOutputTokens: 600,
+        temperature: 0.3,
+      },
     });
 
-    return NextResponse.json({ answer: response.output_text });
+    if (!response.text) {
+      throw new Error("Gemini가 빈 응답을 반환했습니다.");
+    }
+
+    return NextResponse.json({ answer: response.text });
   } catch (error) {
-    console.error("OpenAI 응답 오류:", error);
+    console.error("Gemini 응답 오류:", error);
     return NextResponse.json(
       { error: "AI 답변을 만드는 중 문제가 생겼어요. 잠시 후 다시 시도해주세요." },
       { status: 502 },
