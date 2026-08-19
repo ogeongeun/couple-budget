@@ -316,9 +316,12 @@ export default function ExpenseSheet({
               );
 
             return (
-              normalizedSuggestion.includes(
+              (normalizedSuggestion.includes(
                 normalizedContent,
-              ) &&
+              ) ||
+                normalizedContent.includes(
+                  normalizedSuggestion,
+                )) &&
               normalizedSuggestion !==
                 normalizedContent &&
               !hiddenContentSuggestions.includes(
@@ -328,6 +331,18 @@ export default function ExpenseSheet({
           })
           .slice(0, 5)
       : [];
+
+  const canMergeSuggestion = Boolean(
+    suggestionToManage &&
+      normalizedContent &&
+      contentSuggestions.some(
+        (suggestion) =>
+          suggestion.toLocaleLowerCase("ko-KR") ===
+          normalizedContent,
+      ) &&
+      suggestionToManage.toLocaleLowerCase("ko-KR") !==
+        normalizedContent,
+  );
 
   const numericAmount =
     Number(amount || 0);
@@ -1355,9 +1370,9 @@ export default function ExpenseSheet({
             className="content-manage-dialog"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>연관 검색어 정리</h3>
+            <h3>연관 검색어 삭제</h3>
             <p>
-              <strong>{suggestionToManage}</strong>을(를) 어떻게 정리할까요?
+              <strong>{suggestionToManage}</strong>을(를) 정말 삭제하시겠습니까?
             </p>
 
             <button
@@ -1365,13 +1380,11 @@ export default function ExpenseSheet({
               disabled={managingSuggestion}
               onClick={hideContentSuggestion}
             >
-              추천에서만 숨기기
+              추천에서 삭제하기
               <small>기존 소비 기록은 유지돼요.</small>
             </button>
 
-            {content.trim() &&
-              content.trim().toLocaleLowerCase("ko-KR") !==
-                suggestionToManage.toLocaleLowerCase("ko-KR") && (
+            {canMergeSuggestion && (
                 <button
                   type="button"
                   className="merge"

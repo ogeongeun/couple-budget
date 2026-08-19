@@ -445,7 +445,7 @@
   background: #eff9f3;
 }
 
-.content-suggestion-select {
+.expense-sheet-new .content-suggestion-select {
   width: 100%;
   min-width: 0;
   overflow: hidden;
@@ -459,8 +459,8 @@
   white-space: nowrap;
 }
 
-.content-suggestion-select:hover,
-.content-suggestion-select:focus-visible {
+.expense-sheet-new .content-suggestion-select:hover,
+.expense-sheet-new .content-suggestion-select:focus-visible {
   color: #35ad6d;
 }
 
