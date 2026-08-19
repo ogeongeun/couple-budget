@@ -220,6 +220,9 @@ function SpendingPageContent() {
       ? "partner"
       : "me";
 
+  const requestedExpenseId =
+    searchParams.get("expense");
+
   const now = new Date();
 
   const [view, setView] =
@@ -618,7 +621,7 @@ function SpendingPageContent() {
     setSelectedExpense(null);
   };
 
-  const openEdit = (
+  const openEdit = useCallback((
     expense: ExpenseRecord,
   ) => {
     if (
@@ -656,7 +659,41 @@ function SpendingPageContent() {
     });
 
     setMessage("");
-  };
+  }, [partnerId, userId]);
+
+  useEffect(() => {
+    if (
+      loading ||
+      !requestedExpenseId
+    ) {
+      return;
+    }
+
+    const requestedExpense = expenses.find(
+      (expense) =>
+        expense.id === requestedExpenseId,
+    );
+
+    router.replace(
+      `/spending?view=${view}`,
+    );
+
+    if (!requestedExpense) {
+      return;
+    }
+
+    setSelectedCategory(
+      requestedExpense.category,
+    );
+    openEdit(requestedExpense);
+  }, [
+    expenses,
+    loading,
+    openEdit,
+    requestedExpenseId,
+    router,
+    view,
+  ]);
 
   const closeEdit = () => {
     if (saving) {

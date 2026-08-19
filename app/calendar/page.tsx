@@ -2113,6 +2113,11 @@ export default function CalendarPage() {
           onAddExpense={
             openExpenseSheet
           }
+          onManageExpense={(expense) =>
+            router.push(
+              `/spending?view=me&expense=${expense.id}`,
+            )
+          }
         />
 
         {isMyCalendar && (
@@ -3055,6 +3060,7 @@ function DayDetail({
   canAddExpense,
   onBack,
   onAddExpense,
+  onManageExpense,
 }: {
   date: string;
 
@@ -3081,6 +3087,10 @@ function DayDetail({
   onBack: () => void;
 
   onAddExpense: () => void;
+
+  onManageExpense: (
+    expense: ExpenseRecord,
+  ) => void;
 }) {
   const dateObject =
     new Date(
@@ -3357,6 +3367,18 @@ function DayDetail({
                       <span>
                         정산전
                       </span>
+                    )}
+
+                    {canAddExpense && (
+                      <button
+                        type="button"
+                        className="day-expense-manage"
+                        onClick={() =>
+                          onManageExpense(item)
+                        }
+                      >
+                        수정/삭제
+                      </button>
                     )}
                   </div>
                 </article>
