@@ -240,10 +240,6 @@ export default function ExpenseSheet({
 
         seen.add(normalized);
         suggestions.push(title);
-
-        if (suggestions.length === 8) {
-          break;
-        }
       }
 
       setContentSuggestions(suggestions);
@@ -260,6 +256,31 @@ export default function ExpenseSheet({
   if (!open) {
     return null;
   }
+
+  const normalizedContent =
+    content.trim().toLocaleLowerCase(
+      "ko-KR",
+    );
+
+  const matchingContentSuggestions =
+    normalizedContent
+      ? contentSuggestions
+          .filter((suggestion) => {
+            const normalizedSuggestion =
+              suggestion.toLocaleLowerCase(
+                "ko-KR",
+              );
+
+            return (
+              normalizedSuggestion.includes(
+                normalizedContent,
+              ) &&
+              normalizedSuggestion !==
+                normalizedContent
+            );
+          })
+          .slice(0, 5)
+      : [];
 
   const numericAmount =
     Number(amount || 0);
@@ -857,28 +878,24 @@ export default function ExpenseSheet({
                   )}
                 </div>
 
-                {(suggestionsLoading ||
-                  contentSuggestions.length > 0) && (
+                {normalizedContent &&
+                  (suggestionsLoading ||
+                    matchingContentSuggestions.length > 0) && (
                   <div className="content-suggestions">
                     <span>
                       {suggestionsLoading
-                        ? "이전에 쓴 내용을 불러오는 중..."
-                        : "이전에 쓴 내용"}
+                        ? "연관 내용을 찾는 중..."
+                        : "연관된 이전 내용"}
                     </span>
 
                     {!suggestionsLoading && (
                       <div>
-                        {contentSuggestions.map(
+                        {matchingContentSuggestions.map(
                           (suggestion) => (
                             <button
                               type="button"
                               key={suggestion}
                               disabled={saving}
-                              className={
-                                content.trim() === suggestion
-                                  ? "selected"
-                                  : ""
-                              }
                               onClick={() =>
                                 setContent(suggestion)
                               }
@@ -889,10 +906,6 @@ export default function ExpenseSheet({
                         )}
                       </div>
                     )}
-
-                    <small>
-                      목록에 없으면 위 입력칸에 새 내용을 적어주세요.
-                    </small>
                   </div>
                 )}
               </label>
