@@ -383,6 +383,31 @@ export default function ExpenseSheet({
     setSuggestionToManage(null);
   };
 
+  const restoreContentSuggestion = (
+    title: string,
+  ) => {
+    if (!coupleId || !title.trim()) {
+      return;
+    }
+
+    const normalized = title
+      .trim()
+      .toLocaleLowerCase("ko-KR");
+
+    setHiddenContentSuggestions((current) => {
+      const nextHidden = current.filter(
+        (hidden) => hidden !== normalized,
+      );
+
+      window.localStorage.setItem(
+        `hidden-expense-content:${coupleId}:${category}`,
+        JSON.stringify(nextHidden),
+      );
+
+      return nextHidden;
+    });
+  };
+
   const mergeContentSuggestion = async () => {
     const targetTitle = mergeTargetInput.trim();
 
@@ -650,6 +675,20 @@ export default function ExpenseSheet({
           notificationError,
         );
       }
+    }
+
+    const savedContent = content.trim();
+
+    if (savedContent) {
+      restoreContentSuggestion(savedContent);
+      setContentSuggestions((current) => [
+        savedContent,
+        ...current.filter(
+          (suggestion) =>
+            suggestion.toLocaleLowerCase("ko-KR") !==
+            savedContent.toLocaleLowerCase("ko-KR"),
+        ),
+      ]);
     }
 
     onSave();
