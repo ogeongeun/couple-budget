@@ -169,6 +169,11 @@ export default function ExpenseSheet({
   ] = useState(false);
 
   const [
+    mergeTargetInput,
+    setMergeTargetInput,
+  ] = useState("");
+
+  const [
     memo,
     setMemo,
   ] = useState("");
@@ -332,15 +337,6 @@ export default function ExpenseSheet({
           .slice(0, 5)
       : [];
 
-  const mergeTargetSuggestion =
-    suggestionToManage
-      ? matchingContentSuggestions.find(
-          (suggestion) =>
-            suggestion.toLocaleLowerCase("ko-KR") !==
-            suggestionToManage.toLocaleLowerCase("ko-KR"),
-        ) ?? null
-      : null;
-
   const numericAmount =
     Number(amount || 0);
 
@@ -388,7 +384,7 @@ export default function ExpenseSheet({
   };
 
   const mergeContentSuggestion = async () => {
-    const targetTitle = mergeTargetSuggestion;
+    const targetTitle = mergeTargetInput.trim();
 
     if (
       !suggestionToManage ||
@@ -441,6 +437,7 @@ export default function ExpenseSheet({
       ),
     );
     setSuggestionToManage(null);
+    setMergeTargetInput("");
     setManagingSuggestion(false);
     setMessage(
       `${data?.length ?? 0}건을 '${targetTitle}'로 통합했어요.`,
@@ -1055,9 +1052,12 @@ export default function ExpenseSheet({
                                 disabled={saving}
                                 aria-label={`${suggestion} 정리하기`}
                                 onClick={() =>
-                                  setSuggestionToManage(
-                                    suggestion,
-                                  )
+                                  {
+                                    setSuggestionToManage(
+                                      suggestion,
+                                    );
+                                    setMergeTargetInput("");
+                                  }
                                 }
                               >
                                 ×
@@ -1360,6 +1360,7 @@ export default function ExpenseSheet({
           onClick={() => {
             if (!managingSuggestion) {
               setSuggestionToManage(null);
+              setMergeTargetInput("");
             }
           }}
         >
@@ -1367,47 +1368,60 @@ export default function ExpenseSheet({
             className="content-manage-dialog"
             onClick={(event) => event.stopPropagation()}
           >
-            {mergeTargetSuggestion ? (
-              <>
-                <h3>소비 내용 통합</h3>
-                <p>
-                  <strong>{suggestionToManage}</strong> 기록을{" "}
-                  <strong>{mergeTargetSuggestion}</strong>로 통합하시겠습니까?
-                </p>
+            <h3>연관 검색어 정리</h3>
+            <p>
+              <strong>{suggestionToManage}</strong>을(를) 어떻게 정리할까요?
+            </p>
 
-                <button
-                  type="button"
-                  className="merge"
-                  disabled={managingSuggestion}
-                  onClick={mergeContentSuggestion}
-                >
-                  &apos;{mergeTargetSuggestion}&apos;로 통합하기
-                  <small>금액과 날짜는 그대로 유지돼요.</small>
-                </button>
-              </>
-            ) : (
-              <>
-                <h3>연관 검색어 삭제</h3>
-                <p>
-                  <strong>{suggestionToManage}</strong>을(를) 정말 삭제하시겠습니까?
-                </p>
+            <button
+              type="button"
+              disabled={managingSuggestion}
+              onClick={hideContentSuggestion}
+            >
+              추천에서 삭제하기
+              <small>기존 소비 기록은 유지돼요.</small>
+            </button>
 
-                <button
-                  type="button"
-                  disabled={managingSuggestion}
-                  onClick={hideContentSuggestion}
-                >
-                  추천에서 삭제하기
-                  <small>기존 소비 기록은 유지돼요.</small>
-                </button>
-              </>
-            )}
+            <div className="content-merge-area">
+              <label htmlFor="content-merge-target">
+                다른 내용으로 통합
+              </label>
+              <input
+                id="content-merge-target"
+                type="text"
+                value={mergeTargetInput}
+                disabled={managingSuggestion}
+                placeholder="통합할 내용 입력 (예: 음료수)"
+                onChange={(event) =>
+                  setMergeTargetInput(event.target.value)
+                }
+              />
+              <button
+                type="button"
+                className="merge"
+                disabled={
+                  managingSuggestion ||
+                  !mergeTargetInput.trim() ||
+                  mergeTargetInput
+                    .trim()
+                    .toLocaleLowerCase("ko-KR") ===
+                    suggestionToManage.toLocaleLowerCase("ko-KR")
+                }
+                onClick={mergeContentSuggestion}
+              >
+                입력한 내용으로 통합하기
+                <small>금액과 날짜는 그대로 유지돼요.</small>
+              </button>
+            </div>
 
             <button
               type="button"
               className="cancel"
               disabled={managingSuggestion}
-              onClick={() => setSuggestionToManage(null)}
+              onClick={() => {
+                setSuggestionToManage(null);
+                setMergeTargetInput("");
+              }}
             >
               취소
             </button>
