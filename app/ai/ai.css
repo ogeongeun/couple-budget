@@ -1,0 +1,123 @@
+* { box-sizing: border-box; }
+
+.ai-page {
+  width: min(100%, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 16px 178px;
+  background: #fffdf9;
+  color: #403b37;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 2px 18px;
+}
+
+.ai-header > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  background: #eaf8ef;
+  font-size: 20px;
+}
+
+.ai-header h1, .ai-header p, .ai-bubble p { margin: 0; }
+.ai-header h1 { font-size: 19px; }
+.ai-header p { margin-top: 4px; color: #96908a; font-size: 11px; }
+
+.ai-welcome {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 28px;
+}
+
+.ai-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: #36a968;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.ai-bubble {
+  padding: 14px 15px;
+  border-radius: 5px 17px 17px;
+  background: white;
+  box-shadow: 0 7px 22px rgba(48, 69, 57, 0.08);
+}
+
+.ai-bubble strong { font-size: 13px; }
+.ai-bubble p { margin-top: 5px; color: #77716c; font-size: 11px; line-height: 1.55; }
+.ai-suggestions { margin-top: 28px; }
+.ai-suggestions h2 { margin: 0 0 11px; font-size: 12px; }
+.ai-suggestions > div { display: grid; gap: 8px; }
+
+.ai-suggestions button {
+  padding: 13px 14px;
+  border: 1px solid #e7ece8;
+  border-radius: 12px;
+  background: white;
+  color: #5d625e;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+}
+
+.ai-connection-notice {
+  margin-top: 20px;
+  color: #aaa39d;
+  font-size: 10px;
+  text-align: center;
+}
+
+.ai-input {
+  position: fixed;
+  right: max(16px, calc((100% - 430px) / 2 + 16px));
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  left: max(16px, calc((100% - 430px) / 2 + 16px));
+  z-index: 900;
+  display: flex;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid #e5e9e6;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 8px 25px rgba(40, 58, 48, 0.1);
+}
+
+.ai-input input {
+  min-width: 0;
+  flex: 1;
+  padding: 7px 8px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+}
+
+.ai-input button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 12px;
+  background: #dfe7e2;
+  color: white;
+  font-size: 18px;
+}
+
+@media (min-width: 900px) {
+  .ai-page { padding-bottom: 110px; }
+  .ai-input { right: max(24px, calc((100% - 650px) / 2)); bottom: 24px; left: max(244px, calc((100% - 210px) / 2)); }
+}

@@ -3,7 +3,12 @@
 import { useRouter } from "next/navigation";
 import "./BottomNavigation.css";
 
-type NavigationId = "home" | "calendar" | "statistics" | "profile";
+type NavigationId =
+  | "home"
+  | "calendar"
+  | "statistics"
+  | "ai"
+  | "profile";
 
 type BottomNavigationProps = {
   active: NavigationId;
@@ -20,6 +25,7 @@ export default function BottomNavigation({ active }: BottomNavigationProps) {
     { id: "home", label: "홈", path: "/", icon: "🏠" },
     { id: "calendar", label: "캘린더", path: "/calendar", icon: "🗓️" },
     { id: "statistics", label: "통계", path: "/statistics", icon: "📊" },
+    { id: "ai", label: "AI", path: "/ai", icon: "✨" },
     { id: "profile", label: "마이", path: "/profile", icon: "👤" },
   ];
 

@@ -5,7 +5,7 @@
   left: 0 !important;
   z-index: 1000;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100% !important;
   margin: 0 !important;
   padding: 7px max(10px, calc((100% - 430px) / 2 + 10px))
