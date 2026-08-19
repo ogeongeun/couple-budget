@@ -251,6 +251,11 @@ export default function StatisticsPage() {
     setSelectedWeekday,
   ] = useState<string | null>(null);
 
+  const [
+    selectedTreatPayer,
+    setSelectedTreatPayer,
+  ] = useState<ViewType | null>(null);
+
   const [userId, setUserId] =
     useState<string | null>(null);
 
@@ -823,6 +828,7 @@ export default function StatisticsPage() {
   useEffect(() => {
     setSelectedCategoryName(null);
     setSelectedWeekday(null);
+    setSelectedTreatPayer(null);
   }, [month, view, year]);
 
   const topCategory =
@@ -1424,6 +1430,77 @@ export default function StatisticsPage() {
           : highest;
       }, null);
     }, [treatExpenses]);
+
+  const selectedTreatDetails =
+    useMemo<ContentData[]>(() => {
+      const payerId =
+        selectedTreatPayer === "me"
+          ? userId
+          : selectedTreatPayer ===
+              "partner"
+            ? partnerId
+            : null;
+
+      if (!payerId) {
+        return [];
+      }
+
+      const payerExpenses =
+        treatExpenses.filter(
+          (expense) =>
+            expense.payer_id === payerId,
+        );
+      const payerTotal =
+        sumAmount(payerExpenses);
+      const grouped = new Map<
+        string,
+        Omit<ContentData, "percentage">
+      >();
+
+      for (const expense of payerExpenses) {
+        const title =
+          expense.title?.trim() ||
+          expense.category;
+        const key =
+          title.toLocaleLowerCase(
+            "ko-KR",
+          );
+        const current = grouped.get(key);
+
+        if (current) {
+          current.amount += Number(
+            expense.amount || 0,
+          );
+          current.count += 1;
+        } else {
+          grouped.set(key, {
+            title,
+            amount: Number(
+              expense.amount || 0,
+            ),
+            count: 1,
+          });
+        }
+      }
+
+      return Array.from(grouped.values())
+        .map((item) => ({
+          ...item,
+          percentage: getPercentage(
+            item.amount,
+            payerTotal,
+          ),
+        }))
+        .sort(
+          (first, second) =>
+            second.amount - first.amount,
+        );
+    }, [
+      partnerId,
+      selectedTreatPayer,
+      treatExpenses,
+      userId,
+    ]);
 
   const eveningAfterPercentage =
     (timeSpending.find(
@@ -2216,7 +2293,25 @@ export default function StatisticsPage() {
         </div>
 
         <div className="treat-comparison">
-          <div>
+          <button
+            type="button"
+            className={
+              selectedTreatPayer === "me"
+                ? "selected"
+                : ""
+            }
+            onClick={() =>
+              setSelectedTreatPayer(
+                (current) =>
+                  current === "me"
+                    ? null
+                    : "me",
+              )
+            }
+            aria-pressed={
+              selectedTreatPayer === "me"
+            }
+          >
             <header>
               <span>{myNickname}</span>
 
@@ -2239,9 +2334,29 @@ export default function StatisticsPage() {
                 }}
               />
             </div>
-          </div>
+          </button>
 
-          <div>
+          <button
+            type="button"
+            className={
+              selectedTreatPayer ===
+              "partner"
+                ? "selected"
+                : ""
+            }
+            onClick={() =>
+              setSelectedTreatPayer(
+                (current) =>
+                  current === "partner"
+                    ? null
+                    : "partner",
+              )
+            }
+            aria-pressed={
+              selectedTreatPayer ===
+              "partner"
+            }
+          >
             <header>
               <span>
                 {partnerNickname}
@@ -2266,8 +2381,49 @@ export default function StatisticsPage() {
                 }}
               />
             </div>
-          </div>
+          </button>
         </div>
+
+        {selectedTreatPayer && (
+          <div className="treat-details">
+            <header>
+              <strong>
+                {selectedTreatPayer === "me"
+                  ? myNickname
+                  : partnerNickname}
+                님이 사준 것
+              </strong>
+              <span>다시 누르면 닫혀요</span>
+            </header>
+
+            {selectedTreatDetails.length > 0 ? (
+              selectedTreatDetails.map(
+                (item) => (
+                  <div
+                    key={item.title.toLocaleLowerCase(
+                      "ko-KR",
+                    )}
+                  >
+                    <span>
+                      {item.title}
+                      {item.count > 1
+                        ? ` · ${item.count}건`
+                        : ""}
+                    </span>
+                    <strong>
+                      {item.amount.toLocaleString(
+                        "ko-KR",
+                      )}
+                      원
+                    </strong>
+                  </div>
+                ),
+              )
+            ) : (
+              <p>사주기 기록이 없어요.</p>
+            )}
+          </div>
+        )}
 
         <div className="treat-result">
           <span>🐶</span>

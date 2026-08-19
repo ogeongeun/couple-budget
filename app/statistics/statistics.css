@@ -1256,11 +1256,21 @@ button {
   margin-top: 15px;
 }
 
-.treat-comparison > div {
+.treat-comparison > button {
+  width: 100%;
   padding: 13px;
   border: 1px solid #eee9e5;
   border-radius: 12px;
   background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.treat-comparison > button.selected {
+  border-color: #ffc4b1;
+  background: #fffaf7;
 }
 
 .treat-comparison header {
@@ -1295,6 +1305,59 @@ button {
 
 .treat-progress.partner span {
   background: #9a73d1;
+}
+
+.treat-details {
+  margin-top: 12px;
+  padding: 13px 14px;
+  border: 1px solid #f0e4dc;
+  border-radius: 12px;
+  background: #fffdfb;
+}
+
+.treat-details > header,
+.treat-details > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.treat-details > header {
+  margin-bottom: 8px;
+}
+
+.treat-details > header strong {
+  font-size: 12px;
+}
+
+.treat-details > header span {
+  color: #9a918a;
+  font-size: 9px;
+}
+
+.treat-details > div {
+  padding: 7px 0;
+  border-top: 1px solid #f4ede8;
+}
+
+.treat-details > div > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #625d59;
+  font-size: 11px;
+}
+
+.treat-details > div > strong {
+  flex-shrink: 0;
+  color: #ff704c;
+  font-size: 11px;
+}
+
+.treat-details > p {
+  margin: 0;
+  color: #8c847e;
+  font-size: 11px;
 }
 
 .treat-result {
