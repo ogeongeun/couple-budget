@@ -332,17 +332,14 @@ export default function ExpenseSheet({
           .slice(0, 5)
       : [];
 
-  const canMergeSuggestion = Boolean(
-    suggestionToManage &&
-      normalizedContent &&
-      contentSuggestions.some(
-        (suggestion) =>
-          suggestion.toLocaleLowerCase("ko-KR") ===
-          normalizedContent,
-      ) &&
-      suggestionToManage.toLocaleLowerCase("ko-KR") !==
-        normalizedContent,
-  );
+  const mergeTargetSuggestion =
+    suggestionToManage
+      ? matchingContentSuggestions.find(
+          (suggestion) =>
+            suggestion.toLocaleLowerCase("ko-KR") !==
+            suggestionToManage.toLocaleLowerCase("ko-KR"),
+        ) ?? null
+      : null;
 
   const numericAmount =
     Number(amount || 0);
@@ -391,7 +388,7 @@ export default function ExpenseSheet({
   };
 
   const mergeContentSuggestion = async () => {
-    const targetTitle = content.trim();
+    const targetTitle = mergeTargetSuggestion;
 
     if (
       !suggestionToManage ||
@@ -1370,31 +1367,41 @@ export default function ExpenseSheet({
             className="content-manage-dialog"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>연관 검색어 삭제</h3>
-            <p>
-              <strong>{suggestionToManage}</strong>을(를) 정말 삭제하시겠습니까?
-            </p>
+            {mergeTargetSuggestion ? (
+              <>
+                <h3>소비 내용 통합</h3>
+                <p>
+                  <strong>{suggestionToManage}</strong> 기록을{" "}
+                  <strong>{mergeTargetSuggestion}</strong>로 통합하시겠습니까?
+                </p>
 
-            <button
-              type="button"
-              disabled={managingSuggestion}
-              onClick={hideContentSuggestion}
-            >
-              추천에서 삭제하기
-              <small>기존 소비 기록은 유지돼요.</small>
-            </button>
-
-            {canMergeSuggestion && (
                 <button
                   type="button"
                   className="merge"
                   disabled={managingSuggestion}
                   onClick={mergeContentSuggestion}
                 >
-                  &apos;{content.trim()}&apos;로 통합하기
-                  <small>기존 기록의 내용도 함께 바뀌어요.</small>
+                  &apos;{mergeTargetSuggestion}&apos;로 통합하기
+                  <small>금액과 날짜는 그대로 유지돼요.</small>
                 </button>
-              )}
+              </>
+            ) : (
+              <>
+                <h3>연관 검색어 삭제</h3>
+                <p>
+                  <strong>{suggestionToManage}</strong>을(를) 정말 삭제하시겠습니까?
+                </p>
+
+                <button
+                  type="button"
+                  disabled={managingSuggestion}
+                  onClick={hideContentSuggestion}
+                >
+                  추천에서 삭제하기
+                  <small>기존 소비 기록은 유지돼요.</small>
+                </button>
+              </>
+            )}
 
             <button
               type="button"
