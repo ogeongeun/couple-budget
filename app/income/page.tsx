@@ -227,11 +227,16 @@ export default function IncomePage() {
     setSaving(true);
     setMessage("");
 
-    const { error } = await supabase
+    const {
+      data: deletedIncome,
+      error,
+    } = await supabase
       .from("incomes")
       .delete()
       .eq("id", income.id)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .select("id")
+      .maybeSingle();
 
     if (error) {
       console.error(
@@ -247,6 +252,22 @@ export default function IncomePage() {
       return;
     }
 
+    if (!deletedIncome) {
+      setMessage(
+        "삭제할 소득 기록을 찾지 못했어요. 화면을 새로고침한 뒤 다시 시도해 주세요.",
+      );
+
+      setSaving(false);
+      return;
+    }
+
+    setIncomes((current) =>
+      current.filter(
+        (currentIncome) =>
+          currentIncome.id !== income.id,
+      ),
+    );
+
     if (
       selectedIncome?.id === income.id
     ) {
@@ -255,7 +276,6 @@ export default function IncomePage() {
 
     setSaving(false);
 
-    await loadIncomes();
   };
 
   const totalIncome = incomes.reduce(
