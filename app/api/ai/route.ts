@@ -224,12 +224,24 @@ export async function POST(request: Request) {
     }));
   const summarizeExpenses = (items: typeof myExpenses) => {
     const categoryTotals: Record<string, number> = {};
+    const contentTotals: Record<string, { amount: number; count: number; category: string }> = {};
     let total = 0;
 
     for (const item of items) {
       total += item.금액;
       categoryTotals[item.카테고리] =
         (categoryTotals[item.카테고리] ?? 0) + item.금액;
+      const content = item.내용.trim() || item.카테고리;
+      const current = contentTotals[content] ?? {
+        amount: 0,
+        count: 0,
+        category: item.카테고리,
+      };
+      contentTotals[content] = {
+        amount: current.amount + item.금액,
+        count: current.count + 1,
+        category: current.category,
+      };
     }
 
     return {
@@ -237,6 +249,10 @@ export async function POST(request: Request) {
       카테고리별소비: Object.entries(categoryTotals)
         .sort(([, a], [, b]) => b - a)
         .map(([category, amount]) => ({ category, amount })),
+      내용별소비: Object.entries(contentTotals)
+        .sort(([, a], [, b]) => b.amount - a.amount)
+        .slice(0, 20)
+        .map(([content, detail]) => ({ content, ...detail })),
     };
   };
   const mySummary = {
@@ -281,6 +297,7 @@ export async function POST(request: Request) {
       config: {
         systemInstruction: `너는 커플 가계부 앱 '둘의 하루'의 AI 소비 도우미야. 현재 로그인한 사용자는 '${profile.nickname ?? "사용자"}'이고 오늘은 ${today}이야.
 제공된 데이터만 근거로 한국어로 쉽고 다정하게 답해. '내', '나', '내가'라고 물으면 반드시 아래의 '로그인 사용자 개인 요약'과 '로그인 사용자 개인 기록'만 사용해. 개인 소비 합계와 카테고리 합계는 직접 다시 계산하지 말고 개인 요약의 숫자를 그대로 답해. 이때 로그인한 사용자의 닉네임을 제3자처럼 부르지 말고 '이번 달에는', '가장 많이 쓴 항목은'처럼 사용자에게 직접 말해. 'OO님이', '내가 물어보신', '본인이' 같은 표현은 사용하지 마. 상대방 이름이나 둘/우리/커플을 명시한 경우에만 아래의 커플 전체 기록을 분석해.
+소비를 줄일 항목이나 절약 방법을 물으면 카테고리 이름만 답하지 말고 반드시 개인 요약의 '내용별소비'와 개인 기록의 '내용'도 함께 확인해. 총액이 크거나 여러 번 반복된 구체적인 소비 내용을 1~3개 골라 금액과 횟수를 근거로 알려주고, 실행 가능한 줄이는 방법을 제안해. 기록에 없는 소비 내용은 만들어내지 마.
 사용자가 개인 소비 추가를 명확하게 요청하면 action.kind를 add_expense로 설정하고 금액, 카테고리, 내용, 날짜를 정리해. '오늘'은 ${today}로 변환해. 음료수/커피/카페 음료는 카페, 식사/음식은 식비로 분류해. 저장은 하지 말고 확인할 초안이라고 안내해. 소비 추가 요청이 아니면 action.kind는 none이고 나머지 action 값은 빈 값이나 0으로 둬.
 사용자가 그래프나 차트로 보여달라고 요청하면 action.kind를 show_chart로 설정해. 날짜별/일별은 groupBy day, 주별은 week, 카테고리별은 category야. 이번 주와 이번 달만 지원해. '내'는 scope me, 애인/상대방은 partner, 둘/우리/커플은 couple이야. 소비는 expense, 소득은 income, 소득에서 소비를 뺀 금액은 net이야. 그래프 요청이면 답변에는 어떤 그래프를 준비했는지만 짧게 안내해.
 금액은 원 단위로 정확히 답하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n로그인 사용자 개인 요약(서버에서 계산한 확정값):\n${JSON.stringify(mySummary)}\n\n로그인 사용자 이번 주 요약(월 소득을 4로 나눈 주간 예산의 100% 기준):\n${JSON.stringify(weeklySummary)}\n\n로그인 사용자 개인 기록:\n${JSON.stringify({ incomes: myIncomes, expenses: myExpenses })}\n\n이번 달 커플 전체 기록(상대방 또는 둘을 명시했을 때만 사용):\n${JSON.stringify({ incomes, expenses })}`,
