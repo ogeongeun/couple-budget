@@ -33,28 +33,66 @@ const suggestions = [
 ];
 
 function SpendingChart({ chart }: { chart: ChartData }) {
-  const maximum = Math.max(...chart.points.map((point) => Math.abs(point.value)), 1);
+  const [expanded, setExpanded] = useState(false);
+  const values = chart.points.map((point) => point.value);
+  const minimum = Math.min(...values, 0);
+  const maximum = Math.max(...values, 1);
+  const range = Math.max(maximum - minimum, 1);
+  const chartWidth = 320;
+  const chartHeight = 150;
+  const padding = { top: 24, right: 12, bottom: 28, left: 12 };
+  const plotWidth = chartWidth - padding.left - padding.right;
+  const plotHeight = chartHeight - padding.top - padding.bottom;
+  const coordinates = chart.points.map((point, index) => ({
+    ...point,
+    x:
+      padding.left +
+      (chart.points.length <= 1 ? plotWidth / 2 : (index / (chart.points.length - 1)) * plotWidth),
+    y: padding.top + ((maximum - point.value) / range) * plotHeight,
+  }));
+  const pointString = coordinates.map((point) => `${point.x},${point.y}`).join(" ");
+  const labelStep = Math.max(1, Math.ceil(chart.points.length / 6));
+
+  const graph = (
+    <svg className="ai-chart-svg" viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label={`${chart.title} 선 그래프`}>
+      {[0, 0.5, 1].map((ratio) => (
+        <line key={ratio} x1={padding.left} x2={chartWidth - padding.right} y1={padding.top + plotHeight * ratio} y2={padding.top + plotHeight * ratio} className="ai-chart-grid" />
+      ))}
+      {coordinates.length > 1 && (
+        <polygon points={`${coordinates[0].x},${padding.top + plotHeight} ${pointString} ${coordinates.at(-1)?.x},${padding.top + plotHeight}`} className="ai-chart-area" />
+      )}
+      <polyline points={pointString} className="ai-chart-line" />
+      {coordinates.map((point, index) => (
+        <g key={`${point.label}-${index}`}>
+          <circle cx={point.x} cy={point.y} r="3.5" className={point.value < 0 ? "ai-chart-dot negative" : "ai-chart-dot"}>
+            <title>{point.label} · {point.value.toLocaleString("ko-KR")}원</title>
+          </circle>
+          {(index % labelStep === 0 || index === coordinates.length - 1) && (
+            <text x={point.x} y={chartHeight - 8} textAnchor="middle" className="ai-chart-label">{point.label}</text>
+          )}
+        </g>
+      ))}
+      {coordinates.length === 1 && <text x={coordinates[0].x} y={coordinates[0].y - 9} textAnchor="middle" className="ai-chart-amount">{coordinates[0].value.toLocaleString("ko-KR")}원</text>}
+    </svg>
+  );
 
   return (
     <section className="ai-chart" aria-label={chart.title}>
-      <header><strong>{chart.title}</strong><span>실제 기록 기준</span></header>
+      <header><strong>{chart.title}</strong><span>눌러서 크게 보기</span></header>
       {chart.points.length === 0 ? (
         <p className="ai-chart-empty">해당 기간의 기록이 없어요.</p>
       ) : (
-        <div className="ai-chart-bars">
-          {chart.points.map((point) => (
-            <div className="ai-chart-column" key={point.label}>
-              <div className="ai-chart-value">{point.value.toLocaleString("ko-KR")}원</div>
-              <div className="ai-chart-track">
-                <div
-                  className={`ai-chart-bar${point.value < 0 ? " negative" : ""}`}
-                  style={{ height: `${Math.max(8, Math.abs(point.value) / maximum * 100)}%` }}
-                  title={`${point.label} ${point.value.toLocaleString("ko-KR")}원`}
-                />
-              </div>
-              <span>{point.label}</span>
-            </div>
-          ))}
+        <button type="button" className="ai-chart-open" onClick={() => setExpanded(true)} aria-label={`${chart.title} 크게 보기`}>
+          {graph}
+        </button>
+      )}
+      {expanded && (
+        <div className="ai-chart-modal" role="dialog" aria-modal="true" aria-label={`${chart.title} 확대 그래프`} onClick={() => setExpanded(false)}>
+          <div className="ai-chart-expanded" onClick={(event) => event.stopPropagation()}>
+            <header><div><strong>{chart.title}</strong><span>실제 기록 기준</span></div><button type="button" onClick={() => setExpanded(false)} aria-label="확대 그래프 닫기">×</button></header>
+            {graph}
+            <div className="ai-chart-legend"><span>최고 {maximum.toLocaleString("ko-KR")}원</span><span>전체 {chart.points.reduce((sum, point) => sum + point.value, 0).toLocaleString("ko-KR")}원</span></div>
+          </div>
         </div>
       )}
     </section>
