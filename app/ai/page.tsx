@@ -5,7 +5,17 @@ import { FormEvent, useState } from "react";
 import BottomNavigation from "@/components/BottomNavigation";
 import "./ai.css";
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChartData = {
+  kind: "show_chart";
+  title: string;
+  points: { label: string; value: number }[];
+};
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  chart?: ChartData;
+};
 
 type ExpenseDraft = {
   kind: "add_expense";
@@ -18,9 +28,38 @@ type ExpenseDraft = {
 const suggestions = [
   "내 이번 달 소비를 요약해줘",
   "내가 이번 주에 얼마 더 써도 돼?",
-  "내가 가장 많이 쓴 내용이 뭐야?",
+  "내 이번 달 일일 소비를 그래프로 보여줘",
   "내 소비에서 줄이기 좋은 항목을 알려줘",
 ];
+
+function SpendingChart({ chart }: { chart: ChartData }) {
+  const maximum = Math.max(...chart.points.map((point) => Math.abs(point.value)), 1);
+
+  return (
+    <section className="ai-chart" aria-label={chart.title}>
+      <header><strong>{chart.title}</strong><span>실제 기록 기준</span></header>
+      {chart.points.length === 0 ? (
+        <p className="ai-chart-empty">해당 기간의 기록이 없어요.</p>
+      ) : (
+        <div className="ai-chart-bars">
+          {chart.points.map((point) => (
+            <div className="ai-chart-column" key={point.label}>
+              <div className="ai-chart-value">{point.value.toLocaleString("ko-KR")}원</div>
+              <div className="ai-chart-track">
+                <div
+                  className={`ai-chart-bar${point.value < 0 ? " negative" : ""}`}
+                  style={{ height: `${Math.max(8, Math.abs(point.value) / maximum * 100)}%` }}
+                  title={`${point.label} ${point.value.toLocaleString("ko-KR")}원`}
+                />
+              </div>
+              <span>{point.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 export default function AiPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -52,7 +91,7 @@ export default function AiPage() {
       });
       const result = (await response.json()) as {
         answer?: string;
-        action?: ExpenseDraft | null;
+        action?: ExpenseDraft | ChartData | null;
         error?: string;
       };
 
@@ -62,9 +101,13 @@ export default function AiPage() {
 
       setMessages((current) => [
         ...current,
-        { role: "assistant", content: result.answer as string },
+        {
+          role: "assistant",
+          content: result.answer as string,
+          chart: result.action?.kind === "show_chart" ? result.action : undefined,
+        },
       ]);
-      setPendingExpense(result.action ?? null);
+      setPendingExpense(result.action?.kind === "add_expense" ? result.action : null);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -132,9 +175,12 @@ export default function AiPage() {
         </div>
 
         {messages.map((message, index) => (
-          <div className={`ai-message ${message.role}`} key={`${message.role}-${index}`}>
-            {message.role === "assistant" && <div className="ai-avatar">AI</div>}
-            <p>{message.content}</p>
+          <div className={`ai-message-wrap ${message.role}`} key={`${message.role}-${index}`}>
+            <div className={`ai-message ${message.role}`}>
+              {message.role === "assistant" && <div className="ai-avatar">AI</div>}
+              <p>{message.content}</p>
+            </div>
+            {message.chart && <SpendingChart chart={message.chart} />}
           </div>
         ))}
 

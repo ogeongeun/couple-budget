@@ -48,6 +48,15 @@
   gap: 10px;
 }
 
+.ai-message-wrap {
+  display: grid;
+  gap: 9px;
+}
+
+.ai-message-wrap.user {
+  justify-items: end;
+}
+
 .ai-message.user {
   justify-content: flex-end;
 }
@@ -73,6 +82,76 @@
 .ai-thinking {
   color: #88817b;
 }
+
+.ai-chart {
+  min-width: 0;
+  margin-left: 46px;
+  padding: 14px 12px 12px;
+  overflow: hidden;
+  border: 1px solid #dcece2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(48, 69, 57, 0.07);
+}
+
+.ai-chart header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ai-chart header strong { font-size: 12px; }
+.ai-chart header span { color: #99928c; font-size: 8px; }
+.ai-chart-empty { margin: 20px 0 12px; color: #8c8782; font-size: 11px; text-align: center; }
+
+.ai-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-height: 154px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.ai-chart-column {
+  display: grid;
+  width: 46px;
+  min-width: 46px;
+  justify-items: center;
+  gap: 5px;
+}
+
+.ai-chart-value {
+  width: 58px;
+  overflow: hidden;
+  color: #77716c;
+  font-size: 8px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-chart-track {
+  display: flex;
+  width: 24px;
+  height: 112px;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 8px 8px 4px 4px;
+  background: #edf5f0;
+}
+
+.ai-chart-bar {
+  width: 100%;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #55bf7c, #2f9f60);
+}
+
+.ai-chart-bar.negative { background: linear-gradient(180deg, #f09a87, #dc6f5a); }
+.ai-chart-column > span { color: #77716c; font-size: 9px; white-space: nowrap; }
 
 .ai-expense-confirm {
   margin-top: 14px;
