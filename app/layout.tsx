@@ -15,6 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "둘의 하루",
   description: "우리 둘이 함께 쓰고 모으는 커플 가계부",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "둘의 하루",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/chorong-mint-collar-no-charm-v2.png",
+  },
 };
 
 export const viewport: Viewport = {

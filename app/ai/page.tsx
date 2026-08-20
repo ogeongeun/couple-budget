@@ -169,7 +169,7 @@ export default function AiPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pendingExpense),
       });
-      const result = (await response.json()) as { message?: string; error?: string };
+      const result = (await response.json()) as { message?: string; expenseId?: string; error?: string };
 
       if (!response.ok || !result.message) {
         throw new Error(result.error || "소비 기록을 저장하지 못했어요.");
@@ -179,6 +179,13 @@ export default function AiPage() {
         ...current,
         { role: "assistant", content: result.message as string },
       ]);
+      if (result.expenseId) {
+        void fetch("/api/push/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expenseId: result.expenseId }),
+        }).catch((pushError) => console.error("푸시 알림 요청 오류:", pushError));
+      }
       setPendingExpense(null);
     } catch (saveError) {
       setError(

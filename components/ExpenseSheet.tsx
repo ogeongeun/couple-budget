@@ -674,6 +674,12 @@ export default function ExpenseSheet({
           "알림 생성 오류:",
           notificationError,
         );
+      } else {
+        void fetch("/api/push/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expenseId: insertedExpense.id }),
+        }).catch((pushError) => console.error("푸시 알림 요청 오류:", pushError));
       }
     }
 

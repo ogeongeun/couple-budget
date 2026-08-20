@@ -10,6 +10,7 @@ import ExpenseSheet from "@/components/ExpenseSheet";
 import IncomeSheet from "@/components/IncomeSheet";
 import SavingSheet from "@/components/SavingSheet";
 import BottomNavigation from "@/components/BottomNavigation";
+import { subscribeToPushNotifications } from "@/lib/push/client";
 import { createClient } from "@/lib/supabase/client";
 
 import "./home.css";
@@ -1002,12 +1003,11 @@ export default function HomePage() {
         typeof window !==
           "undefined" &&
         "Notification" in window &&
-        notificationPermission ===
-          "default"
+        notificationPermission !==
+          "denied"
       ) {
         try {
-          const permission =
-            await Notification.requestPermission();
+          const permission = await subscribeToPushNotifications();
 
           setNotificationPermission(
             permission,

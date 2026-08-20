@@ -80,22 +80,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "커플 정보를 불러오지 못했어요." }, { status: 400 });
   }
 
-  const { error: insertError } = await supabase.from("expenses").insert({
-    couple_id: profile.couple_id,
-    user_id: user.id,
-    amount,
-    category,
-    title: title || category,
-    memo: null,
-    expense_date: expenseDate,
-    use_type: "혼자",
-    payment_type: null,
-    payer_id: user.id,
-    my_share: amount,
-    partner_share: 0,
-    settlement_status: "해당없음",
-    settled_at: null,
-  });
+  const { data: insertedExpense, error: insertError } = await supabase
+    .from("expenses")
+    .insert({
+      couple_id: profile.couple_id,
+      user_id: user.id,
+      amount,
+      category,
+      title: title || category,
+      memo: null,
+      expense_date: expenseDate,
+      use_type: "혼자",
+      payment_type: null,
+      payer_id: user.id,
+      my_share: amount,
+      partner_share: 0,
+      settlement_status: "해당없음",
+      settled_at: null,
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     console.error("AI 소비 저장 오류:", insertError);
@@ -104,5 +108,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     message: `${title || category} ${amount.toLocaleString("ko-KR")}원이 소비 기록에 추가됐어요.`,
+    expenseId: insertedExpense.id,
   });
 }
