@@ -107,6 +107,11 @@ export default function ExpenseSheet({
   ] = useState("");
 
   const [
+    myShareEdited,
+    setMyShareEdited,
+  ] = useState(false);
+
+  const [
     category,
     setCategory,
   ] = useState("식비");
@@ -346,11 +351,11 @@ export default function ExpenseSheet({
     );
 
   const myShare =
-    myShareInput === ""
+    myShareInput === "" && !myShareEdited
       ? Math.floor(
           numericAmount / 2,
         )
-      : Number(myShareInput);
+      : Number(myShareInput || 0);
 
   const partnerShare =
     numericAmount - myShare;
@@ -491,6 +496,7 @@ export default function ExpenseSheet({
   const resetForm = () => {
     setAmount("");
     setMyShareInput("");
+    setMyShareEdited(false);
     setCategory("식비");
     setUseType("alone");
     setPaymentType("split");
@@ -538,7 +544,9 @@ export default function ExpenseSheet({
   if (
     useType === "together" &&
     paymentType === "split" &&
-    (myShare < 0 || myShare > numericAmount)
+    (myShareInput === "" && myShareEdited ||
+      myShare < 0 ||
+      myShare > numericAmount)
   ) {
     setMessage("내 부담금은 전체 금액 안에서 입력해 주세요.");
     return;
@@ -1257,17 +1265,22 @@ export default function ExpenseSheet({
                           type="text"
                           inputMode="numeric"
                           value={
-                            numericAmount > 0
+                            myShareEdited
+                              ? myShareInput === ""
+                                ? ""
+                                : Number(myShareInput).toLocaleString("ko-KR")
+                              : numericAmount > 0
                               ? myShare.toLocaleString("ko-KR")
                               : ""
                           }
                           disabled={saving}
                           aria-label="내 소비 부담금"
-                          onChange={(event) =>
+                          onChange={(event) => {
+                            setMyShareEdited(true);
                             setMyShareInput(
                               event.target.value.replace(/[^0-9]/g, ""),
-                            )
-                          }
+                            );
+                          }}
                         />
                       </div>
                       <small className="partner-share-guide">

@@ -750,16 +750,14 @@ function SpendingPageContent() {
           "나눠내기";
 
       const myShare = isSplit
-        ? editForm.myShare === ""
-          ? Math.floor(
-              numericAmount / 2,
-            )
-          : Number(editForm.myShare)
+        ? Number(editForm.myShare || 0)
         : numericAmount;
 
       if (
         isSplit &&
-        (myShare < 0 || myShare > numericAmount)
+        (editForm.myShare === "" ||
+          myShare < 0 ||
+          myShare > numericAmount)
       ) {
         setMessage(
           "내 부담금은 전체 금액 안에서 입력해 주세요.",
@@ -1572,9 +1570,7 @@ function ExpenseEditSheet({
   );
 
   const numericMyShare =
-    form.myShare === ""
-      ? Math.floor(numericAmount / 2)
-      : Number(form.myShare);
+    Number(form.myShare || 0);
 
   const partnerShare =
     numericAmount - numericMyShare;
@@ -1893,7 +1889,7 @@ function ExpenseEditSheet({
                         type="text"
                         inputMode="numeric"
                         value={
-                          numericAmount > 0
+                          form.myShare !== ""
                             ? numericMyShare.toLocaleString("ko-KR")
                             : ""
                         }
