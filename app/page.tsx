@@ -42,6 +42,7 @@ type ExpenseData = {
   payer_id: string | null;
   my_share: number;
   partner_share: number;
+  settled_amount: number;
   settlement_status: string;
 };
 
@@ -746,6 +747,7 @@ export default function HomePage() {
           payer_id,
           my_share,
           partner_share,
+          settled_amount,
           settlement_status
         `)
         .eq("couple_id", coupleId)
@@ -918,13 +920,21 @@ export default function HomePage() {
 
       pendingSettlements.forEach(
         (expense) => {
+          const settledAmount = Number(
+            expense.settled_amount || 0,
+          );
+
           if (
             expense.payer_id === userId
           ) {
+            const totalAmount = Number(
+              expense.partner_share || 0,
+            );
+
             nextReceivableAmount +=
-              Number(
-                expense.partner_share ||
-                  0,
+              Math.max(
+                0,
+                totalAmount - settledAmount,
               );
 
             return;
@@ -935,9 +945,14 @@ export default function HomePage() {
             expense.payer_id ===
               partnerId
           ) {
+            const totalAmount = Number(
+              expense.my_share || 0,
+            );
+
             nextPayableAmount +=
-              Number(
-                expense.my_share || 0,
+              Math.max(
+                0,
+                totalAmount - settledAmount,
               );
           }
         },
