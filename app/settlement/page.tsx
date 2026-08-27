@@ -959,27 +959,9 @@ export default function SettlementPage() {
                         </button>
                       ) : item.direction ===
                         "pay" ? (
-                        <button
-                          type="button"
-                          className={
-                            sent
-                              ? "sent"
-                              : "send"
-                          }
-                          disabled={
-                            processing ||
-                            sent
-                          }
-                          onClick={() =>
-                            openPartialAction(item)
-                          }
-                        >
-                          {processing
-                            ? "처리 중"
-                            : sent
-                              ? "보냈어요"
-                              : "정산하기"}
-                        </button>
+                        <span className="settlement-receiver-only">
+                          받는 사람이 확인해요
+                        </span>
                       ) : (
                         <button
                           type="button"
@@ -991,7 +973,7 @@ export default function SettlementPage() {
                         >
                           {processing
                             ? "처리 중"
-                            : "받은 금액 확인"}
+                            : "정산 확인"}
                         </button>
                       )}
                     </div>
@@ -1018,7 +1000,11 @@ export default function SettlementPage() {
           >
             <header>
               <div>
-                <span>부분 정산</span>
+                <span>
+                  {partialAction.direction === "pay"
+                    ? "송금 표시"
+                    : "부분 정산"}
+                </span>
                 <strong>
                   {partialAction.direction === "pay"
                     ? "얼마를 보냈나요?"
@@ -1044,7 +1030,11 @@ export default function SettlementPage() {
             </p>
 
             <label>
-              <span>이번에 정산할 금액</span>
+              <span>
+                {partialAction.direction === "pay"
+                  ? "이번에 보낸 금액"
+                  : "이번에 확인할 금액"}
+              </span>
               <div>
                 <span>₩</span>
                 <input
@@ -1080,7 +1070,9 @@ export default function SettlementPage() {
             </button>
 
             <small>
-              전액을 입력하면 정산 완료되고, 일부만 입력하면 남은 금액이 계속 표시돼요.
+              {partialAction.direction === "pay"
+                ? "상대방이 받은 금액을 확인해야 정산에 반영돼요."
+                : "전액을 확인하면 정산 완료되고, 일부만 확인하면 남은 금액이 계속 표시돼요."}
             </small>
           </section>
         </div>

@@ -412,6 +412,15 @@ button {
   opacity: 0.72;
 }
 
+.settlement-receiver-only {
+  display: block;
+  padding: 8px 4px;
+  color: #aaa39e;
+  font-size: 9px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 /* 빈 목록 */
 
 .settlement-empty {
