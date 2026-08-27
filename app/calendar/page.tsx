@@ -17,6 +17,8 @@ import "./calendar.css";
 
 const supabase = createClient();
 
+const BUDGET_START_DAY = 5;
+
 type ViewType = "me" | "partner";
 
 type ProfileData = {
@@ -186,29 +188,6 @@ function formatDate(
     );
 
   return `${year}-${month}-${day}`;
-}
-
-function getMonthRange(
-  year: number,
-  month: number,
-) {
-  return {
-    start: formatDate(
-      new Date(
-        year,
-        month,
-        1,
-      ),
-    ),
-
-    end: formatDate(
-      new Date(
-        year,
-        month + 1,
-        1,
-      ),
-    ),
-  };
 }
 
 function getDaysInMonth(
@@ -444,23 +423,54 @@ export default function CalendarPage() {
   ] =
     useState(0);
 
-  const monthRange =
+  const budgetRange =
+    useMemo(
+      () => {
+        const today = new Date();
+        const isCurrentMonth =
+          year === today.getFullYear() &&
+          month === today.getMonth();
+        const anchor = new Date(year, month, 1);
+
+        if (
+          isCurrentMonth &&
+          today.getDate() < BUDGET_START_DAY
+        ) {
+          anchor.setMonth(anchor.getMonth() - 1);
+        }
+
+        return getBudgetCycleRange(
+          anchor.getFullYear(),
+          anchor.getMonth(),
+        );
+      },
+      [year, month],
+    );
+
+  const budgetDataRange =
     useMemo(
       () =>
-        getMonthRange(
+        getCalendarBudgetDataRange(
           year,
           month,
         ),
-      [
-        year,
-        month,
-      ],
+      [year, month],
     );
 
   const selectedNickname =
     view === "me"
       ? myNickname
       : partnerNickname;
+
+  const budgetPeriodLabel = `${Number(
+    budgetRange.start.slice(5, 7),
+  )}월 ${Number(
+    budgetRange.start.slice(8, 10),
+  )}일~${Number(
+    new Date(
+      `${budgetRange.end}T00:00:00`,
+    ).getMonth() + 1,
+  )}월 ${BUDGET_START_DAY - 1}일`;
 
   const isMyCalendar =
     view === "me";
@@ -677,11 +687,11 @@ export default function CalendarPage() {
               )
               .gte(
                 "income_date",
-                monthRange.start,
+                budgetDataRange.start,
               )
               .lt(
                 "income_date",
-                monthRange.end,
+                budgetDataRange.end,
               ),
 
             /*
@@ -714,11 +724,11 @@ export default function CalendarPage() {
               )
               .gte(
                 "expense_date",
-                monthRange.start,
+                budgetDataRange.start,
               )
               .lt(
                 "expense_date",
-                monthRange.end,
+                budgetDataRange.end,
               )
               .order(
                 "expense_date",
@@ -762,11 +772,11 @@ export default function CalendarPage() {
               )
               .gte(
                 "saving_date",
-                monthRange.start,
+                budgetDataRange.start,
               )
               .lt(
                 "saving_date",
-                monthRange.end,
+                budgetDataRange.end,
               )
               .order(
                 "saving_date",
@@ -824,11 +834,11 @@ export default function CalendarPage() {
               )
               .gte(
                 "budget_date",
-                monthRange.start,
+                budgetDataRange.start,
               )
               .lt(
                 "budget_date",
-                monthRange.end,
+                budgetDataRange.end,
               ),
           ]);
 
@@ -999,69 +1009,24 @@ export default function CalendarPage() {
         if (
           view === "me"
         ) {
-          const daysInMonth =
-            getDaysInMonth(
-              year,
-              month,
-            );
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
 
-          const today =
-            new Date();
+          const dataStart = new Date(
+            `${budgetDataRange.start}T00:00:00`,
+          );
+          const dataEnd = new Date(
+            `${budgetDataRange.end}T00:00:00`,
+          );
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
 
-          const selectedMonthStart =
-            new Date(
-              year,
-              month,
-              1,
-            );
+          const saveEnd =
+            dataEnd < tomorrow
+              ? dataEnd
+              : tomorrow;
 
-          const currentMonthStart =
-            new Date(
-              today.getFullYear(),
-              today.getMonth(),
-              1,
-            );
-
-          let saveThroughDay =
-            0;
-
-          if (
-            selectedMonthStart <
-            currentMonthStart
-          ) {
-            saveThroughDay =
-              daysInMonth;
-          } else if (
-            year ===
-              today.getFullYear() &&
-            month ===
-              today.getMonth()
-          ) {
-            saveThroughDay =
-              today.getDate();
-          }
-
-          if (
-            saveThroughDay >
-            0
-          ) {
-            const monthlyBudget =
-              sumAmounts(
-                loadedIncomes,
-              );
-
-            const oldSnapshotMap =
-              new Map(
-                loadedSnapshots.map(
-                  (
-                    snapshot,
-                  ) => [
-                    snapshot.budget_date,
-                    snapshot,
-                  ],
-                ),
-              );
-
+          if (dataStart < saveEnd) {
             const usedMap =
               new Map<
                 string,
@@ -1132,36 +1097,40 @@ export default function CalendarPage() {
               },
             );
 
-            let usableAmount =
-              monthlyBudget;
+            let usableAmount = 0;
+            let cycleEnd = new Date(dataStart);
 
             const snapshotRows: DailySnapshot[] =
               [];
 
             for (
-              let day = 1;
-              day <=
-              saveThroughDay;
-              day += 1
+              const cursor = new Date(dataStart);
+              cursor < saveEnd;
+              cursor.setDate(cursor.getDate() + 1)
             ) {
-              const date =
-                formatDate(
-                  new Date(
-                    year,
-                    month,
-                    day,
+              const date = formatDate(cursor);
+
+              if (cursor.getDate() === BUDGET_START_DAY) {
+                cycleEnd = new Date(
+                  cursor.getFullYear(),
+                  cursor.getMonth() + 1,
+                  BUDGET_START_DAY,
+                );
+
+                const cycleStartString = formatDate(cursor);
+                const cycleEndString = formatDate(cycleEnd);
+
+                usableAmount = sumAmounts(
+                  loadedIncomes.filter(
+                    (income) =>
+                      income.income_date >= cycleStartString &&
+                      income.income_date < cycleEndString,
                   ),
                 );
-
-              const existingSnapshot =
-                oldSnapshotMap.get(
-                  date,
-                );
+              }
 
               const remainingDays =
-                daysInMonth -
-                day +
-                1;
+                getCalendarDayCount(cursor, cycleEnd);
 
               const calculatedRecommended =
                 remainingDays >
@@ -1174,11 +1143,6 @@ export default function CalendarPage() {
                       ),
                     )
                   : 0;
-
-              const recommendedAmount =
-                existingSnapshot
-                  ?.recommended_amount ??
-                calculatedRecommended;
 
               const usedAmount =
                 usedMap.get(
@@ -1204,7 +1168,7 @@ export default function CalendarPage() {
                     date,
 
                   recommended_amount:
-                    recommendedAmount,
+                    calculatedRecommended,
 
                   used_amount:
                     usedAmount,
@@ -1250,7 +1214,11 @@ export default function CalendarPage() {
               );
             } else {
               setSnapshots(
-                snapshotRows,
+                snapshotRows.filter(
+                  (snapshot) =>
+                    snapshot.budget_date >= budgetDataRange.start &&
+                    snapshot.budget_date < budgetDataRange.end,
+                ),
               );
             }
           }
@@ -1262,8 +1230,8 @@ export default function CalendarPage() {
       },
       [
         month,
-        monthRange.end,
-        monthRange.start,
+        budgetDataRange.end,
+        budgetDataRange.start,
         refreshKey,
         router,
         view,
@@ -1281,16 +1249,49 @@ export default function CalendarPage() {
   );
 
   /*
-   * 이번 달 예산
+   * 이번 예산 기간(5일~다음 달 4일) 기록
    */
+  const budgetIncomes =
+    useMemo(
+      () =>
+        incomes.filter(
+          (income) =>
+            income.income_date >= budgetRange.start &&
+            income.income_date < budgetRange.end,
+        ),
+      [budgetRange.end, budgetRange.start, incomes],
+    );
+
+  const budgetExpenses =
+    useMemo(
+      () =>
+        expenses.filter(
+          (expense) =>
+            expense.expense_date >= budgetRange.start &&
+            expense.expense_date < budgetRange.end,
+        ),
+      [budgetRange.end, budgetRange.start, expenses],
+    );
+
+  const budgetSavings =
+    useMemo(
+      () =>
+        savings.filter(
+          (saving) =>
+            saving.saving_date >= budgetRange.start &&
+            saving.saving_date < budgetRange.end,
+        ),
+      [budgetRange.end, budgetRange.start, savings],
+    );
+
   const monthlyBudget =
     useMemo(
       () =>
         sumAmounts(
-          incomes,
+          budgetIncomes,
         ),
       [
-        incomes,
+        budgetIncomes,
       ],
     );
 
@@ -1301,10 +1302,10 @@ export default function CalendarPage() {
     useMemo(
       () =>
         sumAmounts(
-          expenses,
+          budgetExpenses,
         ),
       [
-        expenses,
+        budgetExpenses,
       ],
     );
 
@@ -1314,7 +1315,7 @@ export default function CalendarPage() {
   const monthlySaved =
     useMemo(
       () =>
-        savings
+        budgetSavings
           .filter(
             (
               saving,
@@ -1335,7 +1336,7 @@ export default function CalendarPage() {
             0,
           ),
       [
-        savings,
+        budgetSavings,
       ],
     );
 
@@ -1345,7 +1346,7 @@ export default function CalendarPage() {
   const monthlyWithdrawn =
     useMemo(
       () =>
-        savings
+        budgetSavings
           .filter(
             (
               saving,
@@ -1366,7 +1367,7 @@ export default function CalendarPage() {
             0,
           ),
       [
-        savings,
+        budgetSavings,
       ],
     );
 
@@ -1522,6 +1523,13 @@ export default function CalendarPage() {
             date,
           ) => {
             if (
+              date < budgetRange.start ||
+              date >= budgetRange.end
+            ) {
+              return;
+            }
+
+            if (
               amount >
               result.amount
             ) {
@@ -1536,6 +1544,8 @@ export default function CalendarPage() {
         return result;
       },
       [
+        budgetRange.end,
+        budgetRange.start,
         usedByDate,
       ],
     );
@@ -1569,28 +1579,22 @@ export default function CalendarPage() {
   const currentRecommendedAmount =
     useMemo(
       () => {
-        const today =
-          new Date();
-
-        const isCurrentMonth =
-          year ===
-            today.getFullYear() &&
-          month ===
-            today.getMonth();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayDate = formatDate(today);
 
         if (
-          !isCurrentMonth
+          todayDate < budgetRange.start ||
+          todayDate >= budgetRange.end
         ) {
           return 0;
         }
 
+        const cycleEnd = new Date(
+          `${budgetRange.end}T00:00:00`,
+        );
         const remainingDays =
-          getDaysInMonth(
-            year,
-            month,
-          ) -
-          today.getDate() +
-          1;
+          getCalendarDayCount(today, cycleEnd);
 
         return remainingDays >
           0
@@ -1604,9 +1608,9 @@ export default function CalendarPage() {
           : 0;
       },
       [
-        month,
+        budgetRange.end,
+        budgetRange.start,
         remainingAmount,
-        year,
       ],
     );
 
@@ -1730,7 +1734,9 @@ export default function CalendarPage() {
             snapshot
               ?.recommended_amount ??
             (
-              isFuture
+              isFuture &&
+              date >= budgetRange.start &&
+              date < budgetRange.end
                 ? currentRecommendedAmount
                 : 0
             );
@@ -1846,6 +1852,8 @@ export default function CalendarPage() {
       },
       [
         currentRecommendedAmount,
+        budgetRange.end,
+        budgetRange.start,
         incomeByDate,
         month,
         savingDifferenceByDate,
@@ -2266,7 +2274,7 @@ export default function CalendarPage() {
               selectedNickname
             }
             님의{" "}
-            {month + 1}월
+            {budgetPeriodLabel}
             소비 계획 🐶
           </h2>
 
@@ -2334,7 +2342,7 @@ export default function CalendarPage() {
 
       <section className="monthly-summary">
         <SummaryItem
-          label="이번 달 수익"
+          label="예산 기간 수익"
           value={`${monthlyBudget.toLocaleString(
             "ko-KR",
           )}원`}
@@ -2342,7 +2350,7 @@ export default function CalendarPage() {
         />
 
         <SummaryItem
-          label="총소비"
+          label="예산 기간 소비"
           value={`${monthlyUsed.toLocaleString(
             "ko-KR",
           )}원`}
@@ -2845,6 +2853,54 @@ function IncomeList({
         </article>
       ))}
     </div>
+  );
+}
+
+function getBudgetCycleRange(
+  year: number,
+  month: number,
+) {
+  return {
+    start: formatDate(
+      new Date(year, month, BUDGET_START_DAY),
+    ),
+    end: formatDate(
+      new Date(year, month + 1, BUDGET_START_DAY),
+    ),
+  };
+}
+
+function getCalendarBudgetDataRange(
+  year: number,
+  month: number,
+) {
+  return {
+    start: formatDate(
+      new Date(year, month - 1, BUDGET_START_DAY),
+    ),
+    end: formatDate(
+      new Date(year, month + 1, BUDGET_START_DAY),
+    ),
+  };
+}
+
+function getCalendarDayCount(
+  start: Date,
+  end: Date,
+) {
+  const startUtc = Date.UTC(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate(),
+  );
+  const endUtc = Date.UTC(
+    end.getFullYear(),
+    end.getMonth(),
+    end.getDate(),
+  );
+
+  return Math.round(
+    (endUtc - startUtc) / 86_400_000,
   );
 }
 
