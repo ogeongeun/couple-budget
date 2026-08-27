@@ -42,6 +42,8 @@ type SettlementExpense = {
     | "해당없음";
   settlement_sent_at: string | null;
   settlement_sent_by: string | null;
+  settlement_sent_amount: number;
+  settled_amount: number;
   settled_at: string | null;
   created_at: string;
 };
@@ -49,9 +51,19 @@ type SettlementExpense = {
 type SettlementItem = SettlementExpense & {
   direction: "pay" | "receive";
   settlementAmount: number;
+  settledAmount: number;
+  remainingAmount: number;
+  pendingSentAmount: number;
   receiverId: string;
   debtorId: string;
   payerName: string;
+};
+
+type PartialSettlementAction = {
+  expenseId: string;
+  direction: "pay" | "receive";
+  remainingAmount: number;
+  suggestedAmount: number;
 };
 
 const categoryIcons: Record<
@@ -128,6 +140,12 @@ export default function SettlementPage() {
 
   const [processingId, setProcessingId] =
     useState<string | null>(null);
+
+  const [partialAction, setPartialAction] =
+    useState<PartialSettlementAction | null>(null);
+
+  const [partialAmount, setPartialAmount] =
+    useState("");
 
   const [message, setMessage] =
     useState("");
@@ -270,6 +288,8 @@ export default function SettlementPage() {
           settlement_status,
           settlement_sent_at,
           settlement_sent_by,
+          settlement_sent_amount,
+          settled_amount,
           settled_at,
           created_at
         `)
@@ -372,6 +392,21 @@ export default function SettlementPage() {
                   expense.my_share || 0,
                 );
 
+          const settledAmount = Math.min(
+            settlementAmount,
+            Number(expense.settled_amount || 0),
+          );
+
+          const remainingAmount = Math.max(
+            0,
+            settlementAmount - settledAmount,
+          );
+
+          const pendingSentAmount = Math.min(
+            remainingAmount,
+            Number(expense.settlement_sent_amount || 0),
+          );
+
           if (
             receiverId !== userId &&
             debtorId !== userId
@@ -386,6 +421,9 @@ export default function SettlementPage() {
             debtorId,
 
             settlementAmount,
+            settledAmount,
+            remainingAmount,
+            pendingSentAmount,
 
             direction:
               receiverId === userId
@@ -433,7 +471,7 @@ export default function SettlementPage() {
       .reduce(
         (total, item) =>
           total +
-          item.settlementAmount,
+          item.remainingAmount,
         0,
       );
 
@@ -446,7 +484,7 @@ export default function SettlementPage() {
       .reduce(
         (total, item) =>
           total +
-          item.settlementAmount,
+          item.remainingAmount,
         0,
       );
 
@@ -482,17 +520,9 @@ export default function SettlementPage() {
 
   const handleMarkSent = async (
     expenseId: string,
+    amount: number,
   ) => {
     if (processingId) {
-      return;
-    }
-
-    const confirmed =
-      window.confirm(
-        "상대방에게 정산금을 보냈나요?",
-      );
-
-    if (!confirmed) {
       return;
     }
 
@@ -501,10 +531,11 @@ export default function SettlementPage() {
 
     const { error } =
       await supabase.rpc(
-        "mark_settlement_sent",
+        "mark_partial_settlement_sent",
         {
           target_expense_id:
             expenseId,
+          payment_amount: amount,
         },
       );
 
@@ -524,9 +555,11 @@ export default function SettlementPage() {
     }
 
     setMessage(
-      "보냈어요 처리가 완료됐어요. 상대방이 정산 완료를 누르면 정산금이 반영됩니다.",
+      `${amount.toLocaleString("ko-KR")}원을 보냈다고 표시했어요. 상대방이 확인하면 반영됩니다.`,
     );
 
+    setPartialAction(null);
+    setPartialAmount("");
     setProcessingId(null);
 
     await loadSettlements();
@@ -534,16 +567,9 @@ export default function SettlementPage() {
 
   const handleComplete = async (
   expenseId: string,
+  amount: number,
 ) => {
   if (processingId) {
-    return;
-  }
-
-  const confirmed = window.confirm(
-    "정산금을 받은 것을 확인했나요? 완료하면 상대방에게는 정산액만큼 소비가, 나에게는 같은 금액의 소득이 기록됩니다.",
-  );
-
-  if (!confirmed) {
     return;
   }
 
@@ -551,9 +577,10 @@ export default function SettlementPage() {
   setMessage("");
 
   const { error } = await supabase.rpc(
-    "complete_expense_settlement",
+    "complete_partial_expense_settlement",
     {
       target_expense_id: expenseId,
+      payment_amount: amount,
     },
   );
 
@@ -582,13 +609,57 @@ export default function SettlementPage() {
 }
 
   setMessage(
-    "정산 완료됐어요. 상대방 소비와 내 정산 소득에 각각 반영됐습니다.",
+    `${amount.toLocaleString("ko-KR")}원 정산을 반영했어요.`,
   );
 
+  setPartialAction(null);
+  setPartialAmount("");
   setProcessingId(null);
 
   await loadSettlements();
 };
+
+  const openPartialAction = (
+    item: SettlementItem,
+  ) => {
+    const suggestedAmount =
+      item.direction === "receive" &&
+      item.pendingSentAmount > 0
+        ? item.pendingSentAmount
+        : item.remainingAmount;
+
+    setPartialAction({
+      expenseId: item.id,
+      direction: item.direction,
+      remainingAmount: item.remainingAmount,
+      suggestedAmount,
+    });
+    setPartialAmount(String(suggestedAmount));
+    setMessage("");
+  };
+
+  const submitPartialAction = async () => {
+    if (!partialAction || processingId) {
+      return;
+    }
+
+    const amount = Number(partialAmount || 0);
+
+    if (
+      amount <= 0 ||
+      amount > partialAction.remainingAmount
+    ) {
+      setMessage("남은 정산액 안에서 금액을 입력해 주세요.");
+      return;
+    }
+
+    if (partialAction.direction === "pay") {
+      await handleMarkSent(partialAction.expenseId, amount);
+      return;
+    }
+
+    await handleComplete(partialAction.expenseId, amount);
+  };
 
   if (loading) {
     return (
@@ -792,9 +863,7 @@ export default function SettlementPage() {
                   "정산완료";
 
                 const sent =
-                  Boolean(
-                    item.settlement_sent_at,
-                  );
+                  item.pendingSentAmount > 0;
 
                 const processing =
                   processingId === item.id;
@@ -845,7 +914,7 @@ export default function SettlementPage() {
                           item.direction
                         }
                       >
-                        {item.settlementAmount.toLocaleString(
+                        {item.remainingAmount.toLocaleString(
                           "ko-KR",
                         )}
                         원
@@ -858,13 +927,19 @@ export default function SettlementPage() {
                           : "내가 받을 돈"}
                       </span>
 
+                      {!completed && item.settledAmount > 0 && (
+                        <small className="settlement-progress">
+                          {item.settledAmount.toLocaleString("ko-KR")}원 정산됨
+                        </small>
+                      )}
+
                       {completed ? (
                         <em className="completed">
                           정산 완료
                         </em>
                       ) : sent ? (
                         <em className="sent">
-                          상대가 보냈어요
+                          {item.pendingSentAmount.toLocaleString("ko-KR")}원 보냈어요
                         </em>
                       ) : (
                         <em className="pending">
@@ -896,16 +971,14 @@ export default function SettlementPage() {
                             sent
                           }
                           onClick={() =>
-                            handleMarkSent(
-                              item.id,
-                            )
+                            openPartialAction(item)
                           }
                         >
                           {processing
                             ? "처리 중"
                             : sent
                               ? "보냈어요"
-                              : "보냈어요"}
+                              : "정산하기"}
                         </button>
                       ) : (
                         <button
@@ -913,14 +986,12 @@ export default function SettlementPage() {
                           className="complete"
                           disabled={processing}
                           onClick={() =>
-                            handleComplete(
-                              item.id,
-                            )
+                            openPartialAction(item)
                           }
                         >
                           {processing
                             ? "처리 중"
-                            : "정산 완료"}
+                            : "받은 금액 확인"}
                         </button>
                       )}
                     </div>
@@ -931,6 +1002,89 @@ export default function SettlementPage() {
           </div>
         )}
       </section>
+
+      {partialAction && (
+        <div
+          className="partial-settlement-backdrop"
+          onClick={() => {
+            if (!processingId) {
+              setPartialAction(null);
+            }
+          }}
+        >
+          <section
+            className="partial-settlement-sheet"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <span>부분 정산</span>
+                <strong>
+                  {partialAction.direction === "pay"
+                    ? "얼마를 보냈나요?"
+                    : "얼마를 받았나요?"}
+                </strong>
+              </div>
+
+              <button
+                type="button"
+                disabled={Boolean(processingId)}
+                onClick={() => setPartialAction(null)}
+                aria-label="부분 정산 닫기"
+              >
+                ×
+              </button>
+            </header>
+
+            <p>
+              남은 정산액
+              <strong>
+                {partialAction.remainingAmount.toLocaleString("ko-KR")}원
+              </strong>
+            </p>
+
+            <label>
+              <span>이번에 정산할 금액</span>
+              <div>
+                <span>₩</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus
+                  value={
+                    partialAmount
+                      ? Number(partialAmount).toLocaleString("ko-KR")
+                      : ""
+                  }
+                  disabled={Boolean(processingId)}
+                  onChange={(event) =>
+                    setPartialAmount(
+                      event.target.value.replace(/[^0-9]/g, ""),
+                    )
+                  }
+                />
+              </div>
+            </label>
+
+            <button
+              type="button"
+              className="partial-settlement-submit"
+              disabled={Boolean(processingId) || !partialAmount}
+              onClick={() => void submitPartialAction()}
+            >
+              {processingId
+                ? "처리 중..."
+                : partialAction.direction === "pay"
+                  ? "보냈다고 표시"
+                  : "받은 금액 반영"}
+            </button>
+
+            <small>
+              전액을 입력하면 정산 완료되고, 일부만 입력하면 남은 금액이 계속 표시돼요.
+            </small>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

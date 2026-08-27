@@ -496,3 +496,139 @@ button {
     font-size: 12px;
   }
 }
+
+.settlement-item-status .settlement-progress {
+  display: block;
+  margin-top: 5px;
+  color: #6f9d83;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.partial-settlement-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(29 25 22 / 42%);
+}
+
+.partial-settlement-sheet {
+  width: min(100%, 560px);
+  padding: 22px 20px calc(24px + env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  background: #fff;
+  box-shadow: 0 -12px 35px rgb(31 27 24 / 14%);
+}
+
+.partial-settlement-sheet > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.partial-settlement-sheet > header div span,
+.partial-settlement-sheet > header div strong {
+  display: block;
+}
+
+.partial-settlement-sheet > header div span {
+  color: #56b780;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.partial-settlement-sheet > header div strong {
+  margin-top: 5px;
+  font-size: 19px;
+}
+
+.partial-settlement-sheet > header button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f4f1ef;
+  color: #817a75;
+  font-size: 22px;
+}
+
+.partial-settlement-sheet > p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 22px;
+  padding: 15px 16px;
+  border-radius: 14px;
+  background: #f3faf6;
+  color: #77716d;
+  font-size: 12px;
+}
+
+.partial-settlement-sheet > p strong {
+  color: #2eaa69;
+  font-size: 16px;
+}
+
+.partial-settlement-sheet > label {
+  display: block;
+  margin-top: 18px;
+}
+
+.partial-settlement-sheet > label > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #746e69;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.partial-settlement-sheet > label > div {
+  display: flex;
+  align-items: center;
+  min-height: 54px;
+  padding: 0 15px;
+  border: 1px solid #ddd7d2;
+  border-radius: 14px;
+}
+
+.partial-settlement-sheet > label > div > span {
+  color: #9a938e;
+  font-size: 16px;
+}
+
+.partial-settlement-sheet input {
+  width: 100%;
+  min-width: 0;
+  padding-left: 8px;
+  background: transparent;
+  color: #2e2b29;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.partial-settlement-submit {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 18px;
+  border-radius: 14px;
+  background: #1db064;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.partial-settlement-submit:disabled {
+  opacity: 0.55;
+}
+
+.partial-settlement-sheet > small {
+  display: block;
+  margin-top: 11px;
+  color: #aaa39e;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
