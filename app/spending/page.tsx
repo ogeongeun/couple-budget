@@ -154,13 +154,13 @@ function getMonthRange(
   const start = new Date(
     year,
     month,
-    5,
+    1,
   );
 
   const end = new Date(
     year,
     month + 1,
-    5,
+    1,
   );
 
   return {
@@ -988,7 +988,7 @@ function SpendingPageContent() {
           </button>
 
           <strong>
-            🗓️ {month + 1}월 5일~{month + 2 > 12 ? 1 : month + 2}월 4일
+            🗓️ {month + 1}월
           </strong>
 
           <button
@@ -1052,7 +1052,7 @@ function SpendingPageContent() {
             </strong>
 
             <p>
-              {year}년 {month + 1}월 5일~{month + 2 > 12 ? 1 : month + 2}월 4일
+              {year}년 {month + 1}월
             </p>
           </div>
 
@@ -1529,7 +1529,7 @@ function CategoryDetail({
           </button>
 
           <strong>
-            🗓️ {month + 1}월 5일~{month + 2 > 12 ? 1 : month + 2}월 4일
+            🗓️ {month + 1}월
           </strong>
 
           <button

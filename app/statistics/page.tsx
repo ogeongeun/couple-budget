@@ -176,11 +176,11 @@ function getMonthRange(
 ) {
   return {
     start: formatDate(
-      new Date(year, month, 5),
+      new Date(year, month, 1),
     ),
 
     end: formatDate(
-      new Date(year, month + 1, 5),
+      new Date(year, month + 1, 1),
     ),
   };
 }
@@ -324,7 +324,7 @@ export default function StatisticsPage() {
   const sixMonthStart = useMemo(
     () =>
       formatDate(
-        new Date(year, month - 5, 5),
+        new Date(year, month - 5, 1),
       ),
     [year, month],
   );
@@ -1280,9 +1280,7 @@ export default function StatisticsPage() {
           return {
             year: targetYear,
             month: targetMonth,
-            label: `${targetMonth + 1}월 5일~${
-              targetMonth === 11 ? 1 : targetMonth + 2
-            }월 4일`,
+            label: `${targetMonth + 1}월`,
             amount:
               sumAmount(expenses),
             budget:
@@ -1628,7 +1626,7 @@ export default function StatisticsPage() {
           </button>
 
           <strong>
-            🗓️ {month + 1}월 5일~{month + 2 > 12 ? 1 : month + 2}월 4일
+            🗓️ {month + 1}월
           </strong>
 
           <button
