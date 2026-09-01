@@ -17,7 +17,7 @@ import "./calendar.css";
 
 const supabase = createClient();
 
-const BUDGET_START_DAY = 1;
+const BUDGET_START_DAY = 5;
 
 type ViewType = "me" | "partner";
 
