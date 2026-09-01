@@ -384,6 +384,11 @@ export default function CalendarPage() {
     useState(0);
 
   const [
+    budgetCarryover,
+    setBudgetCarryover,
+  ] = useState(0);
+
+  const [
     snapshots,
     setSnapshots,
   ] =
@@ -652,6 +657,8 @@ export default function CalendarPage() {
             0,
           );
 
+          setBudgetCarryover(0);
+
           setLoading(
             false,
           );
@@ -665,6 +672,9 @@ export default function CalendarPage() {
           savingResult,
           savingBalanceResult,
           snapshotResult,
+          previousIncomeResult,
+          previousExpenseResult,
+          previousSavingResult,
         ] =
           await Promise.all([
             /*
@@ -840,6 +850,27 @@ export default function CalendarPage() {
                 "budget_date",
                 budgetDataRange.end,
               ),
+
+            supabase
+              .from("incomes")
+              .select("amount")
+              .eq("user_id", targetUserId)
+              .eq("couple_id", profile.couple_id)
+              .lt("income_date", budgetDataRange.start),
+
+            supabase
+              .from("expenses")
+              .select("amount")
+              .eq("user_id", targetUserId)
+              .eq("couple_id", profile.couple_id)
+              .lt("expense_date", budgetDataRange.start),
+
+            supabase
+              .from("savings")
+              .select("type, amount")
+              .eq("user_id", targetUserId)
+              .eq("couple_id", profile.couple_id)
+              .lt("saving_date", budgetDataRange.start),
           ]);
 
         if (
@@ -887,6 +918,19 @@ export default function CalendarPage() {
           );
         }
 
+        if (
+          previousIncomeResult.error ||
+          previousExpenseResult.error ||
+          previousSavingResult.error
+        ) {
+          console.error(
+            "이월 금액 조회 오류:",
+            previousIncomeResult.error ??
+              previousExpenseResult.error ??
+              previousSavingResult.error,
+          );
+        }
+
         const loadedIncomes =
           (
             incomeResult.data as
@@ -926,6 +970,61 @@ export default function CalendarPage() {
               | null
           ) ??
           [];
+
+        const previousSavings =
+          (previousSavingResult.data as
+            | SavingBalanceRecord[]
+            | null) ?? [];
+
+        const previousNetSaving = previousSavings.reduce(
+          (sum, saving) =>
+            saving.type === "deposit"
+              ? sum + Number(saving.amount || 0)
+              : sum - Number(saving.amount || 0),
+          0,
+        );
+
+        const openingCarryover =
+          sumAmounts(
+            (previousIncomeResult.data as
+              | { amount: number }[]
+              | null) ?? [],
+          ) -
+          sumAmounts(
+            (previousExpenseResult.data as
+              | { amount: number }[]
+              | null) ?? [],
+          ) -
+          previousNetSaving;
+
+        const selectedCarryover =
+          openingCarryover +
+          sumAmounts(
+            loadedIncomes.filter(
+              (income) =>
+                income.income_date < budgetRange.start,
+            ),
+          ) -
+          sumAmounts(
+            loadedExpenses.filter(
+              (expense) =>
+                expense.expense_date < budgetRange.start,
+            ),
+          ) -
+          loadedSavings
+            .filter(
+              (saving) =>
+                saving.saving_date < budgetRange.start,
+            )
+            .reduce(
+              (sum, saving) =>
+                saving.type === "deposit"
+                  ? sum + Number(saving.amount || 0)
+                  : sum - Number(saving.amount || 0),
+              0,
+            );
+
+        setBudgetCarryover(selectedCarryover);
 
         setIncomes(
           loadedIncomes,
@@ -1097,7 +1196,7 @@ export default function CalendarPage() {
               },
             );
 
-            let usableAmount = 0;
+            let usableAmount = openingCarryover;
             let cycleEnd = new Date(dataStart);
 
             const snapshotRows: DailySnapshot[] =
@@ -1120,7 +1219,7 @@ export default function CalendarPage() {
                 const cycleStartString = formatDate(cursor);
                 const cycleEndString = formatDate(cycleEnd);
 
-                usableAmount = sumAmounts(
+                usableAmount += sumAmounts(
                   loadedIncomes.filter(
                     (income) =>
                       income.income_date >= cycleStartString &&
@@ -1232,6 +1331,7 @@ export default function CalendarPage() {
         month,
         budgetDataRange.end,
         budgetDataRange.start,
+        budgetRange.start,
         refreshKey,
         router,
         view,
@@ -1380,6 +1480,7 @@ export default function CalendarPage() {
    * + 이번 달 꺼낸 돈
    */
   const remainingAmount =
+    budgetCarryover +
     monthlyBudget -
     monthlyUsed -
     monthlySaved +

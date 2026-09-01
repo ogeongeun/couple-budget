@@ -157,28 +157,23 @@ function formatDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function getMonthRange() {
+function getBudgetRange() {
   const now = new Date();
-
-  const year = now.getFullYear();
-  const month = now.getMonth();
-
   const startDate = new Date(
-    year,
-    month,
-    1,
+    now.getFullYear(),
+    now.getMonth() - (now.getDate() < 5 ? 1 : 0),
+    5,
   );
-
-  const nextMonthDate = new Date(
-    year,
-    month + 1,
-    1,
+  const endDate = new Date(
+    startDate.getFullYear(),
+    startDate.getMonth() + 1,
+    5,
   );
 
   return {
-    month: month + 1,
+    label: `${startDate.getMonth() + 1}월 5일~${endDate.getMonth() + 1}월 4일`,
     start: formatDate(startDate),
-    end: formatDate(nextMonthDate),
+    end: formatDate(endDate),
   };
 }
 
@@ -368,7 +363,7 @@ export default function HomePage() {
       "default",
     );
 
-  const monthRange = getMonthRange();
+  const budgetRange = getBudgetRange();
 
   /*
    * 현재 브라우저 알림 권한 확인
@@ -728,11 +723,11 @@ export default function HomePage() {
         .eq("user_id", userId)
         .gte(
           "income_date",
-          monthRange.start,
+          budgetRange.start,
         )
         .lt(
           "income_date",
-          monthRange.end,
+          budgetRange.end,
         );
 
       const expenseQuery = supabase
@@ -753,11 +748,11 @@ export default function HomePage() {
         .eq("couple_id", coupleId)
         .gte(
           "expense_date",
-          monthRange.start,
+          budgetRange.start,
         )
         .lt(
           "expense_date",
-          monthRange.end,
+          budgetRange.end,
         );
 
       const savingsQuery = supabase
@@ -780,29 +775,79 @@ export default function HomePage() {
           ascending: false,
         });
 
+      const previousIncomeQuery = supabase
+        .from("incomes")
+        .select("amount")
+        .eq("couple_id", coupleId)
+        .eq("user_id", userId)
+        .lt("income_date", budgetRange.start);
+
+      const previousExpenseQuery = supabase
+        .from("expenses")
+        .select("amount")
+        .eq("couple_id", coupleId)
+        .eq("user_id", userId)
+        .lt("expense_date", budgetRange.start);
+
       const [
         incomeResult,
         expenseResult,
         savingsResult,
+        previousIncomeResult,
+        previousExpenseResult,
       ] = await Promise.all([
         incomeQuery,
         expenseQuery,
         savingsQuery,
+        previousIncomeQuery,
+        previousExpenseQuery,
       ]);
 
       if (!mounted) {
         return;
       }
 
-      if (incomeResult.error) {
+      const loadedSavings =
+        (savingsResult.data as
+          | SavingRecord[]
+          | null) ?? [];
+
+      if (
+        incomeResult.error ||
+        previousIncomeResult.error ||
+        previousExpenseResult.error ||
+        savingsResult.error
+      ) {
         console.error(
-          "소득 조회 오류:",
-          incomeResult.error,
+          "예산 및 이월 금액 조회 오류:",
+          incomeResult.error ??
+            previousIncomeResult.error ??
+            previousExpenseResult.error ??
+            savingsResult.error,
         );
 
         setBudget(0);
       } else {
+        const previousNetSaving = loadedSavings
+          .filter(
+            (saving) =>
+              saving.saving_date < budgetRange.start,
+          )
+          .reduce(
+            (sum, saving) =>
+              saving.type === "deposit"
+                ? sum + Number(saving.amount || 0)
+                : sum - Number(saving.amount || 0),
+            0,
+          );
+
+        const carryover =
+          sumAmounts(previousIncomeResult.data as AmountData[] | null) -
+          sumAmounts(previousExpenseResult.data as AmountData[] | null) -
+          previousNetSaving;
+
         setBudget(
+          carryover +
           sumAmounts(
             incomeResult.data as
               | AmountData[]
@@ -819,11 +864,7 @@ export default function HomePage() {
 
         setSavings([]);
       } else {
-        setSavings(
-          (savingsResult.data as
-            | SavingRecord[]
-            | null) ?? [],
-        );
+        setSavings(loadedSavings);
       }
 
       if (expenseResult.error) {
@@ -983,8 +1024,8 @@ export default function HomePage() {
     coupleId,
     partnerId,
     refreshKey,
-    monthRange.start,
-    monthRange.end,
+    budgetRange.start,
+    budgetRange.end,
   ]);
 
   const handleIncomeSave = () => {
@@ -1074,9 +1115,9 @@ export default function HomePage() {
       .filter(
         (saving) =>
           saving.saving_date >=
-            monthRange.start &&
+            budgetRange.start &&
           saving.saving_date <
-            monthRange.end,
+            budgetRange.end,
       )
       .reduce(
         (sum, saving) =>
@@ -1144,7 +1185,7 @@ export default function HomePage() {
         <div>
           <h1>
             {coupleName} ·{" "}
-            {monthRange.month}월{" "}
+            {budgetRange.label}{" "}
             <span>❤️</span>
           </h1>
 
@@ -1210,7 +1251,7 @@ export default function HomePage() {
               🗓️
             </span>
 
-            내 이번 달 예산
+            내 예산 기간 잔액
           </div>
 
           <button
@@ -1255,7 +1296,7 @@ export default function HomePage() {
 
         <div className="budget-information">
           <div>
-            <span>이번 달 예산</span>
+            <span>이월 포함 예산</span>
 
             <strong>
               {budget.toLocaleString(
