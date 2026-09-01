@@ -288,6 +288,11 @@ export default function StatisticsPage() {
   ] = useState<ExpenseRecord[]>([]);
 
   const [
+    allTreatExpenses,
+    setAllTreatExpenses,
+  ] = useState<ExpenseRecord[]>([]);
+
+  const [
     previousExpenses,
     setPreviousExpenses,
   ] = useState<ExpenseRecord[]>([]);
@@ -443,6 +448,7 @@ export default function StatisticsPage() {
         previousResult,
         sixMonthExpenseResult,
         sixMonthIncomeResult,
+        allTreatResult,
       ] = await Promise.all([
         supabase
           .from("expenses")
@@ -509,6 +515,13 @@ export default function StatisticsPage() {
             "income_date",
             currentRange.end,
           ),
+
+        supabase
+          .from("expenses")
+          .select(expenseColumns)
+          .eq("couple_id", profile.couple_id)
+          .eq("use_type", "함께")
+          .eq("payment_type", "사주기"),
       ]);
 
       if (currentResult.error) {
@@ -543,6 +556,13 @@ export default function StatisticsPage() {
         );
       }
 
+      if (allTreatResult.error) {
+        console.error(
+          "누적 사주기 조회 오류:",
+          allTreatResult.error,
+        );
+      }
+
       setCurrentExpenses(
         (currentResult.data as
           | ExpenseRecord[]
@@ -564,6 +584,12 @@ export default function StatisticsPage() {
       setSixMonthIncomes(
         (sixMonthIncomeResult.data as
           | IncomeRecord[]
+          | null) ?? [],
+      );
+
+      setAllTreatExpenses(
+        (allTreatResult.data as
+          | ExpenseRecord[]
           | null) ?? [],
       );
 
@@ -685,6 +711,7 @@ export default function StatisticsPage() {
           );
         },
       );
+
     }, [
       month,
       currentRange.end,
@@ -1407,14 +1434,8 @@ export default function StatisticsPage() {
 
   const treatExpenses =
     useMemo(() => {
-      return currentExpenses.filter(
-        (expense) =>
-          expense.use_type ===
-            "함께" &&
-          expense.payment_type ===
-            "사주기",
-      );
-    }, [currentExpenses]);
+      return allTreatExpenses;
+    }, [allTreatExpenses]);
 
   const myTreatAmount = useMemo(() => {
     if (!userId) {
@@ -1478,8 +1499,8 @@ export default function StatisticsPage() {
             "ko-KR",
           )}원 더 많이 사줬어요.`
         : treatTotal > 0
-          ? "이번 달에는 서로 같은 금액을 사줬어요."
-          : "이번 달 사주기 기록이 아직 없어요.";
+          ? "지금까지 서로 같은 금액을 사줬어요."
+          : "사주기 기록이 아직 없어요.";
 
   const biggestTreat =
     useMemo(() => {
@@ -2396,7 +2417,7 @@ export default function StatisticsPage() {
       <section className="analysis-card treat-analysis-card">
         <div className="analysis-section-heading">
           <h2>
-            🎁 이번 달 사주기 분석
+            🎁 누적 사주기 분석
           </h2>
 
           <small>

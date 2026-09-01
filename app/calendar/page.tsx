@@ -17,7 +17,7 @@ import "./calendar.css";
 
 const supabase = createClient();
 
-const BUDGET_START_DAY = 5;
+const BUDGET_START_DAY = 1;
 
 type ViewType = "me" | "partner";
 
@@ -467,15 +467,16 @@ export default function CalendarPage() {
       ? myNickname
       : partnerNickname;
 
+  const budgetPeriodEnd = new Date(
+    `${budgetRange.end}T00:00:00`,
+  );
+  budgetPeriodEnd.setDate(budgetPeriodEnd.getDate() - 1);
+
   const budgetPeriodLabel = `${Number(
     budgetRange.start.slice(5, 7),
   )}월 ${Number(
     budgetRange.start.slice(8, 10),
-  )}일~${Number(
-    new Date(
-      `${budgetRange.end}T00:00:00`,
-    ).getMonth() + 1,
-  )}월 ${BUDGET_START_DAY - 1}일`;
+  )}일~${budgetPeriodEnd.getMonth() + 1}월 ${budgetPeriodEnd.getDate()}일`;
 
   const isMyCalendar =
     view === "me";
