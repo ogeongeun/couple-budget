@@ -789,18 +789,40 @@ export default function HomePage() {
         .eq("user_id", userId)
         .lt("expense_date", budgetRange.start);
 
+      const pendingSettlementQuery = supabase
+        .from("expenses")
+        .select(`
+          id,
+          user_id,
+          amount,
+          category,
+          use_type,
+          payment_type,
+          payer_id,
+          my_share,
+          partner_share,
+          settled_amount,
+          settlement_status
+        `)
+        .eq("couple_id", coupleId)
+        .eq("use_type", "함께")
+        .eq("payment_type", "나눠내기")
+        .eq("settlement_status", "정산대기");
+
       const [
         incomeResult,
         expenseResult,
         savingsResult,
         previousIncomeResult,
         previousExpenseResult,
+        pendingSettlementResult,
       ] = await Promise.all([
         incomeQuery,
         expenseQuery,
         savingsQuery,
         previousIncomeQuery,
         previousExpenseQuery,
+        pendingSettlementQuery,
       ]);
 
       if (!mounted) {
@@ -945,16 +967,17 @@ export default function HomePage() {
         ),
       );
 
-      const pendingSettlements =
-        allExpenses.filter(
-          (expense) =>
-            expense.use_type ===
-              "함께" &&
-            expense.payment_type ===
-              "나눠내기" &&
-            expense.settlement_status ===
-              "정산대기",
+      if (pendingSettlementResult.error) {
+        console.error(
+          "미정산 조회 오류:",
+          pendingSettlementResult.error,
         );
+      }
+
+      const pendingSettlements =
+        (pendingSettlementResult.data as
+          | ExpenseData[]
+          | null) ?? [];
 
       let nextReceivableAmount = 0;
       let nextPayableAmount = 0;
@@ -1491,7 +1514,7 @@ export default function HomePage() {
 
         <div className="settlement-content">
           <span>
-            이번 달 정산 요약
+            미정산 요약
           </span>
 
           <div className="home-settlement-money-row">

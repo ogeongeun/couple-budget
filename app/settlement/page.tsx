@@ -302,14 +302,6 @@ export default function SettlementPage() {
           "payment_type",
           "나눠내기",
         )
-        .gte(
-          "expense_date",
-          monthRange.start,
-        )
-        .lt(
-          "expense_date",
-          monthRange.end,
-        )
         .order("expense_date", {
           ascending: false,
         })
@@ -332,10 +324,18 @@ export default function SettlementPage() {
         return;
       }
 
-      setExpenses(
+      const loadedExpenses =
         (expenseResult as
           | SettlementExpense[]
-          | null) ?? [],
+          | null) ?? [];
+
+      setExpenses(
+        loadedExpenses.filter(
+          (expense) =>
+            expense.settlement_status !== "정산완료" ||
+            (expense.expense_date >= monthRange.start &&
+              expense.expense_date < monthRange.end),
+        ),
       );
 
       setLoading(false);
