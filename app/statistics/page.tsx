@@ -176,11 +176,11 @@ function getMonthRange(
 ) {
   return {
     start: formatDate(
-      new Date(year, month, 1),
+      new Date(year, month, 5),
     ),
 
     end: formatDate(
-      new Date(year, month + 1, 1),
+      new Date(year, month + 1, 5),
     ),
   };
 }
@@ -324,7 +324,7 @@ export default function StatisticsPage() {
   const sixMonthStart = useMemo(
     () =>
       formatDate(
-        new Date(year, month - 5, 1),
+        new Date(year, month - 5, 5),
       ),
     [year, month],
   );
@@ -677,20 +677,18 @@ export default function StatisticsPage() {
 
       return sixMonthIncomes.filter(
         (income) => {
-          const date = new Date(
-            `${income.income_date}T00:00:00`,
-          );
-
           return (
             income.user_id ===
               selectedUserId &&
-            date.getFullYear() === year &&
-            date.getMonth() === month
+            income.income_date >= currentRange.start &&
+            income.income_date < currentRange.end
           );
         },
       );
     }, [
       month,
+      currentRange.end,
+      currentRange.start,
       selectedUserId,
       sixMonthIncomes,
       year,
@@ -1252,19 +1250,17 @@ export default function StatisticsPage() {
           const targetMonth =
             date.getMonth();
 
+          const targetRange = getMonthRange(
+            targetYear,
+            targetMonth,
+          );
+
           const expenses =
             selectedSixMonthExpenses.filter(
               (expense) => {
-                const expenseDate =
-                  new Date(
-                    `${expense.expense_date}T00:00:00`,
-                  );
-
                 return (
-                  expenseDate.getFullYear() ===
-                    targetYear &&
-                  expenseDate.getMonth() ===
-                    targetMonth
+                  expense.expense_date >= targetRange.start &&
+                  expense.expense_date < targetRange.end
                 );
               },
             );
@@ -1272,18 +1268,11 @@ export default function StatisticsPage() {
           const incomes =
             sixMonthIncomes.filter(
               (income) => {
-                const incomeDate =
-                  new Date(
-                    `${income.income_date}T00:00:00`,
-                  );
-
                 return (
                   income.user_id ===
                     selectedUserId &&
-                  incomeDate.getFullYear() ===
-                    targetYear &&
-                  incomeDate.getMonth() ===
-                    targetMonth
+                  income.income_date >= targetRange.start &&
+                  income.income_date < targetRange.end
                 );
               },
             );
@@ -1291,9 +1280,9 @@ export default function StatisticsPage() {
           return {
             year: targetYear,
             month: targetMonth,
-            label: `${
-              targetMonth + 1
-            }월`,
+            label: `${targetMonth + 1}월 5일~${
+              targetMonth === 11 ? 1 : targetMonth + 2
+            }월 4일`,
             amount:
               sumAmount(expenses),
             budget:
@@ -1639,7 +1628,7 @@ export default function StatisticsPage() {
           </button>
 
           <strong>
-            🗓️ {month + 1}월
+            🗓️ {month + 1}월 5일~{month + 2 > 12 ? 1 : month + 2}월 4일
           </strong>
 
           <button
