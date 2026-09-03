@@ -9,6 +9,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   useRouter,
   useSearchParams,
@@ -223,6 +224,13 @@ function SpendingPageContent() {
   const requestedExpenseId =
     searchParams.get("expense");
 
+  const requestedExpenseDate =
+    searchParams.get("date");
+
+  const requestedDate = requestedExpenseDate
+    ? new Date(`${requestedExpenseDate}T00:00:00`)
+    : null;
+
   const now = new Date();
 
   const [view, setView] =
@@ -235,11 +243,15 @@ function SpendingPageContent() {
     );
 
   const [year, setYear] = useState(
-    now.getFullYear(),
+    requestedDate && !Number.isNaN(requestedDate.getTime())
+      ? requestedDate.getFullYear()
+      : now.getFullYear(),
   );
 
   const [month, setMonth] = useState(
-    now.getMonth(),
+    requestedDate && !Number.isNaN(requestedDate.getTime())
+      ? requestedDate.getMonth()
+      : now.getMonth(),
   );
 
   const [loading, setLoading] =
@@ -1579,7 +1591,11 @@ function ExpenseEditSheet({
     numericMyShare < 0 ||
     numericMyShare > numericAmount;
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <div
       className="expense-edit-backdrop"
       onClick={onClose}
@@ -1987,6 +2003,7 @@ function ExpenseEditSheet({
           </button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
