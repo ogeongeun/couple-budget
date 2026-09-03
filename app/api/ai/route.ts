@@ -149,18 +149,14 @@ export async function POST(request: Request) {
       .from("expenses")
       .select("user_id, amount, category, title, expense_date, use_type, payment_type, payer_id")
       .eq("couple_id", profile.couple_id)
-      .gte("expense_date", range.start)
-      .lt("expense_date", range.end)
       .order("expense_date", { ascending: false })
-      .limit(300),
+      .limit(500),
     supabase
       .from("incomes")
       .select("user_id, amount, category, memo, income_date")
       .eq("couple_id", profile.couple_id)
-      .gte("income_date", range.start)
-      .lt("income_date", range.end)
       .order("income_date", { ascending: false })
-      .limit(100),
+      .limit(200),
     supabase
       .from("expenses")
       .select("amount")
@@ -204,7 +200,7 @@ export async function POST(request: Request) {
     내용: income.memo || income.category,
     날짜: income.income_date,
   }));
-  const myExpenses = (expensesResult.data ?? [])
+  const myHistoricalExpenses = (expensesResult.data ?? [])
     .filter((expense) => expense.user_id === user.id)
     .map((expense) => ({
       금액: Number(expense.amount || 0),
@@ -214,7 +210,7 @@ export async function POST(request: Request) {
       사용방식: expense.use_type,
       결제방식: expense.payment_type,
     }));
-  const myIncomes = (incomesResult.data ?? [])
+  const myHistoricalIncomes = (incomesResult.data ?? [])
     .filter((income) => income.user_id === user.id)
     .map((income) => ({
       금액: Number(income.amount || 0),
@@ -222,6 +218,12 @@ export async function POST(request: Request) {
       내용: income.memo || income.category,
       날짜: income.income_date,
     }));
+  const myExpenses = myHistoricalExpenses.filter(
+    (expense) => expense.날짜 >= range.start && expense.날짜 < range.end,
+  );
+  const myIncomes = myHistoricalIncomes.filter(
+    (income) => income.날짜 >= range.start && income.날짜 < range.end,
+  );
   const summarizeExpenses = (items: typeof myExpenses) => {
     const categoryTotals: Record<string, number> = {};
     const contentTotals: Record<string, { amount: number; count: number; category: string }> = {};
@@ -259,6 +261,27 @@ export async function POST(request: Request) {
     ...summarizeExpenses(myExpenses),
     총소득: myIncomes.reduce((sum, income) => sum + income.금액, 0),
   };
+  const historicalMonthKeys = new Set([
+    ...myHistoricalExpenses.map((expense) => expense.날짜.slice(0, 7)),
+    ...myHistoricalIncomes.map((income) => income.날짜.slice(0, 7)),
+  ]);
+  const myMonthlyHistory = [...historicalMonthKeys]
+    .sort((a, b) => b.localeCompare(a))
+    .slice(0, 24)
+    .map((monthKey) => {
+      const monthExpenses = myHistoricalExpenses.filter(
+        (expense) => expense.날짜.startsWith(monthKey),
+      );
+      const monthIncomes = myHistoricalIncomes.filter(
+        (income) => income.날짜.startsWith(monthKey),
+      );
+
+      return {
+        월: monthKey,
+        ...summarizeExpenses(monthExpenses),
+        총소득: monthIncomes.reduce((sum, income) => sum + income.금액, 0),
+      };
+    });
   const weeklyBudget = Math.round(mySummary.총소득 / 4);
   const weeklyLimit = weeklyBudget;
   const weeklySpent = (weeklyExpensesResult.data ?? []).reduce(
@@ -300,7 +323,8 @@ export async function POST(request: Request) {
 소비를 줄일 항목이나 절약 방법을 물으면 카테고리 이름만 답하지 말고 반드시 개인 요약의 '내용별소비'와 개인 기록의 '내용'도 함께 확인해. 총액이 크거나 여러 번 반복된 구체적인 소비 내용을 1~3개 골라 금액과 횟수를 근거로 알려주고, 실행 가능한 줄이는 방법을 제안해. 기록에 없는 소비 내용은 만들어내지 마.
 사용자가 개인 소비 추가를 명확하게 요청하면 action.kind를 add_expense로 설정하고 금액, 카테고리, 내용, 날짜를 정리해. '오늘'은 ${today}로 변환해. 음료수/커피/카페 음료는 카페, 식사/음식은 식비로 분류해. 저장은 하지 말고 확인할 초안이라고 안내해. 소비 추가 요청이 아니면 action.kind는 none이고 나머지 action 값은 빈 값이나 0으로 둬.
 사용자가 그래프나 차트로 보여달라고 요청하면 action.kind를 show_chart로 설정해. 날짜별/일별은 groupBy day, 주별은 week, 카테고리별은 category야. 이번 주와 이번 달만 지원해. '내'는 scope me, 애인/상대방은 partner, 둘/우리/커플은 couple이야. 소비는 expense, 소득은 income, 소득에서 소비를 뺀 금액은 net이야. 그래프 요청이면 답변에는 어떤 그래프를 준비했는지만 짧게 안내해.
-금액은 원 단위로 정확히 답하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n로그인 사용자 개인 요약(서버에서 계산한 확정값):\n${JSON.stringify(mySummary)}\n\n로그인 사용자 이번 주 요약(월 소득을 4로 나눈 주간 예산의 100% 기준):\n${JSON.stringify(weeklySummary)}\n\n로그인 사용자 개인 기록:\n${JSON.stringify({ incomes: myIncomes, expenses: myExpenses })}\n\n이번 달 커플 전체 기록(상대방 또는 둘을 명시했을 때만 사용):\n${JSON.stringify({ incomes, expenses })}`,
+지난달, 특정 월, 예전, 지금까지처럼 과거 기간을 물으면 아래의 '개인 월별 과거 요약'과 '전체 과거 기록'에서 질문에 해당하는 날짜만 골라 답해. 월별 합계는 직접 다시 계산하지 말고 서버에서 계산한 월별 과거 요약 숫자를 사용해. 특정 기록이나 소비 내용을 물을 때는 전체 과거 기록을 확인해. 질문에 기간이 없을 때만 현재 분석 기간인 ${range.label}을 기본으로 사용해.
+금액은 원 단위로 정확히 답하고 데이터에 없는 사실은 추측하지 마. 모바일에서 읽기 좋게 짧게 답하되 결론과 근거를 포함해. 현재 분석 기간은 ${range.label}이야.\n\n로그인 사용자 이번 달 개인 요약(서버에서 계산한 확정값):\n${JSON.stringify(mySummary)}\n\n로그인 사용자 개인 월별 과거 요약(최신 24개월, 서버에서 계산한 확정값):\n${JSON.stringify(myMonthlyHistory)}\n\n로그인 사용자 이번 주 요약(월 소득을 4로 나눈 주간 예산의 100% 기준):\n${JSON.stringify(weeklySummary)}\n\n로그인 사용자 전체 과거 기록:\n${JSON.stringify({ incomes: myHistoricalIncomes, expenses: myHistoricalExpenses })}\n\n커플 전체 과거 기록(상대방 또는 둘을 명시했을 때만 사용):\n${JSON.stringify({ incomes, expenses })}`,
         maxOutputTokens: 600,
         temperature: 0.3,
         responseMimeType: "application/json",
