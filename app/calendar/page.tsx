@@ -34,7 +34,13 @@ type IncomeRecord = {
   category: string;
   memo: string | null;
   income_date: string;
+  source_type: string | null;
 };
+
+function isBudgetIncome(income: IncomeRecord) {
+  return income.source_type !== "settlement" &&
+    income.source_type !== "settlement_payment";
+}
 
 type ExpenseRecord = {
   id: string;
@@ -692,7 +698,7 @@ export default function CalendarPage() {
                 "incomes",
               )
               .select(
-                "id, amount, category, memo, income_date",
+                "id, amount, category, memo, income_date, source_type",
               )
               .eq(
                 "user_id",
@@ -1011,6 +1017,7 @@ export default function CalendarPage() {
           sumAmounts(
             loadedIncomes.filter(
               (income) =>
+                isBudgetIncome(income) &&
                 income.income_date < budgetRange.start,
             ),
           ) -
@@ -1231,6 +1238,7 @@ export default function CalendarPage() {
                 usableAmount += sumAmounts(
                   loadedIncomes.filter(
                     (income) =>
+                      isBudgetIncome(income) &&
                       income.income_date >= cycleStartString &&
                       income.income_date < cycleEndString,
                   ),
@@ -1365,6 +1373,7 @@ export default function CalendarPage() {
       () =>
         incomes.filter(
           (income) =>
+            isBudgetIncome(income) &&
             income.income_date >= budgetRange.start &&
             income.income_date < budgetRange.end,
         ),
