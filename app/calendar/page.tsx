@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 import BottomNavigation from "@/components/BottomNavigation";
 import ExpenseSheet from "@/components/ExpenseSheet";
+import { buildConsumptionExpenses } from "@/lib/expenseConsumption";
 import { createClient } from "@/lib/supabase/client";
 
 import "./calendar.css";
@@ -53,6 +54,11 @@ type ExpenseRecord = {
     | "해당없음"
     | "정산대기"
     | "정산완료";
+  payer_id: string | null;
+  my_share: number;
+  partner_share: number;
+  settled_amount: number;
+  source_type: string | null;
 
   created_at: string;
 };
@@ -722,13 +728,14 @@ export default function CalendarPage() {
                 expense_date,
                 use_type,
                 payment_type,
+                payer_id,
+                my_share,
+                partner_share,
+                settled_amount,
+                source_type,
                 settlement_status,
                 created_at
               `)
-              .eq(
-                "user_id",
-                targetUserId,
-              )
               .eq(
                 "couple_id",
                 profile.couple_id,
@@ -940,13 +947,14 @@ export default function CalendarPage() {
           ) ??
           [];
 
-        const loadedExpenses =
+        const loadedExpenses = buildConsumptionExpenses(
           (
             expenseResult.data as
               | ExpenseRecord[]
               | null
-          ) ??
-          [];
+          ) ?? [],
+          [user.id, resolvedPartnerId ?? ""],
+        ).filter((expense) => expense.user_id === targetUserId);
 
         const loadedSavings =
           (

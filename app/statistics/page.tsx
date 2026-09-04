@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 import BottomNavigation from "@/components/BottomNavigation";
 import { createClient } from "@/lib/supabase/client";
+import { buildConsumptionExpenses } from "@/lib/expenseConsumption";
 
 import "./statistics.css";
 
@@ -37,6 +38,10 @@ type ExpenseRecord = {
     | "사주기"
     | null;
   payer_id: string | null;
+  my_share: number;
+  partner_share: number;
+  settled_amount: number;
+  source_type: string | null;
   created_at: string;
 };
 
@@ -440,6 +445,10 @@ export default function StatisticsPage() {
         use_type,
         payment_type,
         payer_id,
+        my_share,
+        partner_share,
+        settled_amount,
+        source_type,
         created_at
       `;
 
@@ -563,22 +572,26 @@ export default function StatisticsPage() {
         );
       }
 
+      const memberIds = [user.id, partner?.id ?? ""];
+      const asConsumption = (rows: ExpenseRecord[] | null) =>
+        buildConsumptionExpenses(rows ?? [], memberIds);
+
       setCurrentExpenses(
-        (currentResult.data as
+        asConsumption(currentResult.data as
           | ExpenseRecord[]
-          | null) ?? [],
+          | null),
       );
 
       setPreviousExpenses(
-        (previousResult.data as
+        asConsumption(previousResult.data as
           | ExpenseRecord[]
-          | null) ?? [],
+          | null),
       );
 
       setSixMonthExpenses(
-        (sixMonthExpenseResult.data as
+        asConsumption(sixMonthExpenseResult.data as
           | ExpenseRecord[]
-          | null) ?? [],
+          | null),
       );
 
       setSixMonthIncomes(
@@ -588,9 +601,9 @@ export default function StatisticsPage() {
       );
 
       setAllTreatExpenses(
-        (allTreatResult.data as
+        asConsumption(allTreatResult.data as
           | ExpenseRecord[]
-          | null) ?? [],
+          | null),
       );
 
       setLoading(false);
