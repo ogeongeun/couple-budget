@@ -12,6 +12,7 @@ import SavingSheet from "@/components/SavingSheet";
 import BottomNavigation from "@/components/BottomNavigation";
 import { subscribeToPushNotifications } from "@/lib/push/client";
 import { createClient } from "@/lib/supabase/client";
+import { buildConsumptionExpenses } from "@/lib/expenseConsumption";
 
 import "./home.css";
 
@@ -44,6 +45,7 @@ type ExpenseData = {
   partner_share: number;
   settled_amount: number;
   settlement_status: string;
+  source_type: string | null;
 };
 
 type ChartCategory = {
@@ -174,6 +176,19 @@ function getBudgetRange() {
     label: `${startDate.getMonth() + 1}월`,
     start: formatDate(startDate),
     end: formatDate(endDate),
+  };
+}
+
+function getHomeStatsRange() {
+  const now = new Date();
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth() - (now.getDate() < 5 ? 1 : 0),
+    5,
+  );
+  return {
+    start: formatDate(start),
+    end: formatDate(new Date(start.getFullYear(), start.getMonth() + 1, 5)),
   };
 }
 
@@ -319,6 +334,9 @@ export default function HomePage() {
   const [used, setUsed] =
     useState(0);
 
+  const [myStatsUsed, setMyStatsUsed] =
+    useState(0);
+
   const [partnerUsed, setPartnerUsed] =
     useState(0);
 
@@ -364,6 +382,7 @@ export default function HomePage() {
     );
 
   const budgetRange = getBudgetRange();
+  const homeStatsRange = getHomeStatsRange();
 
   /*
    * 현재 브라우저 알림 권한 확인
@@ -809,6 +828,17 @@ export default function HomePage() {
         .eq("payment_type", "나눠내기")
         .neq("settlement_status", "정산완료");
 
+      const statsExpenseQuery = supabase
+        .from("expenses")
+        .select(`
+          id, user_id, amount, category, use_type, payment_type,
+          payer_id, my_share, partner_share, settled_amount,
+          settlement_status, source_type
+        `)
+        .eq("couple_id", coupleId)
+        .gte("expense_date", homeStatsRange.start)
+        .lt("expense_date", homeStatsRange.end);
+
       const [
         incomeResult,
         expenseResult,
@@ -816,6 +846,7 @@ export default function HomePage() {
         previousIncomeResult,
         previousExpenseResult,
         pendingSettlementResult,
+        statsExpenseResult,
       ] = await Promise.all([
         incomeQuery,
         expenseQuery,
@@ -823,6 +854,7 @@ export default function HomePage() {
         previousIncomeQuery,
         previousExpenseQuery,
         pendingSettlementQuery,
+        statsExpenseQuery,
       ]);
 
       if (!mounted) {
@@ -929,6 +961,17 @@ export default function HomePage() {
             )
           : [];
 
+      const statsExpenses = buildConsumptionExpenses(
+        (statsExpenseResult.data as ExpenseData[] | null) ?? [],
+        [userId, partnerId ?? ""],
+      );
+      const myStatsExpenses = statsExpenses.filter(
+        (expense) => expense.user_id === userId,
+      );
+      const partnerStatsExpenses = partnerId
+        ? statsExpenses.filter((expense) => expense.user_id === partnerId)
+        : [];
+
       const myUsedAmount =
         myExpenses.reduce(
           (sum, expense) =>
@@ -952,18 +995,20 @@ export default function HomePage() {
       setUsed(myUsedAmount);
 
       setPartnerUsed(
-        partnerUsedAmount,
+        sumAmounts(partnerStatsExpenses),
       );
+
+      setMyStatsUsed(sumAmounts(myStatsExpenses));
 
       setMyChartCategories(
         createChartCategories(
-          myExpenses,
+          myStatsExpenses,
         ),
       );
 
       setPartnerChartCategories(
         createChartCategories(
-          partnerExpenses,
+          partnerStatsExpenses,
         ),
       );
 
@@ -1064,6 +1109,8 @@ export default function HomePage() {
     refreshKey,
     budgetRange.start,
     budgetRange.end,
+    homeStatsRange.end,
+    homeStatsRange.start,
   ]);
 
   const handleIncomeSave = () => {
@@ -1601,7 +1648,7 @@ export default function HomePage() {
       <section className="chart-section">
         <SpendingChart
           title="내 소비 현황"
-          total={used}
+          total={myStatsUsed}
           categories={
             myChartCategories
           }
