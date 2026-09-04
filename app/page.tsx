@@ -807,7 +807,7 @@ export default function HomePage() {
         .eq("couple_id", coupleId)
         .eq("use_type", "함께")
         .eq("payment_type", "나눠내기")
-        .eq("settlement_status", "정산대기");
+        .neq("settlement_status", "정산완료");
 
       const [
         incomeResult,
@@ -981,43 +981,58 @@ export default function HomePage() {
 
       let nextReceivableAmount = 0;
       let nextPayableAmount = 0;
+      let nextPendingSettlementCount = 0;
 
       pendingSettlements.forEach(
         (expense) => {
+          const receiverId = expense.payer_id;
+
+          if (!receiverId || !partnerId) {
+            return;
+          }
+
+          const payerIsCreator =
+            receiverId === expense.user_id;
+
+          const debtorId = payerIsCreator
+            ? expense.user_id === userId
+              ? partnerId
+              : userId
+            : expense.user_id;
+
+          const settlementAmount = payerIsCreator
+            ? Number(expense.partner_share || 0)
+            : Number(expense.my_share || 0);
+
           const settledAmount = Number(
             expense.settled_amount || 0,
           );
 
-          if (
-            expense.payer_id === userId
-          ) {
-            const totalAmount = Number(
-              expense.partner_share || 0,
-            );
+          const remainingAmount = Math.max(
+            0,
+            settlementAmount - settledAmount,
+          );
 
+          if (remainingAmount <= 0) {
+            return;
+          }
+
+          nextPendingSettlementCount += 1;
+
+          if (
+            receiverId === userId
+          ) {
             nextReceivableAmount +=
-              Math.max(
-                0,
-                totalAmount - settledAmount,
-              );
+              remainingAmount;
 
             return;
           }
 
           if (
-            partnerId &&
-            expense.payer_id ===
-              partnerId
+            debtorId === userId
           ) {
-            const totalAmount = Number(
-              expense.my_share || 0,
-            );
-
             nextPayableAmount +=
-              Math.max(
-                0,
-                totalAmount - settledAmount,
-              );
+              remainingAmount;
           }
         },
       );
@@ -1031,7 +1046,7 @@ export default function HomePage() {
       );
 
       setPendingSettlementCount(
-        pendingSettlements.length,
+        nextPendingSettlementCount,
       );
 
       setDataLoading(false);
