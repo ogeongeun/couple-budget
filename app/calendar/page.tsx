@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 import BottomNavigation from "@/components/BottomNavigation";
 import ExpenseSheet from "@/components/ExpenseSheet";
+import { buildConsumptionExpenses } from "@/lib/expenseConsumption";
 import { createClient } from "@/lib/supabase/client";
 
 import "./calendar.css";
@@ -33,7 +34,13 @@ type IncomeRecord = {
   category: string;
   memo: string | null;
   income_date: string;
+  source_type: string | null;
 };
+
+function isBudgetIncome(income: IncomeRecord) {
+  return income.source_type !== "settlement" &&
+    income.source_type !== "settlement_payment";
+}
 
 type ExpenseRecord = {
   id: string;
@@ -691,7 +698,7 @@ export default function CalendarPage() {
                 "incomes",
               )
               .select(
-                "id, amount, category, memo, income_date",
+                "id, amount, category, memo, income_date, source_type",
               )
               .eq(
                 "user_id",
@@ -738,10 +745,6 @@ export default function CalendarPage() {
               .eq(
                 "couple_id",
                 profile.couple_id,
-              )
-              .eq(
-                "user_id",
-                targetUserId,
               )
               .gte(
                 "expense_date",
@@ -950,12 +953,14 @@ export default function CalendarPage() {
           ) ??
           [];
 
-        const loadedExpenses =
+        const loadedExpenses = buildConsumptionExpenses(
           (
             expenseResult.data as
               | ExpenseRecord[]
               | null
-          ) ?? [];
+          ) ?? [],
+          [user.id, resolvedPartnerId ?? ""],
+        ).filter((expense) => expense.user_id === targetUserId);
 
         const loadedSavings =
           (
@@ -1012,6 +1017,7 @@ export default function CalendarPage() {
           sumAmounts(
             loadedIncomes.filter(
               (income) =>
+                isBudgetIncome(income) &&
                 income.income_date < budgetRange.start,
             ),
           ) -
@@ -1232,6 +1238,7 @@ export default function CalendarPage() {
                 usableAmount += sumAmounts(
                   loadedIncomes.filter(
                     (income) =>
+                      isBudgetIncome(income) &&
                       income.income_date >= cycleStartString &&
                       income.income_date < cycleEndString,
                   ),
@@ -1366,6 +1373,7 @@ export default function CalendarPage() {
       () =>
         incomes.filter(
           (income) =>
+            isBudgetIncome(income) &&
             income.income_date >= budgetRange.start &&
             income.income_date < budgetRange.end,
         ),
@@ -1545,7 +1553,7 @@ export default function CalendarPage() {
         const result =
           new Map<string, number>();
 
-        incomes.forEach((income) => {
+        incomes.filter(isBudgetIncome).forEach((income) => {
           const current =
             result.get(income.income_date) ?? 0;
 
@@ -1999,6 +2007,7 @@ export default function CalendarPage() {
       () =>
         incomes.filter(
           (income) =>
+            isBudgetIncome(income) &&
             income.income_date === selectedDate,
         ),
       [incomes, selectedDate],
