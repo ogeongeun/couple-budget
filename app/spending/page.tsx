@@ -15,6 +15,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { buildConsumptionExpenses } from "@/lib/expenseConsumption";
 import "./spending.css";
 
 const supabase = createClient();
@@ -38,12 +39,18 @@ type ExpenseRecord = {
   payer_id: string | null;
   my_share: number;
   partner_share: number;
+  settled_amount: number;
+  source_type: string | null;
   settlement_status:
     | "해당없음"
     | "정산대기"
     | "정산완료";
   settled_at: string | null;
   created_at: string;
+  original_expense_id?: string;
+  original_user_id?: string;
+  recorded_amount?: number;
+  is_settlement_allocation?: boolean;
 };
 
 type ProfileData = {
@@ -434,6 +441,8 @@ function SpendingPageContent() {
           payer_id,
           my_share,
           partner_share,
+          settled_amount,
+          source_type,
           settlement_status,
           settled_at,
           created_at
@@ -441,10 +450,6 @@ function SpendingPageContent() {
         .eq(
           "couple_id",
           profile.couple_id,
-        )
-        .eq(
-          "user_id",
-          targetUserId,
         )
         .gte(
           "expense_date",
@@ -476,11 +481,12 @@ function SpendingPageContent() {
         return;
       }
 
-      setExpenses(
-        (expenseData as
-          | ExpenseRecord[]
-          | null) ?? [],
-      );
+      const consumptionExpenses = buildConsumptionExpenses(
+        (expenseData as ExpenseRecord[] | null) ?? [],
+        [user.id, partner?.id ?? ""],
+      ).filter((expense) => expense.user_id === targetUserId);
+
+      setExpenses(consumptionExpenses);
 
       setLoading(false);
     },
@@ -643,7 +649,8 @@ function SpendingPageContent() {
     expense: ExpenseRecord,
   ) => {
     if (
-      expense.user_id !== userId
+      expense.original_user_id !== userId ||
+      expense.is_settlement_allocation
     ) {
       return;
     }
@@ -651,7 +658,7 @@ function SpendingPageContent() {
     setSelectedExpense(expense);
 
     setEditForm({
-      amount: String(expense.amount),
+      amount: String(expense.recorded_amount ?? expense.amount),
       myShare: String(expense.my_share),
       category: expense.category,
       title: expense.title ?? "",
@@ -827,7 +834,7 @@ function SpendingPageContent() {
           })
           .eq(
             "id",
-            selectedExpense.id,
+            selectedExpense.original_expense_id ?? selectedExpense.id,
           )
           .eq("user_id", userId);
 
@@ -861,7 +868,8 @@ function SpendingPageContent() {
   ) => {
     if (
       !userId ||
-      expense.user_id !== userId ||
+      expense.original_user_id !== userId ||
+      expense.is_settlement_allocation ||
       saving
     ) {
       return;
@@ -870,7 +878,7 @@ function SpendingPageContent() {
     const confirmed =
       window.confirm(
         `${Number(
-          expense.amount,
+          expense.recorded_amount ?? expense.amount,
         ).toLocaleString(
           "ko-KR",
         )}원 소비 기록을 삭제할까요?`,
@@ -887,7 +895,7 @@ function SpendingPageContent() {
       await supabase
         .from("expenses")
         .delete()
-        .eq("id", expense.id)
+        .eq("id", expense.original_expense_id ?? expense.id)
         .eq("user_id", userId);
 
     if (error) {
@@ -1406,8 +1414,8 @@ function CategoryDetail({
                 {dailyExpenses.map(
                   (expense) => {
                     const isMine =
-                      expense.user_id ===
-                      currentUserId;
+                      expense.original_user_id === currentUserId &&
+                      !expense.is_settlement_allocation;
 
                     return (
                       <div

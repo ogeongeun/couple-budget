@@ -11,16 +11,29 @@ export type ConsumptionExpense = {
   source_type?: string | null;
 };
 
+export type ConsumptionDisplayExpense<T extends ConsumptionExpense> = T & {
+  original_expense_id: string;
+  original_user_id: string;
+  recorded_amount: number;
+  is_settlement_allocation: boolean;
+};
+
 export function buildConsumptionExpenses<T extends ConsumptionExpense>(
   expenses: T[],
   memberIds: string[],
-): T[] {
+): ConsumptionDisplayExpense<T>[] {
   const members = [...new Set(memberIds.filter(Boolean))];
 
   return expenses.flatMap((expense) => {
     if (expense.source_type === "settlement_payment") return [];
+    const original = {
+      original_expense_id: expense.id,
+      original_user_id: expense.user_id,
+      recorded_amount: Number(expense.amount || 0),
+      is_settlement_allocation: false,
+    };
     if (expense.use_type !== "함께" || expense.payment_type !== "나눠내기") {
-      return [expense];
+      return [{ ...expense, ...original }];
     }
 
     const receiverId = expense.payer_id ?? expense.user_id;
@@ -37,10 +50,15 @@ export function buildConsumptionExpenses<T extends ConsumptionExpense>(
       settlementTotal,
     );
     const receiverAmount = Math.max(0, Number(expense.amount || 0) - settled);
-    const rows: T[] = [];
+    const rows: ConsumptionDisplayExpense<T>[] = [];
 
     if (receiverAmount > 0) {
-      rows.push({ ...expense, user_id: receiverId, amount: receiverAmount });
+      rows.push({
+        ...expense,
+        ...original,
+        user_id: receiverId,
+        amount: receiverAmount,
+      });
     }
     if (debtorId && settled > 0) {
       rows.push({
@@ -48,6 +66,8 @@ export function buildConsumptionExpenses<T extends ConsumptionExpense>(
         id: `${expense.id}:settled:${debtorId}`,
         user_id: debtorId,
         amount: settled,
+        ...original,
+        is_settlement_allocation: true,
       });
     }
     return rows;
