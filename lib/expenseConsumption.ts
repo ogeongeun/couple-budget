@@ -25,7 +25,12 @@ export function buildConsumptionExpenses<T extends ConsumptionExpense>(
   const members = [...new Set(memberIds.filter(Boolean))];
 
   return expenses.flatMap((expense) => {
-    if (expense.source_type === "settlement_payment") return [];
+    if (
+      expense.source_type === "settlement" ||
+      expense.source_type === "settlement_payment"
+    ) {
+      return [];
+    }
     const original = {
       original_expense_id: expense.id,
       original_user_id: expense.user_id,
