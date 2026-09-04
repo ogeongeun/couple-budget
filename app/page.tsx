@@ -163,17 +163,17 @@ function getBudgetRange() {
   const now = new Date();
   const startDate = new Date(
     now.getFullYear(),
-    now.getMonth(),
-    1,
+    now.getMonth() - (now.getDate() < 5 ? 1 : 0),
+    5,
   );
   const endDate = new Date(
     startDate.getFullYear(),
     startDate.getMonth() + 1,
-    1,
+    5,
   );
 
   return {
-    label: `${startDate.getMonth() + 1}월`,
+    label: `${startDate.getMonth() + 1}월 5일~${endDate.getMonth() + 1}월 4일`,
     start: formatDate(startDate),
     end: formatDate(endDate),
   };
