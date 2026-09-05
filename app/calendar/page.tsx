@@ -3238,7 +3238,7 @@ function ExpenseList({
 
                 {balanceAfterById.has(item.id) && (
                   <small className="expense-balance-after">
-                    사용 후 잔액{" "}
+                    잔액{" "}
                     {balanceAfterById
                       .get(item.id)
                       ?.toLocaleString("ko-KR")}
@@ -3690,7 +3690,7 @@ function DayDetail({
 
                     {expenseBalanceAfterById.has(item.id) && (
                       <small className="day-detail-balance-after">
-                        사용 후 잔액{" "}
+                        잔액{" "}
                         {expenseBalanceAfterById
                           .get(item.id)
                           ?.toLocaleString("ko-KR")}
