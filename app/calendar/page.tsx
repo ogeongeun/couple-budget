@@ -33,6 +33,7 @@ type IncomeRecord = {
   category: string;
   memo: string | null;
   income_date: string;
+  created_at: string;
 };
 
 type ExpenseRecord = {
@@ -100,8 +101,6 @@ type CalendarDayData = {
   currentMonth: boolean;
 
   usedAmount: number;
-
-  balanceAfter: number | null;
 
   incomeAmount: number;
 
@@ -195,27 +194,6 @@ function formatDate(
     );
 
   return `${year}-${month}-${day}`;
-}
-
-function formatCompactCalendarAmount(
-  amount: number,
-) {
-  const sign = amount < 0 ? "-" : "";
-  const absoluteAmount = Math.abs(amount);
-
-  if (absoluteAmount >= 100_000_000) {
-    return `${sign}${Math.round(absoluteAmount / 100_000_000)}억`;
-  }
-
-  if (absoluteAmount >= 10_000) {
-    return `${sign}${Math.round(absoluteAmount / 10_000)}만`;
-  }
-
-  if (absoluteAmount >= 1_000) {
-    return `${sign}${Math.round(absoluteAmount / 1_000)}천`;
-  }
-
-  return amount.toLocaleString("ko-KR");
 }
 
 function getDaysInMonth(
@@ -721,7 +699,7 @@ export default function CalendarPage() {
                 "incomes",
               )
               .select(
-                "id, amount, category, memo, income_date",
+                "id, amount, category, memo, income_date, created_at",
               )
               .eq(
                 "user_id",
@@ -1652,16 +1630,78 @@ export default function CalendarPage() {
     );
 
   /*
-   * 날짜별 사용 후 잔액
+   * 소비 내역별 사용 후 잔액
    *
-   * 전월 5일 이전 이월액에서 날짜별 수익을 더하고
-   * 해당 날짜까지의 소비와 저금을 차감한다.
+   * 전월 5일 이전 이월액에서 수익, 소비, 저금을
+   * 날짜와 기록 시각 순서대로 반영한다.
    */
-  const balanceAfterByDate =
+  const expenseBalanceAfterById =
     useMemo(
       () => {
         const result = new Map<string, number>();
         let availableAmount = calendarOpeningCarryover;
+
+        type BalanceEvent = {
+          id: string;
+          createdAt: string;
+          change: number;
+          expenseId?: string;
+        };
+
+        const eventsByDate = new Map<
+          string,
+          BalanceEvent[]
+        >();
+
+        const addEvent = (
+          date: string,
+          event: BalanceEvent,
+        ) => {
+          const dateEvents = eventsByDate.get(date) ?? [];
+
+          dateEvents.push(event);
+          eventsByDate.set(date, dateEvents);
+        };
+
+        incomes.forEach((income) => {
+          addEvent(income.income_date, {
+            id: income.id,
+            createdAt: income.created_at,
+            change: Number(income.amount || 0),
+          });
+        });
+
+        expenses.forEach((expense) => {
+          addEvent(expense.expense_date, {
+            id: expense.id,
+            createdAt: expense.created_at,
+            change: -Number(expense.amount || 0),
+            expenseId: expense.id,
+          });
+        });
+
+        savings.forEach((saving) => {
+          addEvent(saving.saving_date, {
+            id: saving.id,
+            createdAt: saving.created_at,
+            change:
+              saving.type === "deposit"
+                ? -Number(saving.amount || 0)
+                : Number(saving.amount || 0),
+          });
+        });
+
+        eventsByDate.forEach((dateEvents) => {
+          dateEvents.sort((first, second) => {
+            const createdOrder = first.createdAt.localeCompare(
+              second.createdAt,
+            );
+
+            return createdOrder !== 0
+              ? createdOrder
+              : first.id.localeCompare(second.id);
+          });
+        });
 
         const dataStart = new Date(
           `${budgetDataRange.start}T00:00:00`,
@@ -1677,12 +1717,15 @@ export default function CalendarPage() {
           cursor.setDate(cursor.getDate() + 1)
         ) {
           const date = formatDate(cursor);
+          const dateEvents = eventsByDate.get(date) ?? [];
 
-          availableAmount += incomeByDate.get(date) ?? 0;
-          availableAmount -= usedByDate.get(date) ?? 0;
-          availableAmount -= savingDifferenceByDate.get(date) ?? 0;
+          dateEvents.forEach((event) => {
+            availableAmount += event.change;
 
-          result.set(date, availableAmount);
+            if (event.expenseId) {
+              result.set(event.expenseId, availableAmount);
+            }
+          });
         }
 
         return result;
@@ -1691,9 +1734,9 @@ export default function CalendarPage() {
         budgetDataRange.end,
         budgetDataRange.start,
         calendarOpeningCarryover,
-        incomeByDate,
-        savingDifferenceByDate,
-        usedByDate,
+        expenses,
+        incomes,
+        savings,
       ],
     );
 
@@ -1861,9 +1904,6 @@ export default function CalendarPage() {
               usedAmount:
                 0,
 
-              balanceAfter:
-                null,
-
               incomeAmount:
                 0,
 
@@ -1908,9 +1948,6 @@ export default function CalendarPage() {
 
           const incomeAmount =
             incomeByDate.get(date) ?? 0;
-
-          const balanceAfter =
-            balanceAfterByDate.get(date) ?? null;
 
           const savingDifference =
             savingDifferenceByDate.get(
@@ -1987,8 +2024,6 @@ export default function CalendarPage() {
 
               usedAmount,
 
-              balanceAfter,
-
               incomeAmount,
 
               savingDifference,
@@ -2026,9 +2061,6 @@ export default function CalendarPage() {
               usedAmount:
                 0,
 
-              balanceAfter:
-                null,
-
               incomeAmount:
                 0,
 
@@ -2056,7 +2088,6 @@ export default function CalendarPage() {
         currentRecommendedAmount,
         budgetRange.end,
         budgetRange.start,
-        balanceAfterByDate,
         incomeByDate,
         month,
         savingDifferenceByDate,
@@ -2288,6 +2319,9 @@ export default function CalendarPage() {
           }
           expenses={
             selectedExpenses
+          }
+          expenseBalanceAfterById={
+            expenseBalanceAfterById
           }
           incomes={
             selectedIncomes
@@ -2702,29 +2736,11 @@ export default function CalendarPage() {
                   {item.currentMonth &&
                     item.usedAmount >
                       0 && (
-                      <div
-                        className="day-money-row"
-                        title={
-                          item.balanceAfter === null
-                            ? `사용 ${item.usedAmount.toLocaleString("ko-KR")}원`
-                            : `사용 ${item.usedAmount.toLocaleString("ko-KR")}원 · 사용 후 잔액 ${item.balanceAfter.toLocaleString("ko-KR")}원`
-                        }
-                        aria-label={
-                          item.balanceAfter === null
-                            ? `사용 금액 ${item.usedAmount.toLocaleString("ko-KR")}원`
-                            : `사용 금액 ${item.usedAmount.toLocaleString("ko-KR")}원, 사용 후 잔액 ${item.balanceAfter.toLocaleString("ko-KR")}원`
-                        }
-                      >
-                        <small className="day-used">
-                          -{formatCompactCalendarAmount(item.usedAmount)}
-                        </small>
-
-                        {item.balanceAfter !== null && (
-                          <small className="day-balance">
-                            잔 {formatCompactCalendarAmount(item.balanceAfter)}
-                          </small>
+                      <small className="day-used">
+                        -{item.usedAmount.toLocaleString(
+                          "ko-KR",
                         )}
-                      </div>
+                      </small>
                     )}
 
                   {/* 저금통 차액 */}
@@ -2888,6 +2904,9 @@ export default function CalendarPage() {
         <ExpenseList
           expenses={
             selectedExpenses
+          }
+          balanceAfterById={
+            expenseBalanceAfterById
           }
           canManage={
             isMyCalendar
@@ -3131,10 +3150,12 @@ function getCalendarDayCount(
 
 function ExpenseList({
   expenses,
+  balanceAfterById,
   canManage = false,
   onManage,
 }: {
   expenses: ExpenseRecord[];
+  balanceAfterById: Map<string, number>;
   canManage?: boolean;
   onManage?: (
     expense: ExpenseRecord,
@@ -3214,6 +3235,16 @@ function ExpenseList({
                   )}
                   원
                 </strong>
+
+                {balanceAfterById.has(item.id) && (
+                  <small className="expense-balance-after">
+                    사용 후 잔액{" "}
+                    {balanceAfterById
+                      .get(item.id)
+                      ?.toLocaleString("ko-KR")}
+                    원
+                  </small>
+                )}
 
                 {item.settlement_status ===
                   "정산대기" && (
@@ -3345,6 +3376,7 @@ function SavingList({
 function DayDetail({
   date,
   expenses,
+  expenseBalanceAfterById,
   incomes,
   savings,
   usedAmount,
@@ -3360,6 +3392,8 @@ function DayDetail({
   date: string;
 
   expenses: ExpenseRecord[];
+
+  expenseBalanceAfterById: Map<string, number>;
 
   incomes: IncomeRecord[];
 
@@ -3653,6 +3687,16 @@ function DayDetail({
                       )}
                       원
                     </strong>
+
+                    {expenseBalanceAfterById.has(item.id) && (
+                      <small className="day-detail-balance-after">
+                        사용 후 잔액{" "}
+                        {expenseBalanceAfterById
+                          .get(item.id)
+                          ?.toLocaleString("ko-KR")}
+                        원
+                      </small>
+                    )}
 
                     {item.settlement_status ===
                       "정산대기" && (
