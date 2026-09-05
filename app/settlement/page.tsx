@@ -141,6 +141,9 @@ export default function SettlementPage() {
   const [processingId, setProcessingId] =
     useState<string | null>(null);
 
+  const [bulkProcessing, setBulkProcessing] =
+    useState(false);
+
   const [partialAction, setPartialAction] =
     useState<PartialSettlementAction | null>(null);
 
@@ -492,6 +495,13 @@ export default function SettlementPage() {
     receivableAmount -
     payableAmount;
 
+  const bulkReceivableItems =
+    pendingItems.filter(
+      (item) =>
+        item.direction === "receive" &&
+        item.remainingAmount > 0,
+    );
+
   const filteredItems =
     settlementItems.filter(
       (item) => {
@@ -522,7 +532,7 @@ export default function SettlementPage() {
     expenseId: string,
     amount: number,
   ) => {
-    if (processingId) {
+    if (processingId || bulkProcessing) {
       return;
     }
 
@@ -569,7 +579,7 @@ export default function SettlementPage() {
   expenseId: string,
   amount: number,
 ) => {
-  if (processingId) {
+  if (processingId || bulkProcessing) {
     return;
   }
 
@@ -619,6 +629,89 @@ export default function SettlementPage() {
   await loadSettlements();
 };
 
+  const handleCompleteAll = async () => {
+    if (
+      bulkProcessing ||
+      processingId ||
+      bulkReceivableItems.length === 0
+    ) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `내가 받을 미정산 ${bulkReceivableItems.length}건을 모두 정산 완료할까요?\n상대방에게 실제로 받은 금액인지 확인해 주세요.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setBulkProcessing(true);
+    setMessage("");
+
+    let completedCount = 0;
+    let errorMessage = "";
+
+    for (const item of bulkReceivableItems) {
+      /*
+       * 일부 송금 표시가 남아 있으면 먼저 그 금액을 확인하고,
+       * 나머지도 이어서 완료해 한 건 전체를 정산한다.
+       */
+      const paymentAmounts =
+        item.pendingSentAmount > 0 &&
+        item.pendingSentAmount < item.remainingAmount
+          ? [
+              item.pendingSentAmount,
+              item.remainingAmount - item.pendingSentAmount,
+            ]
+          : [item.remainingAmount];
+
+      for (const paymentAmount of paymentAmounts) {
+        const { error } = await supabase.rpc(
+          "complete_partial_expense_settlement",
+          {
+            target_expense_id: item.id,
+            payment_amount: paymentAmount,
+          },
+        );
+
+        if (error) {
+          console.error(
+            "정산 일괄 완료 오류:",
+            error,
+          );
+
+          errorMessage =
+            error.message ||
+            "일부 정산을 완료하지 못했어요.";
+          break;
+        }
+      }
+
+      if (errorMessage) {
+        break;
+      }
+
+      completedCount += 1;
+    }
+
+    await loadSettlements();
+
+    if (errorMessage) {
+      setMessage(
+        completedCount > 0
+          ? `${completedCount}건은 완료됐지만 나머지는 처리하지 못했어요. ${errorMessage}`
+          : errorMessage,
+      );
+    } else {
+      setMessage(
+        `${completedCount}건의 받을 정산을 모두 완료했어요.`,
+      );
+    }
+
+    setBulkProcessing(false);
+  };
+
   const openPartialAction = (
     item: SettlementItem,
   ) => {
@@ -639,7 +732,11 @@ export default function SettlementPage() {
   };
 
   const submitPartialAction = async () => {
-    if (!partialAction || processingId) {
+    if (
+      !partialAction ||
+      processingId ||
+      bulkProcessing
+    ) {
       return;
     }
 
@@ -778,6 +875,27 @@ export default function SettlementPage() {
                 : "정산할 금액 없음"}
           </em>
         </div>
+
+        <button
+          type="button"
+          className="settlement-complete-all"
+          disabled={
+            bulkProcessing ||
+            Boolean(processingId) ||
+            bulkReceivableItems.length === 0
+          }
+          onClick={() => void handleCompleteAll()}
+        >
+          {bulkProcessing
+            ? "전체 정산 처리 중..."
+            : bulkReceivableItems.length > 0
+              ? `받을 정산 ${bulkReceivableItems.length}건 일괄 완료`
+              : "완료할 받을 정산이 없어요"}
+        </button>
+
+        <small className="settlement-complete-all-note">
+          내가 돈을 받을 정산만 완료되며, 내가 줄 돈은 상대방이 확인해야 해요.
+        </small>
       </section>
 
       <nav className="settlement-filters">
@@ -966,7 +1084,7 @@ export default function SettlementPage() {
                         <button
                           type="button"
                           className="complete"
-                          disabled={processing}
+                          disabled={processing || bulkProcessing}
                           onClick={() =>
                             openPartialAction(item)
                           }

@@ -101,6 +101,8 @@ type CalendarDayData = {
 
   usedAmount: number;
 
+  balanceAfter: number | null;
+
   incomeAmount: number;
 
   savingDifference: number;
@@ -193,6 +195,27 @@ function formatDate(
     );
 
   return `${year}-${month}-${day}`;
+}
+
+function formatCompactCalendarAmount(
+  amount: number,
+) {
+  const sign = amount < 0 ? "-" : "";
+  const absoluteAmount = Math.abs(amount);
+
+  if (absoluteAmount >= 100_000_000) {
+    return `${sign}${Math.round(absoluteAmount / 100_000_000)}억`;
+  }
+
+  if (absoluteAmount >= 10_000) {
+    return `${sign}${Math.round(absoluteAmount / 10_000)}만`;
+  }
+
+  if (absoluteAmount >= 1_000) {
+    return `${sign}${Math.round(absoluteAmount / 1_000)}천`;
+  }
+
+  return amount.toLocaleString("ko-KR");
 }
 
 function getDaysInMonth(
@@ -391,6 +414,11 @@ export default function CalendarPage() {
   const [
     budgetCarryover,
     setBudgetCarryover,
+  ] = useState(0);
+
+  const [
+    calendarOpeningCarryover,
+    setCalendarOpeningCarryover,
   ] = useState(0);
 
   const [
@@ -664,6 +692,8 @@ export default function CalendarPage() {
           );
 
           setBudgetCarryover(0);
+
+          setCalendarOpeningCarryover(0);
 
           setLoading(
             false,
@@ -1006,6 +1036,10 @@ export default function CalendarPage() {
               | null) ?? [],
           ) -
           previousNetSaving;
+
+        setCalendarOpeningCarryover(
+          openingCarryover,
+        );
 
         const selectedCarryover =
           openingCarryover +
@@ -1618,6 +1652,52 @@ export default function CalendarPage() {
     );
 
   /*
+   * 날짜별 사용 후 잔액
+   *
+   * 전월 5일 이전 이월액에서 날짜별 수익을 더하고
+   * 해당 날짜까지의 소비와 저금을 차감한다.
+   */
+  const balanceAfterByDate =
+    useMemo(
+      () => {
+        const result = new Map<string, number>();
+        let availableAmount = calendarOpeningCarryover;
+
+        const dataStart = new Date(
+          `${budgetDataRange.start}T00:00:00`,
+        );
+
+        const dataEnd = new Date(
+          `${budgetDataRange.end}T00:00:00`,
+        );
+
+        for (
+          const cursor = new Date(dataStart);
+          cursor < dataEnd;
+          cursor.setDate(cursor.getDate() + 1)
+        ) {
+          const date = formatDate(cursor);
+
+          availableAmount += incomeByDate.get(date) ?? 0;
+          availableAmount -= usedByDate.get(date) ?? 0;
+          availableAmount -= savingDifferenceByDate.get(date) ?? 0;
+
+          result.set(date, availableAmount);
+        }
+
+        return result;
+      },
+      [
+        budgetDataRange.end,
+        budgetDataRange.start,
+        calendarOpeningCarryover,
+        incomeByDate,
+        savingDifferenceByDate,
+        usedByDate,
+      ],
+    );
+
+  /*
    * 최고 소비 날짜
    */
   const highestDay =
@@ -1781,6 +1861,9 @@ export default function CalendarPage() {
               usedAmount:
                 0,
 
+              balanceAfter:
+                null,
+
               incomeAmount:
                 0,
 
@@ -1825,6 +1908,9 @@ export default function CalendarPage() {
 
           const incomeAmount =
             incomeByDate.get(date) ?? 0;
+
+          const balanceAfter =
+            balanceAfterByDate.get(date) ?? null;
 
           const savingDifference =
             savingDifferenceByDate.get(
@@ -1901,6 +1987,8 @@ export default function CalendarPage() {
 
               usedAmount,
 
+              balanceAfter,
+
               incomeAmount,
 
               savingDifference,
@@ -1938,6 +2026,9 @@ export default function CalendarPage() {
               usedAmount:
                 0,
 
+              balanceAfter:
+                null,
+
               incomeAmount:
                 0,
 
@@ -1965,6 +2056,7 @@ export default function CalendarPage() {
         currentRecommendedAmount,
         budgetRange.end,
         budgetRange.start,
+        balanceAfterByDate,
         incomeByDate,
         month,
         savingDifferenceByDate,
@@ -2610,11 +2702,29 @@ export default function CalendarPage() {
                   {item.currentMonth &&
                     item.usedAmount >
                       0 && (
-                      <small className="day-used">
-                        -{item.usedAmount.toLocaleString(
-                          "ko-KR",
+                      <div
+                        className="day-money-row"
+                        title={
+                          item.balanceAfter === null
+                            ? `사용 ${item.usedAmount.toLocaleString("ko-KR")}원`
+                            : `사용 ${item.usedAmount.toLocaleString("ko-KR")}원 · 사용 후 잔액 ${item.balanceAfter.toLocaleString("ko-KR")}원`
+                        }
+                        aria-label={
+                          item.balanceAfter === null
+                            ? `사용 금액 ${item.usedAmount.toLocaleString("ko-KR")}원`
+                            : `사용 금액 ${item.usedAmount.toLocaleString("ko-KR")}원, 사용 후 잔액 ${item.balanceAfter.toLocaleString("ko-KR")}원`
+                        }
+                      >
+                        <small className="day-used">
+                          -{formatCompactCalendarAmount(item.usedAmount)}
+                        </small>
+
+                        {item.balanceAfter !== null && (
+                          <small className="day-balance">
+                            잔 {formatCompactCalendarAmount(item.balanceAfter)}
+                          </small>
                         )}
-                      </small>
+                      </div>
                     )}
 
                   {/* 저금통 차액 */}

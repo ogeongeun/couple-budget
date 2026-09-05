@@ -280,7 +280,7 @@ button {
 .calendar-cell {
   position: relative;
   min-width: 0;
-  height: 74px;
+  height: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -319,9 +319,29 @@ button {
 .day-used {
   max-width: 100%;
   overflow: hidden;
-  margin-top: 7px;
   color: #5f5955;
   font-size: 8px;
+  font-weight: 700;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-money-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2px;
+  width: 100%;
+  margin-top: 7px;
+}
+
+.day-balance {
+  max-width: 100%;
+  overflow: hidden;
+  color: #2f9f66;
+  font-size: 7px;
+  font-weight: 700;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -852,10 +872,11 @@ button {
 
 @media (max-width: 370px) {
   .calendar-cell {
-    height: 68px;
+    height: 74px;
   }
 
-  .day-used {
+  .day-used,
+  .day-balance {
     font-size: 7px;
   }
 
