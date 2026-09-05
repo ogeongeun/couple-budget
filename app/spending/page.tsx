@@ -162,13 +162,13 @@ function getMonthRange(
   const start = new Date(
     year,
     month,
-    1,
+    5,
   );
 
   const end = new Date(
     year,
     month + 1,
-    1,
+    5,
   );
 
   return {
@@ -239,6 +239,17 @@ function SpendingPageContent() {
     : null;
 
   const now = new Date();
+  const requestedCycleDate =
+    requestedDate &&
+    !Number.isNaN(requestedDate.getTime())
+      ? requestedDate
+      : now;
+  const initialCycleDate = new Date(
+    requestedCycleDate.getFullYear(),
+    requestedCycleDate.getMonth() -
+      (requestedCycleDate.getDate() < 5 ? 1 : 0),
+    1,
+  );
 
   const [view, setView] =
     useState<ViewType>(initialView);
@@ -250,15 +261,11 @@ function SpendingPageContent() {
     );
 
   const [year, setYear] = useState(
-    requestedDate && !Number.isNaN(requestedDate.getTime())
-      ? requestedDate.getFullYear()
-      : now.getFullYear(),
+    initialCycleDate.getFullYear(),
   );
 
   const [month, setMonth] = useState(
-    requestedDate && !Number.isNaN(requestedDate.getTime())
-      ? requestedDate.getMonth()
-      : now.getMonth(),
+    initialCycleDate.getMonth(),
   );
 
   const [loading, setLoading] =
@@ -1008,7 +1015,8 @@ function SpendingPageContent() {
           </button>
 
           <strong>
-            🗓️ {month + 1}월
+            🗓️ {month + 1}월 5일~
+            {month === 11 ? 1 : month + 2}월 4일
           </strong>
 
           <button
@@ -1072,7 +1080,8 @@ function SpendingPageContent() {
             </strong>
 
             <p>
-              {year}년 {month + 1}월
+              {year}년 {month + 1}월 5일~
+              {month === 11 ? 1 : month + 2}월 4일
             </p>
           </div>
 
@@ -1092,7 +1101,7 @@ function SpendingPageContent() {
             <span>💸</span>
 
             <strong>
-              이번 달 소비 기록이 없어요
+              이번 예산 기간 소비 기록이 없어요
             </strong>
 
             <p>
@@ -1549,7 +1558,8 @@ function CategoryDetail({
           </button>
 
           <strong>
-            🗓️ {month + 1}월
+            🗓️ {month + 1}월 5일~
+            {month === 11 ? 1 : month + 2}월 4일
           </strong>
 
           <button

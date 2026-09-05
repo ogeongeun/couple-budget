@@ -181,11 +181,11 @@ function getMonthRange(
 ) {
   return {
     start: formatDate(
-      new Date(year, month, 1),
+      new Date(year, month, 5),
     ),
 
     end: formatDate(
-      new Date(year, month + 1, 1),
+      new Date(year, month + 1, 5),
     ),
   };
 }
@@ -233,16 +233,22 @@ function getDifferenceText(
 export default function StatisticsPage() {
   const router = useRouter();
   const now = new Date();
+  const initialCycleDate = new Date(
+    now.getFullYear(),
+    now.getMonth() -
+      (now.getDate() < 5 ? 1 : 0),
+    1,
+  );
 
   const [view, setView] =
     useState<ViewType>("me");
 
   const [year, setYear] = useState(
-    now.getFullYear(),
+    initialCycleDate.getFullYear(),
   );
 
   const [month, setMonth] = useState(
-    now.getMonth(),
+    initialCycleDate.getMonth(),
   );
 
   const [loading, setLoading] =
@@ -334,7 +340,7 @@ export default function StatisticsPage() {
   const sixMonthStart = useMemo(
     () =>
       formatDate(
-        new Date(year, month - 5, 1),
+        new Date(year, month - 5, 5),
       ),
     [year, month],
   );
@@ -1320,7 +1326,9 @@ export default function StatisticsPage() {
           return {
             year: targetYear,
             month: targetMonth,
-            label: `${targetMonth + 1}월`,
+            label: `${targetMonth + 1}월 5일~${
+              targetMonth === 11 ? 1 : targetMonth + 2
+            }월 4일`,
             amount:
               sumAmount(expenses),
             budget:
@@ -1660,7 +1668,8 @@ export default function StatisticsPage() {
           </button>
 
           <strong>
-            🗓️ {month + 1}월
+            🗓️ {month + 1}월 5일~
+            {month === 11 ? 1 : month + 2}월 4일
           </strong>
 
           <button
@@ -1715,7 +1724,7 @@ export default function StatisticsPage() {
         <div className="analysis-speech">
           <strong>
             {selectedNickname}님은
-            지난달보다
+            이전 기간보다
             <br />
             {Math.abs(
               difference,
@@ -1756,7 +1765,7 @@ export default function StatisticsPage() {
 
       <section className="analysis-summary-card">
         <h2>
-          {selectedNickname}님의 이번 달
+          {selectedNickname}님의 이번 예산 기간
         </h2>
 
         <div className="analysis-summary-grid">
@@ -1770,7 +1779,7 @@ export default function StatisticsPage() {
           />
 
           <SummaryItem
-            label="지난달 대비"
+            label="이전 기간 대비"
             value={`${
               changeRate > 0
                 ? "+"
@@ -2410,7 +2419,7 @@ export default function StatisticsPage() {
 
         <p className="couple-comparison-message">
           {myExpense === partnerExpense
-            ? "이번 달 소비 금액이 같아요."
+            ? "이번 예산 기간 소비 금액이 같아요."
             : myExpense > partnerExpense
               ? `${myNickname}님이 ${(
                   myExpense -
