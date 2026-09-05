@@ -334,6 +334,9 @@ export default function HomePage() {
   const [used, setUsed] =
     useState(0);
 
+  const [balanceAdjustment, setBalanceAdjustment] =
+    useState(0);
+
   const [myStatsUsed, setMyStatsUsed] =
     useState(0);
 
@@ -762,7 +765,8 @@ export default function HomePage() {
           my_share,
           partner_share,
           settled_amount,
-          settlement_status
+          settlement_status,
+          source_type
         `)
         .eq("couple_id", coupleId)
         .gte(
@@ -928,6 +932,7 @@ export default function HomePage() {
         );
 
         setUsed(0);
+        setBalanceAdjustment(0);
         setPartnerUsed(0);
 
         setMyChartCategories([]);
@@ -949,7 +954,19 @@ export default function HomePage() {
       const myExpenses =
         allExpenses.filter(
           (expense) =>
-            expense.user_id === userId,
+            expense.user_id === userId &&
+            expense.source_type !== "balance_adjustment",
+        );
+
+      const myBalanceAdjustment = allExpenses
+        .filter(
+          (expense) =>
+            expense.user_id === userId &&
+            expense.source_type === "balance_adjustment",
+        )
+        .reduce(
+          (sum, expense) => sum + Number(expense.amount || 0),
+          0,
         );
 
       const partnerExpenses =
@@ -993,6 +1010,7 @@ export default function HomePage() {
         );
 
       setUsed(myUsedAmount);
+      setBalanceAdjustment(myBalanceAdjustment);
 
       setPartnerUsed(
         sumAmounts(partnerStatsExpenses),
@@ -1221,7 +1239,8 @@ export default function HomePage() {
   const remaining =
     budget -
     used -
-    netSavingThisMonth;
+    netSavingThisMonth -
+    balanceAdjustment;
 
   /*
    * 저금은 소비가 아니기 때문에
@@ -1691,7 +1710,7 @@ export default function HomePage() {
           setIncomeOpen(false)
         }
         coupleId={coupleId}
-        currentBudget={budget}
+        currentBudget={budget - netSavingThisMonth - balanceAdjustment}
         usedAmount={used}
         onSave={handleIncomeSave}
       />

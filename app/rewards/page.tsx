@@ -52,7 +52,7 @@ export default function RewardsPage() {
       supabase.from("reward_tickets").select("balance").eq("user_id",user.id).maybeSingle(),
       supabase.from("equipped_reward_items").select("category,item_id"),
       supabase.from("incomes").select("amount").eq("user_id",user.id).gte("income_date",date(monthStart)).lt("income_date",date(nextMonth)),
-      supabase.from("expenses").select("amount").eq("user_id",user.id).gte("expense_date",date(weekStart)).lt("expense_date",date(nextWeek)),
+      supabase.from("expenses").select("amount").eq("user_id",user.id).or("source_type.is.null,source_type.neq.balance_adjustment").gte("expense_date",date(weekStart)).lt("expense_date",date(nextWeek)),
     ]);
     const monthlyBudget=(incomeResult.data??[]).reduce((sum,row)=>sum+Number(row.amount??0),0);
     const weeklySpent=(expenseResult.data??[]).reduce((sum,row)=>sum+Number(row.amount??0),0);

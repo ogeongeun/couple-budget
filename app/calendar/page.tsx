@@ -376,6 +376,11 @@ export default function CalendarPage() {
     >([]);
 
   const [
+    balanceAdjustments,
+    setBalanceAdjustments,
+  ] = useState<ExpenseRecord[]>([]);
+
+  const [
     savings,
     setSavings,
   ] =
@@ -656,6 +661,8 @@ export default function CalendarPage() {
           setExpenses(
             [],
           );
+
+          setBalanceAdjustments([]);
 
           setSavings(
             [],
@@ -965,6 +972,14 @@ export default function CalendarPage() {
               | null
           ) ?? [];
 
+        const loadedBalanceAdjustments = loadedExpenses.filter(
+          (expense) => expense.source_type === "balance_adjustment",
+        );
+
+        const loadedConsumptionExpenses = loadedExpenses.filter(
+          (expense) => expense.source_type !== "balance_adjustment",
+        );
+
         const loadedSavings =
           (
             savingResult.data as
@@ -1053,8 +1068,10 @@ export default function CalendarPage() {
         );
 
         setExpenses(
-          loadedExpenses,
+          loadedConsumptionExpenses,
         );
+
+        setBalanceAdjustments(loadedBalanceAdjustments);
 
         setSavings(
           loadedSavings,
@@ -1154,7 +1171,7 @@ export default function CalendarPage() {
                 number
               >();
 
-            loadedExpenses.forEach(
+            loadedConsumptionExpenses.forEach(
               (
                 expense,
               ) => {
@@ -1174,6 +1191,16 @@ export default function CalendarPage() {
                 );
               },
             );
+
+            const adjustmentMap = new Map<string, number>();
+
+            loadedBalanceAdjustments.forEach((adjustment) => {
+              adjustmentMap.set(
+                adjustment.expense_date,
+                (adjustmentMap.get(adjustment.expense_date) ?? 0) +
+                  Number(adjustment.amount || 0),
+              );
+            });
 
             const savingMap =
               new Map<
@@ -1277,6 +1304,8 @@ export default function CalendarPage() {
                 ) ??
                 0;
 
+              const adjustmentAmount = adjustmentMap.get(date) ?? 0;
+
               snapshotRows.push(
                 {
                   user_id:
@@ -1308,6 +1337,9 @@ export default function CalendarPage() {
 
               usableAmount -=
                 savingDifference;
+
+              usableAmount -=
+                adjustmentAmount;
             }
 
             const {
@@ -1493,6 +1525,21 @@ export default function CalendarPage() {
       ],
     );
 
+  const monthlyBalanceAdjustment = useMemo(
+    () =>
+      balanceAdjustments
+        .filter(
+          (adjustment) =>
+            adjustment.expense_date >= budgetRange.start &&
+            adjustment.expense_date < budgetRange.end,
+        )
+        .reduce(
+          (sum, adjustment) => sum + Number(adjustment.amount || 0),
+          0,
+        ),
+    [balanceAdjustments, budgetRange.end, budgetRange.start],
+  );
+
   /*
    * 현재 사용 가능 예산
    *
@@ -1506,7 +1553,8 @@ export default function CalendarPage() {
     monthlyBudget -
     monthlyUsed -
     monthlySaved +
-    monthlyWithdrawn;
+    monthlyWithdrawn -
+    monthlyBalanceAdjustment;
 
   /*
    * 날짜별 소비
@@ -1680,6 +1728,14 @@ export default function CalendarPage() {
           });
         });
 
+        balanceAdjustments.forEach((adjustment) => {
+          addEvent(adjustment.expense_date, {
+            id: adjustment.id,
+            createdAt: adjustment.created_at,
+            change: -Number(adjustment.amount || 0),
+          });
+        });
+
         savings.forEach((saving) => {
           addEvent(saving.saving_date, {
             id: saving.id,
@@ -1734,6 +1790,7 @@ export default function CalendarPage() {
         budgetDataRange.end,
         budgetDataRange.start,
         calendarOpeningCarryover,
+        balanceAdjustments,
         expenses,
         incomes,
         savings,

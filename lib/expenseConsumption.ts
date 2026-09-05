@@ -27,7 +27,8 @@ export function buildConsumptionExpenses<T extends ConsumptionExpense>(
   return expenses.flatMap((expense) => {
     if (
       expense.source_type === "settlement" ||
-      expense.source_type === "settlement_payment"
+      expense.source_type === "settlement_payment" ||
+      expense.source_type === "balance_adjustment"
     ) {
       return [];
     }

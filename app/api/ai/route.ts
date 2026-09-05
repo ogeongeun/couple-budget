@@ -149,7 +149,7 @@ export async function POST(request: Request) {
     supabase.from("profiles").select("id, nickname").eq("couple_id", profile.couple_id),
     supabase
       .from("expenses")
-      .select("user_id, amount, category, title, expense_date, use_type, payment_type, payer_id")
+      .select("user_id, amount, category, title, expense_date, use_type, payment_type, payer_id, source_type")
       .eq("couple_id", profile.couple_id)
       .order("expense_date", { ascending: false })
       .limit(500),
@@ -161,7 +161,7 @@ export async function POST(request: Request) {
       .limit(200),
     supabase
       .from("expenses")
-      .select("amount")
+      .select("amount, source_type")
       .eq("user_id", user.id)
       .gte("expense_date", weekRange.start)
       .lt("expense_date", weekRange.end),
@@ -185,7 +185,10 @@ export async function POST(request: Request) {
   const nicknameById = Object.fromEntries(
     (profilesResult.data ?? []).map((item) => [item.id, item.nickname ?? "사용자"]),
   );
-  const expenses = (expensesResult.data ?? []).map((expense) => ({
+  const consumptionRows = (expensesResult.data ?? []).filter(
+    (expense) => expense.source_type !== "balance_adjustment",
+  );
+  const expenses = consumptionRows.map((expense) => ({
     사용자: nicknameById[expense.user_id] ?? "사용자",
     금액: Number(expense.amount || 0),
     카테고리: expense.category,
@@ -202,7 +205,7 @@ export async function POST(request: Request) {
     내용: income.memo || income.category,
     날짜: income.income_date,
   }));
-  const myHistoricalExpenses = (expensesResult.data ?? [])
+  const myHistoricalExpenses = consumptionRows
     .filter((expense) => expense.user_id === user.id)
     .map((expense) => ({
       금액: Number(expense.amount || 0),
@@ -287,7 +290,10 @@ export async function POST(request: Request) {
   const weeklyBudget = Math.round(mySummary.총소득 / 4);
   const weeklyLimit = weeklyBudget;
   const weeklySpent = (weeklyExpensesResult.data ?? []).reduce(
-    (sum, expense) => sum + Number(expense.amount || 0),
+    (sum, expense) =>
+      expense.source_type === "balance_adjustment"
+        ? sum
+        : sum + Number(expense.amount || 0),
     0,
   );
   const weeklyRemaining = Math.max(weeklyLimit - weeklySpent, 0);
@@ -388,7 +394,7 @@ export async function POST(request: Request) {
       };
 
       if (metric === "expense" || metric === "net") {
-        for (const expense of expensesResult.data ?? []) {
+        for (const expense of consumptionRows) {
           if (inPeriod(expense.expense_date) && inScope(expense.user_id)) {
             addPoint(
               expense.expense_date,
