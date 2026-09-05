@@ -133,6 +133,10 @@ const chartCategoryInfo = [
   color: "#f39ab5",
 },
   {
+    name: "돈지랄",
+    color: "#ef6f6c",
+  },
+  {
     name: "기타",
     color: "#bdbdbd",
   },

@@ -65,6 +65,7 @@ const categories = [
     icon: "💊",
   },
 { name: "미용", icon: "💄" },
+  { name: "돈지랄", icon: "💸" },
   {
     name: "기타",
     icon: "＋",

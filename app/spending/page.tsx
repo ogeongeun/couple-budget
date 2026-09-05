@@ -123,6 +123,10 @@ const categoryInfo: Record<
   icon: "💄",
   color: "#f39ab5",
 },
+  돈지랄: {
+    icon: "💸",
+    color: "#ef6f6c",
+  },
   기타: {
     icon: "•••",
     color: "#bdbdbd",
@@ -138,6 +142,7 @@ const categoryNames = [
   "생활비",
   "의료",
   "미용",
+  "돈지랄",
   "기타",
 ];
 

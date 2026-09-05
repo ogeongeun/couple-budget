@@ -38,6 +38,7 @@ const expenseCategories = [
   "생활비",
   "의료",
   "미용",
+  "돈지랄",
   "기타",
 ] as const;
 

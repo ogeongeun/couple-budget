@@ -165,6 +165,11 @@ const categoryInfo: Record<
     color: "#f39ab5",
   },
 
+  돈지랄: {
+    icon: "💸",
+    color: "#ef6f6c",
+  },
+
   기타: {
     icon: "•••",
     color: "#aaa5a0",
